@@ -57,10 +57,10 @@ const Header = () => {
 
         {/* Desktop Navigation Links */}
         <div className={`hidden md:flex items-center space-x-8`}>
-          <Link to="event" className='text-black hover:text-custom-blue'>Event</Link>
-          <Link to="about-us" className='text-black hover:text-custom-blue'>About Us</Link>
-          <Link to="contact-us" className='text-black hover:text-custom-blue'>Contact Us</Link>
-          <Link to="how-work" className='text-black hover:text-custom-blue'>How Work</Link>
+          <Link to="/event" className='text-black hover:text-custom-blue'>Event</Link>
+          <Link to="/about-us" className='text-black hover:text-custom-blue'>About Us</Link>
+          <Link to="/contact-us" className='text-black hover:text-custom-blue'>Contact Us</Link>
+          <Link to="/how-work" className='text-black hover:text-custom-blue'>How Work</Link>
 
           {/* Login As Dropdown */}
           <div className='relative'>
@@ -108,25 +108,25 @@ const Header = () => {
 
           {/* Sidebar Links */}
           <Link 
-            to="event" 
+            to="/event" 
             className='text-black hover:text-custom-blue mb-4 py-2 border-b-2 border-transparent hover:border-custom-blue'
             onClick={handleCloseSidebar}>
             Event
           </Link>
           <Link 
-            to="about-us" 
+            to="/about-us" 
             className='text-black hover:text-custom-blue mb-4 py-2 border-b-2 border-transparent hover:border-custom-blue'
             onClick={handleCloseSidebar}>
             About Us
           </Link>
           <Link 
-            to="contact-us" 
+            to="/contact-us" 
             className='text-black hover:text-custom-blue mb-4 py-2 border-b-2 border-transparent hover:border-custom-blue'
             onClick={handleCloseSidebar}>
             Contact Us
           </Link>
           <Link 
-            to="how-work" 
+            to="/how-work" 
             className='text-black hover:text-custom-blue mb-4 py-2 border-b-2 border-transparent hover:border-custom-blue'
             onClick={handleCloseSidebar}>
             How Work
