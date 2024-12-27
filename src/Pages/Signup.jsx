@@ -24,7 +24,7 @@ const Signup = () => {
 
     // Dummy sign-up logic (replace with real sign-up functionality)
     alert('Sign up successful');
-    navigate('../Pages/Login.jsx');
+    navigate('/login');
   };
 
   return (

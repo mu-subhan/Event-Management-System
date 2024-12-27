@@ -3,7 +3,7 @@ import React from 'react';
 const HowWork = () => {
   return (
     <>
-    <div className="bg-gray-100 py-16 px-28 ">
+    <div className="bg-gray-100 py-16 px-12 ">
         
       {/* Section Heading */}
       <h2 className="text-3xl  text-custom-blue font-bold text-center mb-8">

@@ -7,6 +7,11 @@ const Login = () => {
   const [error,setError] = useState('');
   const navigate = useNavigate();
 
+
+// const navigate=useNavigate()
+// const location=useLocation(); for url changing controling
+// const isAdmin=location.pathname.startsWith("/admin);
+
  const handleLogin= (e) =>{
     e.preventDefault();
 
@@ -16,7 +21,7 @@ const Login = () => {
     }
     if(email === 'user@example.com' && password === 'password123'){
         alert('Login Successful');
-        //navigate("dashboard");
+        navigate("/dashboard");
     }else{
         setError('Invalid credentials')
     }
@@ -68,7 +73,7 @@ Login
        <div className='mt-4 text-center'>
         <p className='text-sm text-gray-600'>
             Don't have an account?{' '}
-            <button onClick={()=>navigate('../Pages/Signup')}
+            <button onClick={()=>navigate('/signup')}
             className='text-blue-500 hover:text-blue-700 font-medium'>
                 Sign Up
             </button>
