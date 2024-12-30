@@ -4,7 +4,8 @@ import event from "../../Assessts/event.jpg";
 import AboutUs from './About';
 import { Link } from 'react-router-dom';
 import ContactUs from './ContactUs';
-import HowWork from './HowWork';
+import Features from './Features';
+import FAQ from './FAQ';
 
 const Header = () => {
   const [showOptions, setShowOptions] = useState(false);
@@ -60,8 +61,8 @@ const Header = () => {
           <Link to="/event" className='text-black hover:text-custom-blue'>Event</Link>
           <Link to="/about-us" className='text-black hover:text-custom-blue'>About Us</Link>
           <Link to="/contact-us" className='text-black hover:text-custom-blue'>Contact Us</Link>
-          <Link to="/how-work" className='text-black hover:text-custom-blue'>How Work</Link>
-
+          <Link to="/how-work" className='text-black hover:text-custom-blue'>Features</Link>
+          <Link to="/faq-section" className='text-black hover:text-custom-blue'>FAQ</Link>
           {/* Login As Dropdown */}
           <div className='relative'>
             <button
@@ -126,10 +127,15 @@ const Header = () => {
             Contact Us
           </Link>
           <Link 
-            to="/how-work" 
+            to="/features" 
             className='text-black hover:text-custom-blue mb-4 py-2 border-b-2 border-transparent hover:border-custom-blue'
             onClick={handleCloseSidebar}>
             How Work
+          </Link>
+          <Link 
+          to='/faq-section' className='text-black hover:text-custom-blue mb-4 py-2 border-b-2 border-transparent hover:border-custom-blue'
+          onClick={handleCloseSidebar}>
+            FAQ
           </Link>
 
           {/* Login As Dropdown */}
@@ -190,7 +196,8 @@ const Header = () => {
           </div>
         </div>
       </section>
-
+      <Features/>
+      <FAQ/>
       <AboutUs />
     </>
   );
