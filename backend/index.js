@@ -1,22 +1,37 @@
+const app = require("./app");
+const cloudinary = require("cloudinary");
 const dotenv = require("dotenv");
-const express = require("express");
-const app = express();
-
-// .env Configuration
 dotenv.config();
-
-// custom import
-const connecttoDB = require("./db/Database");
-const port = 3001;
-
-// connection with db
-connecttoDB();
-
-// routes
-app.get("/", (req, res) => {
-  res.send("Hello World!");
+// Handling uncaught Exception
+process.on("uncaughtException", (err) => {
+  console.log(`Error: ${err.message}`);
+  console.log(`shutting down the server for handling uncaught exception`);
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+// config
+if (process.env.NODE_ENV !== "PRODUCTION") {
+  require("dotenv").config({
+    path: "config/.env",
+  });
+}
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// create server
+const server = app.listen(process.env.PORT, () => {
+  console.log(`Server is running on http://localhost:${process.env.PORT}`);
+});
+
+// unhandled promise rejection
+process.on("unhandledRejection", (err) => {
+  console.log(`Shutting down the server for ${err.message}`);
+  console.log(`shutting down the server for unhandle promise rejection`);
+
+  server.close(() => {
+    process.exit(1);
+  });
 });
