@@ -4,6 +4,10 @@ class userValidation {
   async createUserValidation(req, res, next) {
     try {
       console.log("uservalidation run! req.boy: ", req.body);
+      // const input = await JSON.parse(req.body);
+      // console.log("input is: ", input);
+      req.body.skills = JSON.parse(req.body.skills);
+      req.body.interests = JSON.parse(req.body.interests);
 
       const result = userSchema.validate(req.body);
       const { value, error } = result;

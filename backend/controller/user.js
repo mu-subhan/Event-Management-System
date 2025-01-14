@@ -14,8 +14,8 @@ const { upload } = require("../config/multer");
 // create user
 router.post(
   "/create-user",
+  upload.single("avatar"),
   userValidator.createUserValidation,
-  upload.single("file"),
   async (req, res, next) => {
     try {
       console.log("APi End POint Hit!");
@@ -30,16 +30,23 @@ router.post(
         experienceYears,
         description,
       } = req.body;
-      const userEmail = await prisma.User.findUnique({ email });
+      console.log("req.file is: ", req.file);
+      console.log("vatatr Is: ", avatar);
+      // console.log("Prisma is: ", prisma);
+      const userEmail = await prisma.User.findUnique({
+        where: {
+          email: email, // Replace `email` with the actual email variable
+        },
+      });
 
       if (userEmail) {
         return next(new ErrorHandler("User already exists", 400));
       }
-
-      const myCloud = await cloudinary.v2.uploader.upload(avatar, {
+      console.log("Before Image Upload");
+      const myCloud = await cloudinary.v2.uploader.upload(req.file.path, {
         folder: "FYP",
       });
-
+      console.log("Image UPload mycloud: ", myCloud);
       const user = {
         name: name,
         email: email,
@@ -54,10 +61,10 @@ router.post(
         experienceYears,
         description,
       };
-
+      console.log("user is: ", user);
       const activationToken = createActivationToken(user);
       const activationUrl = `${process.env.frontendUrl}/activation/${activationToken}`;
-
+      console.log("Activation Url Generated!", activationUrl);
       try {
         await sendMail({
           email: user.email,
