@@ -19,14 +19,14 @@ model User {
   email           String    @unique
   password        String
   contactNumber   String?   // Optional for both roles
-  role            Role
+  role            Role     @default(VOLUNTEER) // Set the default role to VOLUNTEER
   skills          Json?     // For volunteers, null for admins
   interests       Json?     // For volunteers, null for admins
   experienceYears Int?      @default(0) // Default 0, for volunteers
-  profileImage    String?   // Optional for volunteers
+  profileImage    Json?   // Optional for volunteers
   description     String?   // For volunteers, null for admins
   createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  updatedAt       DateTime?  @updatedAt
 }
 
 enum Role {

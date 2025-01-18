@@ -11,6 +11,12 @@ const { isAuthenticated, isAdmin } = require("../middleware/auth");
 const prisma = require("../db/db.server");
 const userValidator = require("../validation/Validator/user");
 const { upload } = require("../config/multer");
+// user helper function
+const {
+  comparePassword,
+  getJwtToken,
+  preSaveUser,
+} = require("../helper/createuser");
 // create user
 router.post(
   "/create-user",
@@ -42,18 +48,14 @@ router.post(
       if (userEmail) {
         return next(new ErrorHandler("User already exists", 400));
       }
-      console.log("Before Image Upload");
-      const myCloud = await cloudinary.v2.uploader.upload(req.file.path, {
-        folder: "FYP",
-      });
-      console.log("Image UPload mycloud: ", myCloud);
+
       const user = {
         name: name,
         email: email,
         password: password,
         avatar: {
-          public_id: myCloud.public_id,
-          url: myCloud.secure_url,
+          public_id: req.file.filename,
+          url: req.file.path,
         },
         contactNumber,
         skills,
@@ -106,22 +108,44 @@ router.post(
       if (!newUser) {
         return next(new ErrorHandler("Invalid token", 400));
       }
-      const { name, email, password, avatar } = newUser;
-
-      let user = await User.findOne({ email });
+      const {
+        name,
+        email,
+        password,
+        avatar,
+        contactNumber,
+        skills,
+        interests,
+        experienceYears,
+        description,
+      } = newUser;
+      console.log("new User IS: ", newUser);
+      let user = await prisma.User.findUnique({
+        where: {
+          email: email, // Replace `email` with the actual email variable
+        },
+      });
 
       if (user) {
         return next(new ErrorHandler("User already exists", 400));
       }
-      user = await User.create({
-        name,
-        email,
-        avatar,
-        password,
+      user = await prisma.User.create({
+        data: {
+          name,
+          email,
+          password,
+          profileImage: avatar,
+          contactNumber,
+          skills,
+          interests,
+          experienceYears: Number(experienceYears),
+          description,
+        },
       });
 
       sendToken(user, 201, res);
     } catch (error) {
+      console.log("error is: ", error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
