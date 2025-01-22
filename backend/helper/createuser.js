@@ -8,7 +8,7 @@ preSaveUser = async (password) => {
 // jwt token
 getJwtToken = async function (id) {
   try {
-    console.log("JWT TOKEN GEnerate Function Run ! ");
+    console.log("JWT TOKEN GEnerate Function Run ! ", id);
     const token = jwt.sign({ id: id }, process.env.JWT_SECRET_KEY);
     console.log("User Token Genrated : ", token);
     return token;
@@ -19,9 +19,9 @@ getJwtToken = async function (id) {
 };
 
 // compare password
-comparePassword = async function (enteredPassword) {
+comparePassword = async function (enteredPassword, storedPassword) {
   // console.log("COmparison Function run ", this.password);
-  return await bcrypt.compare(enteredPassword, this.password);
+  return await bcrypt.compare(enteredPassword, storedPassword);
 };
 
 module.exports = { comparePassword, getJwtToken, preSaveUser };

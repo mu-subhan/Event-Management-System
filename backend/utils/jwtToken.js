@@ -1,6 +1,12 @@
+const {
+  preSaveUser,
+  getJwtToken,
+  comparePassword,
+} = require("../helper/createuser");
 // create token and saving that in cookies
 const sendToken = (user, statusCode, res) => {
-  const token = user.getJwtToken();
+  console.log("user is :", user);
+  const token = getJwtToken(user.id);
 
   // Options for cookies
   const options = {

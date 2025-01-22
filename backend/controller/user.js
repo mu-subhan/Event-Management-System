@@ -17,6 +17,7 @@ const {
   getJwtToken,
   preSaveUser,
 } = require("../helper/createuser");
+
 // create user
 router.post(
   "/create-user",
@@ -36,8 +37,6 @@ router.post(
         experienceYears,
         description,
       } = req.body;
-      console.log("req.file is: ", req.file);
-      console.log("vatatr Is: ", avatar);
       // console.log("Prisma is: ", prisma);
       const userEmail = await prisma.User.findUnique({
         where: {
@@ -63,10 +62,8 @@ router.post(
         experienceYears,
         description,
       };
-      console.log("user is: ", user);
       const activationToken = createActivationToken(user);
       const activationUrl = `${process.env.frontendUrl}/activation/${activationToken}`;
-      console.log("Activation Url Generated!", activationUrl);
       try {
         await sendMail({
           email: user.email,
@@ -119,7 +116,7 @@ router.post(
         experienceYears,
         description,
       } = newUser;
-      console.log("new User IS: ", newUser);
+
       let user = await prisma.User.findUnique({
         where: {
           email: email, // Replace `email` with the actual email variable
@@ -133,7 +130,7 @@ router.post(
         data: {
           name,
           email,
-          password,
+          password: await preSaveUser(password),
           profileImage: avatar,
           contactNumber,
           skills,
@@ -162,13 +159,19 @@ router.post(
         return next(new ErrorHandler("Please provide the all fields!", 400));
       }
 
-      const user = await User.findOne({ email }).select("+password");
-
+      const user = await prisma.User.findUnique({
+        where: { email: email },
+        select: {
+          id: true,
+          password: true,
+          email: true,
+        },
+      });
       if (!user) {
         return next(new ErrorHandler("User doesn't exists!", 400));
       }
 
-      const isPasswordValid = await user.comparePassword(password);
+      const isPasswordValid = await comparePassword(password, user.password);
 
       if (!isPasswordValid) {
         return next(
@@ -189,15 +192,16 @@ router.get(
   isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const user = await User.findById(req.user.id);
+      // const user =
+      //  await User.findById(req.user.id);
 
-      if (!user) {
+      if (!req.user) {
         return next(new ErrorHandler("User doesn't exists", 400));
       }
 
       res.status(200).json({
         success: true,
-        user,
+        user: req.user,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -232,31 +236,47 @@ router.put(
   isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const { email, password, phoneNumber, name } = req.body;
+      const {
+        email,
+        password,
+        contactNumber,
+        skills,
+        interests,
+        experienceYears,
+        description,
+        name,
+      } = req.body;
 
-      const user = await User.findOne({ email }).select("+password");
+      const user = await prisma.User.findUnique({ where: { email } });
 
       if (!user) {
         return next(new ErrorHandler("User not found", 400));
       }
 
-      const isPasswordValid = await user.comparePassword(password);
+      const isPasswordValid = await comparePassword(password, user.password);
 
       if (!isPasswordValid) {
         return next(
           new ErrorHandler("Please provide the correct information", 400)
         );
       }
-
-      user.name = name;
-      user.email = email;
-      user.phoneNumber = phoneNumber;
-
-      await user.save();
+      const updatedUser = await prisma.User.update({
+        where: { email: email },
+        data: {
+          name,
+          email,
+          password,
+          contactNumber,
+          skills,
+          interests,
+          experienceYears,
+          description,
+        },
+      });
 
       res.status(201).json({
         success: true,
-        user,
+        user: updatedUser,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
