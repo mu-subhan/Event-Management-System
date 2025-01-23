@@ -26,11 +26,11 @@ router.post(
   async (req, res, next) => {
     try {
       console.log("APi End POint Hit!");
+      console.log("req.file is: ", req.file);
       const {
         name,
         email,
         password,
-        avatar,
         contactNumber,
         skills,
         interests,
@@ -78,6 +78,7 @@ router.post(
         return next(new ErrorHandler(error.message, 500));
       }
     } catch (error) {
+      console.log("erro is: ", error);
       return next(new ErrorHandler(error.message, 400));
     }
   }
@@ -288,30 +289,29 @@ router.put(
 router.put(
   "/update-avatar",
   isAuthenticated,
+  upload.single("avatar"),
   catchAsyncErrors(async (req, res, next) => {
     try {
-      let existsUser = await User.findById(req.user.id);
-      if (req.body.avatar !== "") {
-        const imageId = existsUser.avatar.public_id;
-
+      let updatedProfilePic = {};
+      if (req.file) {
+        const imageId = req.user.profileImage.public_id;
         await cloudinary.v2.uploader.destroy(imageId);
-
-        const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
-          folder: "avatars",
-          width: 150,
-        });
-
-        existsUser.avatar = {
-          public_id: myCloud.public_id,
-          url: myCloud.secure_url,
+        updatedProfilePic = {
+          public_id: req.file.filename,
+          url: req.file.path,
         };
       }
 
-      await existsUser.save();
+      const updatedUser = await prisma.User.update({
+        where: { email: req.user.email },
+        data: {
+          profileImage: updatedProfilePic,
+        },
+      });
 
       res.status(200).json({
         success: true,
-        user: existsUser,
+        user: updatedUser,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -390,10 +390,10 @@ router.put(
   isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const user = await User.findById(req.user.id).select("+password");
-
-      const isPasswordMatched = await user.comparePassword(
-        req.body.oldPassword
+      if (!req.user) throw new Error("Authentication Failed!");
+      const isPasswordMatched = await comparePassword(
+        req.body.oldPassword,
+        req.user.password
       );
 
       if (!isPasswordMatched) {
@@ -405,10 +405,15 @@ router.put(
           new ErrorHandler("Password doesn't matched with each other!", 400)
         );
       }
-      user.password = req.body.newPassword;
 
-      await user.save();
-
+      const hashpassword = await preSaveUser(req.body.newPassword);
+      console.log("hashpassword : ", hashpassword);
+      const updatedUser = await prisma.User.update({
+        where: { email: req.user.email },
+        data: {
+          password: hashpassword,
+        },
+      });
       res.status(200).json({
         success: true,
         message: "Password updated successfully!",
