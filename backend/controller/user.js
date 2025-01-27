@@ -429,13 +429,15 @@ router.get(
   "/user-info/:id",
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const user = await User.findById(req.params.id);
-
+      const user = await prisma.User.findUnique({
+        where: { id: Number(req.params.id) },
+      });
       res.status(201).json({
         success: true,
         user,
       });
     } catch (error) {
+      console.log("erro is: ", error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
@@ -448,8 +450,10 @@ router.get(
   isAdmin("Admin"),
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const users = await User.find().sort({
-        createdAt: -1,
+      const users = await await prisma.User.findMany({
+        orderBy: {
+          createdAt: "asc", // Ascending order
+        },
       });
       res.status(201).json({
         success: true,
@@ -468,7 +472,10 @@ router.delete(
   isAdmin("Admin"),
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const user = await User.findById(req.params.id);
+      const user = await prisma.User.findUnique({
+        where: { id: Number(req.params.id) },
+      });
+      // const user = await User.findById(req.params.id);
 
       if (!user) {
         return next(
@@ -480,8 +487,12 @@ router.delete(
 
       await cloudinary.v2.uploader.destroy(imageId);
 
-      await User.findByIdAndDelete(req.params.id);
-
+      // await User.findByIdAndDelete(req.params.id);
+      await prisma.User.delete({
+        where: {
+          id: Number(req.params.id),
+        },
+      });
       res.status(201).json({
         success: true,
         message: "User deleted successfully!",
