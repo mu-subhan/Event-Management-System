@@ -27,9 +27,33 @@ model User {
   description     String?   // For volunteers, null for admins
   createdAt       DateTime  @default(now())
   updatedAt       DateTime?  @updatedAt
+  events        Event[]  // A user (admin) can manage multiple events
+
 }
 
 enum Role {
   ADMIN
   VOLUNTEER
+}
+
+model Event {
+  id          Int       @id @default(autoincrement())
+  adminId     Int
+  title       String
+  description String
+  date        DateTime
+  time        DateTime
+  location    String   // Optional
+  status      Status    @default(PENDING)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  admin       User      @relation(fields: [adminId], references: [id])
+  @@map("events") 
+}
+
+enum Status {
+  UPCOMING
+  PENDING
+  ONGOING
+  COMPLETED
 }
