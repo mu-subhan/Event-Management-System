@@ -10,3 +10,17 @@ body {
 html {
   scroll-behavior: smooth;
 }
+/* Keyframes for continuous rotation */
+@keyframes rotateImage {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(45deg);
+  }
+}
+
+/* Apply the continuous rotation with ease-in-out */
+.rotate-animation {
+  animation: rotateImage 3s ease-in-out infinite;
+}
