@@ -19,7 +19,7 @@ model User {
   email           String    @unique
   password        String
   contactNumber   String?   // Optional for both roles
-  role            Role     @default(VOLUNTEER) // Set the default role to VOLUNTEER
+  role            String      @default("volunteer") // Set the default role to VOLUNTEER
   skills          Json?     // For volunteers, null for admins
   interests       Json?     // For volunteers, null for admins
   experienceYears Int?      @default(0) // Default 0, for volunteers
@@ -27,7 +27,9 @@ model User {
   description     String?   // For volunteers, null for admins
   createdAt       DateTime  @default(now())
   updatedAt       DateTime?  @updatedAt
-  events        Event[]  // A user (admin) can manage multiple events
+  events          Event[]  // A user (admin) can manage multiple events
+  roles           EventRole[]   
+  notification    Notification[]
 
 }
 
@@ -37,17 +39,20 @@ enum Role {
 }
 
 model Event {
-  id          Int       @id @default(autoincrement())
+  id          String       @id @default(uuid())
   adminId     Int
   title       String
   description String
   date        DateTime
-  time        DateTime
+  startTime   DateTime
+  endTime     DateTime
+  isPass      Boolean  @default(false)
   location    String   // Optional
   status      Status    @default(PENDING)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   admin       User      @relation(fields: [adminId], references: [id])
+  role        EventRole[]
   @@map("events") 
 }
 
@@ -56,4 +61,32 @@ enum Status {
   PENDING
   ONGOING
   COMPLETED
+}
+
+model EventRole {
+  id                 String  @id @default(uuid())
+  event_id           String  
+  role_name          String  
+  skills             String[]
+  description        String? 
+  volunteers         User[]
+  event              Event @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  @@map("roles") // Mapping to the actual table name in PostgreSQL
+}
+
+model Notification {
+  id            String     @id @default(uuid())
+  userId        Int?  
+  title         String
+  message       String   
+  status        NotificationStatus @default(Unread) 
+  createdAt     DateTime @default(now()) 
+  // Relationship
+  user          User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+enum NotificationStatus {
+  Unread
+  Read
+  Dismissed
 }
