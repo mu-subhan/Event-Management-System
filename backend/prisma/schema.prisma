@@ -43,7 +43,6 @@ model Event {
   adminId     Int
   title       String
   description String
-  date        DateTime
   startTime   DateTime
   endTime     DateTime
   isPass      Boolean  @default(false)
@@ -71,6 +70,8 @@ model EventRole {
   description        String? 
   volunteers         User[]
   event              Event @relation(fields: [event_id], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   @@map("roles") // Mapping to the actual table name in PostgreSQL
 }
 

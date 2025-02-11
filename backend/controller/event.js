@@ -4,18 +4,22 @@ const router = express.Router();
 // custome files
 const prisma = require("../db/db.server");
 const eventValidator = require("../validation/Validator/event");
+const { isAuthenticated, isAdmin } = require("../middleware/auth");
 
 // Create an event
 router.post(
   "/create-event",
+  isAuthenticated,
+  isAdmin("Admin"),
   eventValidator.createEventValidation,
   async (req, res) => {
     try {
-      const event = await prisma.events.create({
-        data: req.body,
+      const event = await prisma.Event.create({
+        data: { ...req.body, role: { create: [...req.body.role] } },
       });
       res.status(201).json(event);
     } catch (error) {
+      console.log("error is: ", error);
       res
         .status(500)
         .json({ error: "Failed to create event", details: error.message });

@@ -1,15 +1,15 @@
 const Joi = require("joi");
-const eventSchema = require("../Schema/event");
+const { eventSchema } = require("../Schema/event");
 class eventValidation {
   async createEventValidation(req, res, next) {
     try {
       const result = eventSchema.validate(req.body);
       const { value, error } = result;
+      console.log("error is: ", error);
+      console.log("value is: ", value);
       const valid = !error;
       if (!valid) {
-        const validationfailed = new Error(
-          "Failed input validation Of create Event"
-        );
+        const validationfailed = new Error(error.message);
         validationfailed.statusCode = 400;
         throw validationfailed;
       }
