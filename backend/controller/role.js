@@ -1,29 +1,35 @@
 const express = require("express");
 const { PrismaClient } = require("@prisma/client");
-
+const eventRoleValidator = require("../validation/Validator/role");
 const prisma = new PrismaClient();
 const router = express.Router();
 
 // ✅ 1. Create an Event Role
-router.post("/", async (req, res) => {
-  try {
-    const { event_id, role_name, skills, description, volunteers } = req.body;
+router.post(
+  "/create-role",
+  eventRoleValidator.validateCreate,
+  async (req, res) => {
+    try {
+      console.log("api end point hit");
+      const { event_id, role_name, skills, description, volunteers } = req.body;
 
-    const newEventRole = await prisma.eventRole.create({
-      data: {
-        event_id,
-        role_name,
-        skills,
-        description,
-        volunteers: { connect: volunteers.map((userId) => ({ id: userId })) },
-      },
-    });
+      const newEventRole = await prisma.eventRole.create({
+        data: {
+          event_id,
+          role_name,
+          skills,
+          description,
+          volunteers: { connect: volunteers.map((userId) => ({ id: userId })) },
+        },
+      });
 
-    res.status(201).json(newEventRole);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+      res.status(201).json(newEventRole);
+    } catch (error) {
+      console.log("error is: ", error);
+      res.status(500).json({ error: error.message });
+    }
   }
-});
+);
 
 // ✅ 2. Get All Event Roles
 router.get("/", async (req, res) => {

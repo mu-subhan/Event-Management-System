@@ -62,18 +62,18 @@ enum Status {
   COMPLETED
 }
 
-model EventRole {
-  id                 String  @id @default(uuid())
-  event_id           String  
-  role_name          String  
-  skills             String[]
-  description        String? 
-  volunteers         User[]
-  event              Event @relation(fields: [event_id], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  @@map("roles") // Mapping to the actual table name in PostgreSQL
-}
+  model EventRole {
+    id                 String  @id @default(uuid())
+    event_id           String  
+    role_name          String  
+    skills             String[]
+    description        String? 
+    volunteers         User[]
+    event              Event @relation(fields: [event_id], references: [id], onDelete: Cascade)
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+    @@map("roles") // Mapping to the actual table name in PostgreSQL
+  }
 
 model Notification {
   id            String     @id @default(uuid())

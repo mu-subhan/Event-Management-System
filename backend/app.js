@@ -30,11 +30,13 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
 // import routes
 const user = require("./controller/user");
 const event = require("./controller/event");
+const role = require("./controller/role");
 // User
 app.use("/api/user", user);
 // Event
 app.use("/api/event", event);
-
+// Event Roles
+app.use("/api/role", role);
 // it's for ErrorHandling
 app.use(ErrorHandler);
 

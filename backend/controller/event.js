@@ -30,8 +30,8 @@ router.post(
 // Read all events (findMany)
 router.get("/events", async (req, res) => {
   try {
-    const events = await prisma.events.findMany();
-    res.status(200).json(events);
+    const events = await prisma.Event.findMany();
+    res.status(200).json({ success: true, events });
   } catch (error) {
     res
       .status(500)
@@ -42,8 +42,8 @@ router.get("/events", async (req, res) => {
 // Read a single event by ID
 router.get("/events/:id", async (req, res) => {
   try {
-    const event = await prisma.events.findUnique({
-      where: { id: parseInt(req.params.id) },
+    const event = await prisma.Event.findUnique({
+      where: { id: req.params.id },
     });
     if (!event) {
       return res.status(404).json({ error: "Event not found" });
@@ -62,12 +62,13 @@ router.put(
   eventValidator.createEventValidation,
   async (req, res) => {
     try {
-      const event = await prisma.events.update({
-        where: { id: parseInt(req.params.id) },
-        data: req.body,
+      const event = await prisma.Event.update({
+        where: { id: req.params.id },
+        data: { ...req.body, role: { create: [...req.body.role] } },
       });
       res.status(200).json(event);
     } catch (error) {
+      console.log("error is: ", error);
       res
         .status(500)
         .json({ error: "Failed to update event", details: error.message });
@@ -76,17 +77,25 @@ router.put(
 );
 
 // Delete an event by ID
-router.delete("/events/:id", async (req, res) => {
-  try {
-    await prisma.events.delete({
-      where: { id: parseInt(req.params.id) },
-    });
-    res.status(204).send();
-  } catch (error) {
-    res
-      .status(500)
-      .json({ error: "Failed to delete event", details: error.message });
+router.delete(
+  "/events/:id",
+  isAuthenticated,
+  isAdmin("Admin"),
+  async (req, res) => {
+    try {
+      await prisma.Event.delete({
+        where: { id: req.params.id },
+      });
+
+      res
+        .status(200)
+        .json({ success: true, message: "Event Deleted Successfully!" });
+    } catch (error) {
+      res
+        .status(500)
+        .json({ error: "Failed to delete event", details: error.message });
+    }
   }
-});
+);
 
 module.exports = router;

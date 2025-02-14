@@ -2,7 +2,8 @@ const Joi = require("joi");
 
 class EventRoleValidator {
   // ✅ Validate Create Event Role
-  static validateCreate(req, res, next) {
+  validateCreate(req, res, next) {
+    console.log("validation run!");
     const schema = Joi.object({
       event_id: Joi.string().required(),
       role_name: Joi.string().min(3).max(50).required(),
@@ -48,5 +49,5 @@ class EventRoleValidator {
     next();
   }
 }
-
-module.exports = EventRoleValidator;
+const eventRoleValidator = new EventRoleValidator();
+module.exports = eventRoleValidator;
