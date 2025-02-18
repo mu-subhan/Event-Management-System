@@ -3,7 +3,6 @@ const Joi = require("joi");
 class EventRoleValidator {
   // ✅ Validate Create Event Role
   validateCreate(req, res, next) {
-    console.log("validation run!");
     const schema = Joi.object({
       event_id: Joi.string().required(),
       role_name: Joi.string().min(3).max(50).required(),
@@ -11,8 +10,8 @@ class EventRoleValidator {
       description: Joi.string().optional(),
       volunteers: Joi.array().items(Joi.number()).optional(),
     });
-
-    EventRoleValidator.#validateRequest(req, res, next, schema);
+    // console.log("req is: ", req);
+    EventRoleValidator.#validateRequest(req.body, res, next, schema);
   }
 
   // ✅ Validate Update Event Role
@@ -38,6 +37,7 @@ class EventRoleValidator {
 
   // ✅ Private Method to Validate Requests
   static #validateRequest(data, res, next, schema) {
+    // console.log("data is: ", data);
     const { error } = schema.validate(data, { abortEarly: false });
 
     if (error) {

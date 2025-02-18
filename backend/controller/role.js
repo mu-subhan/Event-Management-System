@@ -10,7 +10,6 @@ router.post(
   eventRoleValidator.validateCreate,
   async (req, res) => {
     try {
-      console.log("api end point hit");
       const { event_id, role_name, skills, description, volunteers } = req.body;
 
       const newEventRole = await prisma.eventRole.create({
@@ -31,13 +30,32 @@ router.post(
   }
 );
 
-// ✅ 2. Get All Event Roles
-router.get("/", async (req, res) => {
+// ✅ 2. Get All Event Roles with Pagination
+router.get("/get-roles/:id", async (req, res) => {
   try {
+    const event_id = req.params.id || null;
+    const { page = 1 } = req.query; // Default page is 1
+    const limit = 10; // Number of roles per page
+    const skip = (page - 1) * limit;
+
     const eventRoles = await prisma.eventRole.findMany({
+      where: { event_id: event_id },
+      skip,
+      take: limit,
       include: { volunteers: true, event: true },
     });
-    res.json(eventRoles);
+
+    const totalRoles = await prisma.eventRole.count({
+      where: { event_id: event_id },
+    }); // Get total number of roles
+    const totalPages = Math.ceil(totalRoles / limit);
+
+    res.json({
+      eventRoles,
+      totalPages,
+      currentPage: Number(page),
+      totalRoles,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
