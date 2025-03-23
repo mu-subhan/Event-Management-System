@@ -61,7 +61,7 @@ const FooterSection = () => {
   return (
     <footer id="contact" className="bg-gray-900 text-white pt-16 pb-8">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 mb-12">
           <div className="lg:col-span-2">
             <div className="flex items-center mb-6">
               <svg className="h-8 w-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -69,7 +69,8 @@ const FooterSection = () => {
               </svg>
               <span className="ml-2 text-xl font-bold">EventPro</span>
             </div>
-            <p className="text-gray-400 mb-6">
+
+            <p className="text-gray-400 mb-6 w-96 text-justify">
               Your all-in-one platform to create, manage, and join events that matter. Connect with like-minded individuals and make an impact together.
             </p>
             <div className="flex space-x-4">
