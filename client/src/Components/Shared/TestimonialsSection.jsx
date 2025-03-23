@@ -122,7 +122,7 @@ const TestimonialsSection = () => {
               style={{ transform: `translateX(-${activeIndex * 100}%)` }}
             >
               {testimonials.map((testimonial, index) => (
-                <div key={index} className="w-full flex-shrink-0 px-4">
+                <div key={index} className="w-full flex-shrink-0 px-24">
                   <TestimonialCard {...testimonial} />
                 </div>
               ))}
@@ -165,6 +165,7 @@ const TestimonialsSection = () => {
           </button>
         </div>
       </div>
+
     </section>
   );
 };
