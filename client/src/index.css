@@ -1,4 +1,4 @@
-@tailwind base;
+/* @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -9,18 +9,77 @@ body {
 }
 html {
   scroll-behavior: smooth;
-}
+} */
 /* Keyframes for continuous rotation */
-@keyframes rotateImage {
+/* @keyframes rotateImage {
   0% {
     transform: rotate(0deg);
   }
   100% {
     transform: rotate(45deg);
   }
-}
+} */
 
 /* Apply the continuous rotation with ease-in-out */
-.rotate-animation {
+/* .rotate-animation {
   animation: rotateImage 3s ease-in-out infinite;
+} */
+
+
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply text-gray-900 bg-white;
+  }
+
+  ::selection {
+    @apply bg-purple-500 text-white;
+  }
+}
+
+@layer utilities {
+  .transition-gpu {
+    -webkit-backface-visibility: hidden;
+    -webkit-perspective: 1000;
+    backface-visibility: hidden;
+    perspective: 1000;
+  }
+}
+
+/* Slide-in animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 1s ease-out;
+}
+
+/* Rotation animation */
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rotate-animation {
+  animation: rotate 10s linear infinite;
 }
