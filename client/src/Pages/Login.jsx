@@ -1,25 +1,36 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import image from "../Assessts/files.png";
-
+import { toast } from "react-toastify";
+import axios from "axios";
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-
-    if (!email || !password) {
-      setError("Please fill all fields");
-      return;
-    }
-    if (email === 'user@example.com' && password === 'password123') {
-      alert('Login Successful');
-      navigate("/dashboard");
-    } else {
-      setError('Invalid credentials');
+    try {
+      if (!email || !password) {
+        setError("Please fill all fields");
+        return;
+      }
+      const { data } = await axios.post(
+        `${process.env.REACT_APP_SERVER}/api/user/login-user`,
+        { email, password },
+        { withCredentials: true }
+      );
+      console.log("data is ", data);
+      if (data.success === true) {
+        toast.success("Login SuccessFully!");
+        navigate("/");
+      } else {
+        toast.error("Inavlid Credentials!");
+      }
+    } catch (error) {
+      console.log("erroris: ", error);
+      toast.error("Internal fault!");
     }
   };
 
@@ -28,13 +39,18 @@ const Login = () => {
       <div className="flex min-h-screen">
         {/* Left Side - Welcome Section */}
         <div className="w-1/3 bg-gradient-to-br from-purple-600 to-indigo-600 text-white p-8 flex flex-col justify-center items-center">
-          <h2 className="text-4xl font-bold mb-4 animate-slideIn">Welcome Back!</h2>
+          <h2 className="text-4xl font-bold mb-4 animate-slideIn">
+            Welcome Back!
+          </h2>
           <p className="text-lg mb-6 text-center">
             Please log in to manage your events and make them unforgettable!
           </p>
           <p className="text-center leading-relaxed tracking-wide">
             Don't have an account?{" "}
-            <a href="/signup" className="font-extrabold underline hover:text-purple-200 transition-colors duration-300">
+            <a
+              href="/signup"
+              className="font-extrabold underline hover:text-purple-200 transition-colors duration-300"
+            >
               Sign Up
             </a>
           </p>
@@ -48,12 +64,17 @@ const Login = () => {
         {/* Right Side - Login Form */}
         <div className="flex justify-center items-center w-2/3 bg-gray-50">
           <div className="w-full max-w-lg min-h-[550px] bg-white rounded-lg shadow-2xl p-12 transform transition-all duration-500 hover:shadow-3xl">
-            <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">Login</h2>
+            <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
+              Login
+            </h2>
             {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
             <form onSubmit={handleLogin} className="my-10">
               <div className="mb-6">
-                <label className="block text-lg font-medium text-gray-700 mb-2" htmlFor="email">
+                <label
+                  className="block text-lg font-medium text-gray-700 mb-2"
+                  htmlFor="email"
+                >
                   Email Address
                 </label>
                 <input
@@ -68,7 +89,10 @@ const Login = () => {
               </div>
 
               <div className="mb-6">
-                <label className="block text-lg font-medium text-gray-700 mb-2" htmlFor="password">
+                <label
+                  className="block text-lg font-medium text-gray-700 mb-2"
+                  htmlFor="password"
+                >
                   Password
                 </label>
                 <input
