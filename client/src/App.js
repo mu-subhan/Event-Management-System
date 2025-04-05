@@ -27,6 +27,7 @@ import CreateRoleForm from "./Components/Admin/CreateRoleForm.jsx";
 import Store from "./redux/store";
 import { getAllEvents } from "./redux/actions/events.js";
 import { loaduser } from "./redux/actions/user.js";
+import UserProfile from "./Pages/ProfilePage.jsx";
 const App = () => {
   useEffect(() => {
     Store.dispatch(getAllEvents());
@@ -43,6 +44,8 @@ const App = () => {
           <Route path="/signup" element={<Signup />} />
           <Route path="/login" element={<Login />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/profile" element={<UserProfile />} />
+
           <Route
             path="/activation/:activation_token"
             element={<Activationpage />}
