@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { loaduser, logoutUser } from "../../redux/actions/user";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -152,14 +153,22 @@ const Navbar = () => {
               {isLoading ? (
                 "Loading..."
               ) : user ? (
-                <button
-                  className={`ml-8 px-5 py-2 text-sm font-medium text-white bg-purple-600 rounded-full hover:bg-purple-700 transition-all duration-300 transform hover:scale-105 ${
-                    scrolled ? "bg-red-600" : "bg-red-500"
-                  }`}
-                  onClick={() => logoutHandler()}
-                >
-                  Logout
-                </button>
+                // <button
+                //   className={`ml-8 px-5 py-2 text-sm font-medium text-white bg-purple-600 rounded-full hover:bg-purple-700 transition-all duration-300 transform hover:scale-105 ${
+                //     scrolled ? "bg-red-600" : "bg-red-500"
+                //   }`}
+                //   // onClick={() => logoutHandler()}
+                // >
+                // <link rel="icon" href="favicon.ico" />
+                <Link to="/profile">
+                  <img
+                    src={user?.profileImage?.url}
+                    className="ml-8 rounded-full transition-all duration-300 transform hover:scale-105 h-10 w-10 cursor-pointer"
+                    alt=""
+                    // height={50}
+                    // width={50}
+                  />
+                </Link>
               ) : (
                 <button
                   className={`ml-8 px-5 py-2 text-sm font-medium text-white bg-purple-600 rounded-full hover:bg-purple-700 transition-all duration-300 transform hover:scale-105 ${

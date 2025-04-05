@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Home, Calendar, Users, Settings, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
-const AdminSidebar = () => {
+const AdminSidebar = ({ menuItems }) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const [activeLink, setActiveLink] = useState("/admin/dashboard");
@@ -10,39 +10,8 @@ const AdminSidebar = () => {
 
   useEffect(() => {
     setActiveLink(location.pathname);
+    console.log("menutItems are: ", menuItems);
   }, [location]);
-
-  const menuItems = [
-    { path: "/admin/dashboard", name: "Dashboard", icon: <Home size={20} /> },
-    // { path: '/admin/events', name: 'Events', icon: <Calendar size={20} /> },
-    // { path: '/admin/volunteers', name: 'Volunteers', icon: <Users size={20} /> },
-    // { path: '/admin/settings', name: 'Settings', icon: <Settings size={20} /> },
-    {
-      path: "/admin/event-list",
-      name: "Event-List",
-      icon: <Calendar size={20} />,
-    },
-    {
-      path: "/admin/create-event",
-      name: "Create-Event",
-      icon: <Calendar size={20} />,
-    },
-    {
-      path: "/admin/create-role",
-      name: "Create-Role",
-      icon: <Calendar size={20} />,
-    },
-    {
-      path: "/admin/role-suggestion",
-      name: "Role-suggestion",
-      icon: <Calendar size={20} />,
-    },
-    {
-      path: "/admin/vol-stats",
-      name: "Volunteer Stats",
-      icon: <Calendar size={20} />,
-    },
-  ];
 
   const currentPath = location.pathname;
 
@@ -58,25 +27,28 @@ const AdminSidebar = () => {
 
       <nav className="mt-6">
         <ul className="space-y-2 px-2">
-          {menuItems.map((item) => (
-            <li key={item.path}>
-              <Link
-                to={item.path}
-                className={`flex items-center px-4 py-3 rounded-md transition-colors ${
-                  activeLink === item.path
-                    ? "bg-black text-white"
-                    : "text-indigo-200 hover:bg-black hover:text-white"
-                }`}
-              >
-                <span className="mr-3 font-semibold text-white">
-                  {item.icon}
-                </span>
-                {!collapsed && (
-                  <span className="font-semibold text-white">{item.name}</span>
-                )}
-              </Link>
-            </li>
-          ))}
+          {menuItems?.length > 0 &&
+            menuItems.map((item) => (
+              <li key={item.path}>
+                <Link
+                  to={item.path}
+                  className={`flex items-center px-4 py-3 rounded-md transition-colors ${
+                    activeLink === item.path
+                      ? "bg-black text-white"
+                      : "text-indigo-200 hover:bg-black hover:text-white"
+                  }`}
+                >
+                  <span className="mr-3 font-semibold text-white">
+                    {item.icon}
+                  </span>
+                  {!collapsed && (
+                    <span className="font-semibold text-white">
+                      {item.name}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            ))}
         </ul>
       </nav>
     </div>
