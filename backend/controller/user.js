@@ -17,6 +17,7 @@ const {
   getJwtToken,
   preSaveUser,
 } = require("../helper/createuser");
+
 // create user
 router.post(
   "/create-user",
@@ -25,19 +26,17 @@ router.post(
   async (req, res, next) => {
     try {
       console.log("APi End POint Hit!");
+      console.log("req.file is: ", req.file);
       const {
         name,
         email,
         password,
-        avatar,
         contactNumber,
         skills,
         interests,
         experienceYears,
         description,
       } = req.body;
-      console.log("req.file is: ", req.file);
-      console.log("vatatr Is: ", avatar);
       // console.log("Prisma is: ", prisma);
       const userEmail = await prisma.User.findUnique({
         where: {
@@ -63,10 +62,8 @@ router.post(
         experienceYears,
         description,
       };
-      console.log("user is: ", user);
       const activationToken = createActivationToken(user);
       const activationUrl = `${process.env.frontendUrl}/activation/${activationToken}`;
-      console.log("Activation Url Generated!", activationUrl);
       try {
         await sendMail({
           email: user.email,
@@ -81,6 +78,7 @@ router.post(
         return next(new ErrorHandler(error.message, 500));
       }
     } catch (error) {
+      console.log("erro is: ", error);
       return next(new ErrorHandler(error.message, 400));
     }
   }
@@ -119,7 +117,7 @@ router.post(
         experienceYears,
         description,
       } = newUser;
-      console.log("new User IS: ", newUser);
+
       let user = await prisma.User.findUnique({
         where: {
           email: email, // Replace `email` with the actual email variable
@@ -133,7 +131,7 @@ router.post(
         data: {
           name,
           email,
-          password,
+          password: await preSaveUser(password),
           profileImage: avatar,
           contactNumber,
           skills,
@@ -162,21 +160,28 @@ router.post(
         return next(new ErrorHandler("Please provide the all fields!", 400));
       }
 
-      const user = await User.findOne({ email }).select("+password");
-
+      const user = await prisma.User.findUnique({
+        where: { email: email },
+        select: {
+          id: true,
+          password: true,
+          email: true,
+        },
+      });
       if (!user) {
         return next(new ErrorHandler("User doesn't exists!", 400));
       }
 
-      const isPasswordValid = await user.comparePassword(password);
+      const isPasswordValid = await comparePassword(password, user.password);
 
       if (!isPasswordValid) {
         return next(
           new ErrorHandler("Please provide the correct information", 400)
         );
       }
-
+      delete user.password; // Removes the 'age' key
       sendToken(user, 201, res);
+      // return res.status(200).json({ success: true });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
@@ -189,15 +194,16 @@ router.get(
   isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const user = await User.findById(req.user.id);
+      // const user =
+      //  await User.findById(req.user.id);
 
-      if (!user) {
+      if (!req.user) {
         return next(new ErrorHandler("User doesn't exists", 400));
       }
 
       res.status(200).json({
         success: true,
-        user,
+        user: req.user,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -232,31 +238,47 @@ router.put(
   isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const { email, password, phoneNumber, name } = req.body;
+      const {
+        email,
+        password,
+        contactNumber,
+        skills,
+        interests,
+        experienceYears,
+        description,
+        name,
+      } = req.body;
 
-      const user = await User.findOne({ email }).select("+password");
+      const user = await prisma.User.findUnique({ where: { email } });
 
       if (!user) {
         return next(new ErrorHandler("User not found", 400));
       }
 
-      const isPasswordValid = await user.comparePassword(password);
+      const isPasswordValid = await comparePassword(password, user.password);
 
       if (!isPasswordValid) {
         return next(
           new ErrorHandler("Please provide the correct information", 400)
         );
       }
-
-      user.name = name;
-      user.email = email;
-      user.phoneNumber = phoneNumber;
-
-      await user.save();
+      const updatedUser = await prisma.User.update({
+        where: { email: email },
+        data: {
+          name,
+          email,
+          password,
+          contactNumber,
+          skills,
+          interests,
+          experienceYears,
+          description,
+        },
+      });
 
       res.status(201).json({
         success: true,
-        user,
+        user: updatedUser,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -268,30 +290,29 @@ router.put(
 router.put(
   "/update-avatar",
   isAuthenticated,
+  upload.single("avatar"),
   catchAsyncErrors(async (req, res, next) => {
     try {
-      let existsUser = await User.findById(req.user.id);
-      if (req.body.avatar !== "") {
-        const imageId = existsUser.avatar.public_id;
-
+      let updatedProfilePic = {};
+      if (req.file) {
+        const imageId = req.user.profileImage.public_id;
         await cloudinary.v2.uploader.destroy(imageId);
-
-        const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
-          folder: "avatars",
-          width: 150,
-        });
-
-        existsUser.avatar = {
-          public_id: myCloud.public_id,
-          url: myCloud.secure_url,
+        updatedProfilePic = {
+          public_id: req.file.filename,
+          url: req.file.path,
         };
       }
 
-      await existsUser.save();
+      const updatedUser = await prisma.User.update({
+        where: { email: req.user.email },
+        data: {
+          profileImage: updatedProfilePic,
+        },
+      });
 
       res.status(200).json({
         success: true,
-        user: existsUser,
+        user: updatedUser,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -370,10 +391,10 @@ router.put(
   isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const user = await User.findById(req.user.id).select("+password");
-
-      const isPasswordMatched = await user.comparePassword(
-        req.body.oldPassword
+      if (!req.user) throw new Error("Authentication Failed!");
+      const isPasswordMatched = await comparePassword(
+        req.body.oldPassword,
+        req.user.password
       );
 
       if (!isPasswordMatched) {
@@ -385,10 +406,15 @@ router.put(
           new ErrorHandler("Password doesn't matched with each other!", 400)
         );
       }
-      user.password = req.body.newPassword;
 
-      await user.save();
-
+      const hashpassword = await preSaveUser(req.body.newPassword);
+      console.log("hashpassword : ", hashpassword);
+      const updatedUser = await prisma.User.update({
+        where: { email: req.user.email },
+        data: {
+          password: hashpassword,
+        },
+      });
       res.status(200).json({
         success: true,
         message: "Password updated successfully!",
@@ -404,13 +430,15 @@ router.get(
   "/user-info/:id",
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const user = await User.findById(req.params.id);
-
+      const user = await prisma.User.findUnique({
+        where: { id: Number(req.params.id) },
+      });
       res.status(201).json({
         success: true,
         user,
       });
     } catch (error) {
+      console.log("erro is: ", error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
@@ -423,8 +451,10 @@ router.get(
   isAdmin("Admin"),
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const users = await User.find().sort({
-        createdAt: -1,
+      const users = await await prisma.User.findMany({
+        orderBy: {
+          createdAt: "asc", // Ascending order
+        },
       });
       res.status(201).json({
         success: true,
@@ -443,7 +473,10 @@ router.delete(
   isAdmin("Admin"),
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const user = await User.findById(req.params.id);
+      const user = await prisma.User.findUnique({
+        where: { id: Number(req.params.id) },
+      });
+      // const user = await User.findById(req.params.id);
 
       if (!user) {
         return next(
@@ -455,8 +488,12 @@ router.delete(
 
       await cloudinary.v2.uploader.destroy(imageId);
 
-      await User.findByIdAndDelete(req.params.id);
-
+      // await User.findByIdAndDelete(req.params.id);
+      await prisma.User.delete({
+        where: {
+          id: Number(req.params.id),
+        },
+      });
       res.status(201).json({
         success: true,
         message: "User deleted successfully!",

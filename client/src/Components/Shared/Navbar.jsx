@@ -1,16 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { FaUserShield, FaHandsHelping } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect, useRef } from "react";
+import { FaUserShield, FaHandsHelping } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+// redux
+import { loaduser, logoutUser } from "../../redux/actions/user";
+import { useDispatch, useSelector } from "react-redux";
+import axios from "axios";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
   const navigate = useNavigate(); // For navigation
-
   const dropdownRef = useRef(null);
-
+  const dispatch = useDispatch();
+  const { user, isLoading } = useSelector((state) => state.user);
   // Toggle dropdown menu visibility
   const handleButtonClick = () => {
     setShowOptions(!showOptions);
@@ -34,19 +39,24 @@ const Navbar = () => {
     };
 
     // Add event listener for outside click
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
 
     // Cleanup event listener
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
+  // Load User UseEffect
+  useEffect(() => {
+    if (user == null) dispatch(loaduser());
+    console.log("User in navbar is: ", user);
+    console.log("loadin in navbar is: ", isLoading);
+  }, []);
   // Add scroll event listener on component mount
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
@@ -57,22 +67,36 @@ const Navbar = () => {
 
   // Redirect based on role
   const handleRedirect = (role) => {
-    if (role === 'admin') {
-      navigate('/admin/login'); // Redirect to Admin Login
-      toast.success('You have logged in as Admin', {
-       });
-    } else if (role === 'volunteer') {
-      navigate('/login'); // Redirect to Volunteer Login
-      toast.success('You have logged in as Volunteer', {
-      
-      });
+    if (role === "admin") {
+      navigate("/admin/login"); // Redirect to Admin Login
+    } else if (role === "volunteer") {
+      navigate("/login"); // Redirect to Volunteer Login
     }
   };
-
+  // logout handler
+  const logoutHandler = async () => {
+    axios
+      .get(`${process.env.REACT_APP_SERVER}/api/user/logout`, {
+        withCredentials: true,
+      })
+      .then((res) => {
+        if (res.data.success) {
+          toast.success("Logout SUccessfully!");
+          dispatch(logoutUser());
+        } else {
+          toast.error("Error During Logout!");
+          console.log(res.data);
+          // console.log(res);
+        }
+      })
+      .catch((error) => {
+        console.log("Something Went Wrong", error);
+      });
+  };
   return (
     <nav
       className={`fixed w-full z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white shadow-lg py-2' : 'bg-transparent py-4'
+        scrolled ? "bg-white shadow-lg py-2" : "bg-transparent py-4"
       }`}
     >
       <div className="container mx-auto px-4 md:px-6">
@@ -95,7 +119,7 @@ const Navbar = () => {
               </svg>
               <span
                 className={`ml-2 text-xl font-bold ${
-                  scrolled ? 'text-gray-800' : 'text-white'
+                  scrolled ? "text-gray-800" : "text-white"
                 }`}
               >
                 EventPro
@@ -106,47 +130,55 @@ const Navbar = () => {
           {/* Desktop Menu */}
           <div className="hidden md:flex md:items-center">
             <div className="flex space-x-8">
-              {['Home', 'Features', 'How It Works', 'Testimonials', 'Contact'].map(
-                (item) => (
-                  <a
-                    key={item}
-                    href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
-                    className={`text-sm font-medium transition-colors duration-300 hover:text-purple-600 ${
-                      scrolled ? 'text-gray-700' : 'text-white'
-                    }`}
-                  >
-                    {item}
-                  </a>
-                )
-              )}
+              {[
+                "Home",
+                "Features",
+                "How It Works",
+                "Testimonials",
+                "Contact",
+              ].map((item) => (
+                <a
+                  key={item}
+                  href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
+                  className={`text-sm font-medium transition-colors duration-300 hover:text-purple-600 ${
+                    scrolled ? "text-gray-700" : "text-white"
+                  }`}
+                >
+                  {item}
+                </a>
+              ))}
             </div>
 
             <div className="relative" ref={dropdownRef}>
-              <button
-                className={`ml-8 px-5 py-2 text-sm font-medium text-white bg-purple-600 rounded-full hover:bg-purple-700 transition-all duration-300 transform hover:scale-105 ${
-                  scrolled ? 'bg-purple-600' : 'bg-purple-500'
-                }`}
-                onClick={handleButtonClick}
-              >
-                Sign Up / Login
-              </button>
-
-              {/* Enhanced Dropdown Menu */}
-              {showOptions && (
-                <div className="absolute mt-2 bg-white shadow-lg rounded-lg p-2 z-50 w-48 transform transition-all duration-300 origin-top-right">
-                  <button
-                    className="block px-4 py-2 text-gray-700 hover:bg-purple-50 rounded-md transition-colors duration-300 hover:text-purple-600"
-                    onClick={() => handleRedirect('admin')}
-                  >
-                    <FaUserShield className="inline-block mr-2" /> As Admin
-                  </button>
-                  <button
-                    className="block px-4 py-2 text-gray-700 hover:bg-purple-50 rounded-md transition-colors duration-300 hover:text-purple-600"
-                    onClick={() => handleRedirect('volunteer')}
-                  >
-                    <FaHandsHelping className="inline-block mr-2" /> As Volunteer
-                  </button>
-                </div>
+              {isLoading ? (
+                "Loading..."
+              ) : user ? (
+                // <button
+                //   className={`ml-8 px-5 py-2 text-sm font-medium text-white bg-purple-600 rounded-full hover:bg-purple-700 transition-all duration-300 transform hover:scale-105 ${
+                //     scrolled ? "bg-red-600" : "bg-red-500"
+                //   }`}
+                //   // onClick={() => logoutHandler()}
+                // >
+                // <link rel="icon" href="favicon.ico" />
+                <Link to="/profile">
+                  <img
+                    src={user?.profileImage?.url}
+                    className="ml-8 rounded-full transition-all duration-300 transform hover:scale-105 h-10 w-10 cursor-pointer"
+                    alt=""
+                    // height={50}
+                    // width={50}
+                  />
+                </Link>
+              ) : (
+                <button
+                  className={`ml-8 px-5 py-2 text-sm font-medium text-white bg-purple-600 rounded-full hover:bg-purple-700 transition-all duration-300 transform hover:scale-105 ${
+                    scrolled ? "bg-purple-600" : "bg-purple-500"
+                  }`}
+                  onClick={() => handleRedirect("volunteer")}
+                >
+                  Sign Up / Login
+                  {/* Sign Up / Login */}
+                </button>
               )}
             </div>
           </div>
@@ -156,7 +188,9 @@ const Navbar = () => {
             <button
               onClick={toggleMenu}
               className={`flex items-center px-3 py-2 border rounded ${
-                scrolled ? 'border-gray-500 text-gray-700' : 'border-white text-white'
+                scrolled
+                  ? "border-gray-500 text-gray-700"
+                  : "border-white text-white"
               }`}
             >
               <svg
@@ -171,8 +205,8 @@ const Navbar = () => {
                   strokeWidth={2}
                   d={
                     menuOpen
-                      ? 'M6 18L18 6M6 6l12 12'
-                      : 'M4 6h16M4 12h16M4 18h16'
+                      ? "M6 18L18 6M6 6l12 12"
+                      : "M4 6h16M4 12h16M4 18h16"
                   }
                 />
               </svg>
@@ -184,23 +218,27 @@ const Navbar = () => {
         {menuOpen && (
           <div className="md:hidden pt-4 pb-2 transition-all duration-300">
             <div className="flex flex-col space-y-4">
-              {['Home', 'Features', 'How It Works', 'Testimonials', 'Contact'].map(
-                (item) => (
-                  <a
-                    key={item}
-                    href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
-                    className={`text-sm font-medium px-2 py-1 transition-colors duration-300 hover:text-purple-600 ${
-                      scrolled ? 'text-gray-700' : 'text-white bg-gray-800 bg-opacity-50 rounded'
-                    }`}
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    {item}
-                  </a>
-                )
-              )}
-              <button
-                className="w-full px-5 py-2 text-sm font-medium text-white bg-purple-600 rounded-full hover:bg-purple-700 transition-all duration-300"
-              >
+              {[
+                "Home",
+                "Features",
+                "How It Works",
+                "Testimonials",
+                "Contact",
+              ].map((item) => (
+                <a
+                  key={item}
+                  href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
+                  className={`text-sm font-medium px-2 py-1 transition-colors duration-300 hover:text-purple-600 ${
+                    scrolled
+                      ? "text-gray-700"
+                      : "text-white bg-gray-800 bg-opacity-50 rounded"
+                  }`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {item}
+                </a>
+              ))}
+              <button className="w-full px-5 py-2 text-sm font-medium text-white bg-purple-600 rounded-full hover:bg-purple-700 transition-all duration-300">
                 Sign Up / Login
               </button>
             </div>

@@ -1,17 +1,25 @@
+const prisma = require("../db/db.server");
 const ErrorHandler = require("../utils/ErrorHandler");
 const catchAsyncErrors = require("./catchAsyncErrors");
 const jwt = require("jsonwebtoken");
 
 exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
+  // Dummy Authentication Just For Testign
+  console.log("req.cookies: ", req.cookies);
   const { token } = req.cookies;
 
+  // const token =
+  //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NiwiaWF0IjoxNzM3NjI5OTQzfQ.z8EkONv9GIbTBGxWzwZ64XC5fPF1XpRbWI0jJ99RfKk";
+  console.log("token is: ", token);
   if (!token) {
     return next(new ErrorHandler("Please login to continue", 401));
   }
-
   const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-
-  req.user = await User.findById(decoded.id);
+  req.user = await prisma.User.findUnique({ where: { id: decoded.id } });
+  if (req.user.role === "Admin") req.body.adminId = req?.user?.id;
+  console.log("req.user: ", req.user);
+  // req.user.role = "Admin";
+  // User.findById(decoded.id);
 
   next();
 });
