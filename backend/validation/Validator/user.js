@@ -15,9 +15,8 @@ class userValidation {
       const valid = !error;
       if (!valid) {
         console.error("Failed input validation Of Create User:", error);
-        const validationfailed = new Error(
-          "Failed input validation Of Refine User!"
-        );
+        console.log("error.details[0]: ", error.details[0]);
+        const validationfailed = new Error(error.details[0].message);
         validationfailed.statusCode = 400;
         throw validationfailed;
       }
