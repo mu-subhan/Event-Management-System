@@ -1,14 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FaUserShield, FaHandsHelping } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+// custom packages
+import { FaUserShield, FaHandsHelping } from "react-icons/fa";
 import { toast } from "react-toastify";
+
 // redux
 import { loaduser, logoutUser } from "../../redux/actions/user";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({ scroll = true }) => {
+  const location = useLocation();
+  console.log("location is: ", location);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
@@ -54,10 +59,12 @@ const Navbar = () => {
   }, []);
   // Add scroll event listener on component mount
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    if (scroll) {
+      window.addEventListener("scroll", handleScroll);
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
+      };
+    } else setScrolled(true);
   }, []);
 
   // Toggle mobile menu
@@ -122,7 +129,7 @@ const Navbar = () => {
                   scrolled ? "text-gray-800" : "text-white"
                 }`}
               >
-                EventPro
+                <Link to={"/"}>EventPro</Link>
               </span>
             </a>
           </div>
@@ -131,21 +138,40 @@ const Navbar = () => {
           <div className="hidden md:flex md:items-center">
             <div className="flex space-x-8">
               {[
-                "Home",
-                "Features",
-                "How It Works",
-                "Testimonials",
-                "Contact",
+                { name: "Home", link: false },
+                { name: "Events", link: true },
+                { name: "Features", link: false },
+                { name: "How It Works", link: false },
+                { name: "Testimonials", link: false },
+                { name: "Contact", link: false },
               ].map((item) => (
-                <a
-                  key={item}
-                  href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-                  className={`text-sm font-medium transition-colors duration-300 hover:text-purple-600 ${
-                    scrolled ? "text-gray-700" : "text-white"
-                  }`}
-                >
-                  {item}
-                </a>
+                <>
+                  {item.link ? (
+                    <Link
+                      key={item}
+                      to={`${
+                        "/" + item.name.toLowerCase().replace(/\s+/g, "-")
+                      }`}
+                      className={`link text-sm font-medium transition-colors duration-300 hover:text-purple-600 ${
+                        scrolled ? "text-gray-700" : "text-white"
+                      }`}
+                    >
+                      {item.name}
+                    </Link>
+                  ) : (
+                    <a
+                      key={item}
+                      href={`${
+                        "#" + item.name.toLowerCase().replace(/\s+/g, "-")
+                      }`}
+                      className={`text-sm font-medium transition-colors duration-300 hover:text-purple-600 ${
+                        scrolled ? "text-gray-700" : "text-white"
+                      }`}
+                    >
+                      {item.name}
+                    </a>
+                  )}
+                </>
               ))}
             </div>
 

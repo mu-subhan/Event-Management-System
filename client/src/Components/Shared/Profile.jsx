@@ -1,6 +1,11 @@
+import axios from "axios";
 import React, { useEffect, useState } from "react";
 import AdminSidebar from "../Admin/AdminSidebar";
-import { Home, LogOut } from "lucide-react";
+import { Home, LogOut, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { logoutUser } from "../../redux/actions/user";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 const Profile = ({
   user,
@@ -13,15 +18,20 @@ const Profile = ({
   handleSave,
   handleArrayChange,
   handleChange,
+  setFormData,
 }) => {
   // preset Values
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  // state
   const [menuItems, setMenuItems] = useState([
     { path: "/profile", name: "Profile", icon: <Home size={20} /> },
     {
       //   path: "/Logout",
       name: "Logout",
       icon: <LogOut size={20} />,
-      calback: () => {
+      callback: () => {
+        console.log("callbackr run");
         axios
           .get(`${process.env.REACT_APP_SERVER}/api/user/logout`, {
             withCredentials: true,
@@ -30,6 +40,7 @@ const Profile = ({
             if (res.data.success) {
               toast.success("Logout SUccessfully!");
               dispatch(logoutUser());
+              navigate("/");
             } else {
               toast.error("Error During Logout!");
               console.log(res.data);
@@ -44,21 +55,22 @@ const Profile = ({
   ]);
   //   useEffect
   useEffect(() => {
-    console.log("useEffect Run : ", menuItems);
-    if (
-      userInfo?.role === "Admin" &&
-      !menuItems.some((item) => item.name === "Dashboard")
-    ) {
-      setMenuItems((prev) => [
-        ...prev,
-        {
-          path: "/admin/dashboard",
-          name: "Dashboard",
-          icon: <Home size={20} />,
-        },
-      ]);
+    console.log("uSeEffectrin");
+    if (userInfo?.role === "Admin") {
+      setMenuItems((prev) => {
+        if (!prev.some((item) => item.name === "Dashboard")) {
+          prev.push({
+            path: "/admin/dashboard",
+            name: "Dashboard",
+            icon: <Home size={20} />,
+          });
+        }
+        return prev;
+      });
     }
-  }, [menuItems]);
+    // setUser(userInfo);
+    setFormData(userInfo);
+  }, []);
   return (
     <div className="flex">
       <div className="w-[30%]">
@@ -69,11 +81,17 @@ const Profile = ({
           {/* Header */}
           <div className="bg-indigo-600 p-6 text-center">
             <div className="relative inline-block">
-              <img
-                src={user.avatar}
-                alt={user.name}
-                className="w-24 h-24 rounded-full border-4 border-white"
-              />
+              {userInfo?.profileImage?.url ? (
+                <img
+                  src={userInfo.profileImage.url}
+                  alt={userInfo.name}
+                  className="w-24 h-24 rounded-full border-4 border-white"
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-full border-4 border-white flex justify-center items-center">
+                  <User className="h-[80%] w-[80%] text-white" />
+                </div>
+              )}
               {isEditing && (
                 <button className="absolute bottom-0 right-0 bg-white p-1 rounded-full shadow">
                   <svg
@@ -86,8 +104,10 @@ const Profile = ({
                 </button>
               )}
             </div>
-            <h1 className="mt-4 text-xl font-bold text-white">{user.name}</h1>
-            <p className="text-indigo-200">{user.email}</p>
+            <h1 className="mt-4 text-xl font-bold text-white">
+              {userInfo?.name}
+            </h1>
+            <p className="text-indigo-200">{userInfo.email}</p>
           </div>
 
           {/* Content */}
@@ -105,13 +125,6 @@ const Profile = ({
                     label="Email"
                     name="email"
                     value={formData.email}
-                    onChange={handleChange}
-                  />
-                  <InputField
-                    label="Password"
-                    name="password"
-                    type="password"
-                    value={formData.password}
                     onChange={handleChange}
                   />
                   <InputField
@@ -160,6 +173,13 @@ const Profile = ({
                       className="w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500"
                     />
                   </div>
+                  <InputField
+                    label="Password"
+                    name="password"
+                    type="text"
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
                 </div>
 
                 <div className="mt-6 flex justify-end space-x-3">
@@ -180,19 +200,21 @@ const Profile = ({
             ) : (
               <>
                 <div className="space-y-4">
-                  <InfoItem label="Phone" value={user.contactNumber} />
+                  <InfoItem label="Phone" value={userInfo.contactNumber} />
                   <InfoItem
                     label="Experience"
-                    value={`${user.experienceYears} years`}
+                    value={`${userInfo.experienceYears} years`}
                   />
-                  <InfoItem label="Skills" value={user.skills.join(", ")} />
+                  <InfoItem label="Skills" value={userInfo.skills.join(", ")} />
                   <InfoItem
                     label="Interests"
-                    value={user.interests.join(", ")}
+                    value={userInfo.interests.join(", ")}
                   />
                   <div>
                     <p className="text-sm font-medium text-gray-700">About</p>
-                    <p className="text-gray-900 mt-1">{user.description}</p>
+                    <p className="text-gray-900 mt-1">
+                      {userInfo?.description}
+                    </p>
                   </div>
                 </div>
 

@@ -23,13 +23,16 @@ import AdminSidebar from "./Components/Admin/AdminSidebar.jsx";
 import DashboardWithRouter from "./Components/Admin/AdminDashboard.jsx";
 import Activationpage from "./Pages/Activationpage.jsx";
 import CreateRoleForm from "./Components/Admin/CreateRoleForm.jsx";
+import EventListingPage from "./Pages/EventListingPage.jsx";
 // redux toolkit
 import Store from "./redux/store";
 import { getAllEvents } from "./redux/actions/events.js";
 import { loaduser } from "./redux/actions/user.js";
 import UserProfile from "./Pages/ProfilePage.jsx";
+import EventDetailsPage from "./Pages/EventPage.jsx";
 const App = () => {
   useEffect(() => {
+    console.log("useEffect Run 2 Times");
     Store.dispatch(getAllEvents());
     Store.dispatch(loaduser());
   }, []);
@@ -45,7 +48,8 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<UserProfile />} />
-
+          <Route path="/event/:id" element={<EventDetailsPage />} />
+          <Route path="/events" element={<EventListingPage />} />
           <Route
             path="/activation/:activation_token"
             element={<Activationpage />}
