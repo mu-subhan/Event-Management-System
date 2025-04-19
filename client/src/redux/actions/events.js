@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from "react-toastify";
 
 export const createevent = (eventdata) => async (dispatch) => {
   try {
@@ -23,10 +24,8 @@ export const getEventsBYId = (id) => async (dispatch) => {
     // console.log("get All Events Funtion run!");
     dispatch({ type: "getEvent" });
     const { data } = await axios.get(
-      `${process.env.REACT_APP_SERVER}/api/event/events/${id}`,
-      {
-        widthCredentials: true,
-      }
+      `${process.env.REACT_APP_SERVER}/api/event/${id}`,
+      { withCredentials: true }
     );
     dispatch({ type: "getEventSuccessfull", payload: data.events });
     console.log("data of Events Get  :: ", data.events);
@@ -40,42 +39,68 @@ export const getEventsBYId = (id) => async (dispatch) => {
 };
 export const deleteEvent = (id) => async (dispatch) => {
   try {
+    console.log("deleet Event func", id);
     dispatch({ type: "deleteEvent" });
     const { data } = await axios.delete(
       `${process.env.REACT_APP_SERVER}/api/event/events/${id}`,
-      {
-        widthCredentials: true,
-      }
+      { withCredentials: true }
     );
-
+    console.log("delete event data: ", data);
     dispatch({ type: "deleteEventSuccess", payload: data });
+
+    return true;
   } catch (error) {
-    // console.log(error);
+    console.log(error);
     dispatch({
       type: "deleteEventFailed",
       payload: error.response.data.message,
     });
+    return false;
   }
 };
 
 // get all events
-export const getAllEvents = () => async (dispatch) => {
+export const getAllEvents =
+  (page = 1) =>
+  async (dispatch) => {
+    try {
+      dispatch({
+        type: "getAlleventsRequest",
+      });
+      const { data } = await axios.get(
+        `${process.env.REACT_APP_SERVER}/api/event/events/?page=${page}`
+      );
+      console.log("all Events Are: ", data);
+      dispatch({
+        type: "getAlleventsSuccess",
+        payload: data,
+      });
+    } catch (error) {
+      console.log("error during getting all events!", error);
+      dispatch({
+        type: "getAlleventsFailed",
+        payload: error?.response?.data?.message,
+      });
+    }
+  };
+// get all events
+export const getEventsCount = () => async (dispatch) => {
   try {
     dispatch({
-      type: "getAlleventsRequest",
+      type: "getEventsCountRequest",
     });
     const { data } = await axios.get(
-      `${process.env.REACT_APP_SERVER}/api/event/events`
+      `${process.env.REACT_APP_SERVER}/api/event/status-counts`
     );
-    console.log("all Events Are: ", data);
+    console.log("all Events COunt  Are: ", data);
     dispatch({
-      type: "getAlleventsSuccess",
-      payload: data.events,
+      type: "getEventsCountSuccess",
+      payload: data.eventsCount,
     });
   } catch (error) {
     // console.log("error during getting all events!", error);
     dispatch({
-      type: "getAlleventsFailed",
+      type: "getEventsCountFailed",
       payload: error.response.data.message,
     });
   }

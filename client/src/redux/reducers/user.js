@@ -6,6 +6,7 @@ const initialState = {
   user: null,
   users: null,
   error: null,
+  roleCounts: null,
   usersLoading: false,
   successMessage: null,
 };
@@ -69,7 +70,8 @@ export const userReducer = createReducer(initialState, (builder) => {
     })
     .addCase("getAllUsersSuccess", (state, action) => {
       state.usersLoading = false;
-      state.users = action.payload;
+      state.users = action.payload.users;
+      state.roleCounts = action.payload.roleCounts;
     })
     .addCase("getAllUsersFailed", (state, action) => {
       state.usersLoading = false;

@@ -6,35 +6,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { loaduser } from "../redux/actions/user";
 import Loader from "../Components/Shared/Loader";
 import Profile from "../Components/Shared/Profile";
+import { updateUserInformation } from "../redux/actions/user";
+import { toast } from "react-toastify";
 const UserProfile = () => {
   // User data state
-  const [user, setUser] = useState({
-    name: "Alex Johnson",
-    email: "alex@example.com",
-    password: "••••••••", // Masked for display
-    avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-    contactNumber: "+1 (555) 123-4567",
-    skills: ["React", "Node.js", "UI/UX"],
-    interests: ["Open Source", "Mentoring", "Hiking"],
-    experienceYears: 5,
-    description:
-      "Full-stack developer passionate about creating intuitive user experiences.",
-  });
-
+  const [user, setUser] = useState({});
   const dispatch = useDispatch();
   const { user: userInfo, isLoading } = useSelector((state) => state.user);
-
-  //   const menuItems = [
-  //     { path: "/profile", name: "Dashboard", icon: <Home size={20} /> },
-  //     {
-  //       path: "/admin/dashboard",
-  //       name: "Event-List",
-  //       icon: <Calendar size={20} />,
-  //     }
-  //   ];
-
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState(user);
+  const [formData, setFormData] = useState({});
 
   // Handle form field changes
   const handleChange = (e) => {
@@ -43,6 +23,7 @@ const UserProfile = () => {
 
   // Handle array fields (skills/interests)
   const handleArrayChange = (field, value, action) => {
+    console.log("field, value, action: ", field, value, action);
     if (action === "add" && value && !formData[field].includes(value)) {
       setFormData({ ...formData, [field]: [...formData[field], value] });
     } else if (action === "remove") {
@@ -54,12 +35,21 @@ const UserProfile = () => {
   };
 
   // Save or cancel edits
-  const handleSave = () => {
-    setUser(formData);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      console.log("formData is: ", formData);
+      await dispatch(updateUserInformation(formData));
+      // await dispatch(loaduser()); // Refresh the user info in Redux
+      toast.success("User updated successfully");
+      setIsEditing(false);
+    } catch (error) {
+      toast.error("Updation Failed");
+    }
+    // setUser(userInfo);
+    // setIsEditing(false);
   };
   const handleCancel = () => {
-    setFormData(user);
+    setFormData(userInfo);
     setIsEditing(false);
   };
 
@@ -79,6 +69,7 @@ const UserProfile = () => {
           handleSave={handleSave}
           handleArrayChange={handleArrayChange}
           handleChange={handleChange}
+          setFormData={setFormData}
         />
       )}
     </>

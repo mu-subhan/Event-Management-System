@@ -60,11 +60,16 @@
 
 // export default AdminLayout;
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
-
+import { Calendar, Home } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { getEventsCount } from "../../redux/actions/events";
+import { getAllUsers } from "../../redux/actions/user";
 const AdminLayout = () => {
+  // preset values
+  const dispatch = useDispatch();
   const menuItems = [
     { path: "/admin/dashboard", name: "Dashboard", icon: <Home size={20} /> },
     // { path: '/admin/events', name: 'Events', icon: <Calendar size={20} /> },
@@ -96,6 +101,10 @@ const AdminLayout = () => {
       icon: <Calendar size={20} />,
     },
   ];
+  useEffect(() => {
+    dispatch(getEventsCount());
+    dispatch(getAllUsers());
+  }, []);
 
   return (
     <div className="flex">

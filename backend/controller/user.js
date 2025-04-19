@@ -248,15 +248,15 @@ router.put(
         description,
         name,
       } = req.body;
-
+      console.log("req.body in api : ", req.body);
       const user = await prisma.User.findUnique({ where: { email } });
 
       if (!user) {
         return next(new ErrorHandler("User not found", 400));
       }
-
+      console.log("password, user.password: ", password, user.password);
       const isPasswordValid = await comparePassword(password, user.password);
-
+      console.log("isPasswordValid: ", isPasswordValid);
       if (!isPasswordValid) {
         return next(
           new ErrorHandler("Please provide the correct information", 400)
@@ -267,7 +267,6 @@ router.put(
         data: {
           name,
           email,
-          password,
           contactNumber,
           skills,
           interests,
@@ -281,6 +280,7 @@ router.put(
         user: updatedUser,
       });
     } catch (error) {
+      console.log("error is: ", error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
@@ -451,14 +451,44 @@ router.get(
   isAdmin("Admin"),
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const users = await await prisma.User.findMany({
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+
+      // Get paginated users
+      const users = await prisma.User.findMany({
+        skip,
+        take: limit,
         orderBy: {
-          createdAt: "asc", // Ascending order
+          createdAt: "asc",
         },
       });
-      res.status(201).json({
+
+      // Get total user count for pagination
+      const totalUsers = await prisma.User.count();
+
+      // Count users by role
+      const countAdmins = await prisma.User.count({
+        where: { role: "Admin" },
+      });
+
+      const countVolunteers = await prisma.User.count({
+        where: { role: "Volunteer" },
+      });
+
+      res.status(200).json({
         success: true,
         users,
+        pagination: {
+          totalUsers,
+          page,
+          limit,
+          totalPages: Math.ceil(totalUsers / limit),
+        },
+        roleCounts: {
+          Admin: countAdmins,
+          Volunteer: countVolunteers,
+        },
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));

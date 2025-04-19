@@ -31,12 +31,22 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
 const user = require("./controller/user");
 const event = require("./controller/event");
 const role = require("./controller/role");
+const { createEvent } = require("./controller/testEvent");
 // User
 app.use("/api/user", user);
 // Event
 app.use("/api/event", event);
 // Event Roles
 app.use("/api/role", role);
+app.post("/create-event", (req, res) => {
+  try {
+    const { title, startTime, endTime } = req.body;
+    const event = createEvent({ title, startTime, endTime });
+    return res.status(200).send({ success: false, event });
+  } catch (error) {
+    res.status(500).send({ success: false, error: error.message });
+  }
+});
 
 // it's for ErrorHandling
 app.use(ErrorHandler);
