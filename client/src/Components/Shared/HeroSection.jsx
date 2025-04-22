@@ -57,7 +57,7 @@ const HeroSection = () => {
 
             <div className="mt-8 flex flex-col sm:flex-row justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-4 animate-on-load opacity-0 translate-y-8 transition-all duration-700 delay-500">
               <button className="px-8 py-3 text-base font-medium text-white bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full hover:from-purple-600 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                Explore Events
+                <Link to="/events">Explore Events</Link>
               </button>
               <button className="px-8 py-3 text-base font-medium text-gray-100 bg-transparent border-2 border-gray-300 rounded-full hover:bg-white hover:bg-opacity-10 transition-all duration-300 transform hover:scale-105">
                 <Link to="/signup">Join Now</Link>

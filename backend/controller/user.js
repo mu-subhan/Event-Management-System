@@ -25,8 +25,6 @@ router.post(
   userValidator.createUserValidation,
   async (req, res, next) => {
     try {
-      console.log("APi End POint Hit!");
-      console.log("req.file is: ", req.file);
       const {
         name,
         email,
@@ -70,7 +68,7 @@ router.post(
           subject: "Activate your account",
           message: `Hello ${user.name}, please click on the link to activate your account: ${activationUrl}`,
         });
-        res.status(201).json({
+        return res.status(201).json({
           success: true,
           message: `please check your email:- ${user.email} to activate your account!`,
         });
@@ -169,20 +167,19 @@ router.post(
         },
       });
       if (!user) {
-        return next(new ErrorHandler("User doesn't exists!", 400));
+        return next(new ErrorHandler("Email Doesn't Exist!", 400));
       }
 
       const isPasswordValid = await comparePassword(password, user.password);
 
       if (!isPasswordValid) {
-        return next(
-          new ErrorHandler("Please provide the correct information", 400)
-        );
+        return next(new ErrorHandler("Login Credentials Wrong!", 400));
       }
       delete user.password; // Removes the 'age' key
       sendToken(user, 201, res);
       // return res.status(200).json({ success: true });
     } catch (error) {
+      console.log("errro handler catch run!");
       return next(new ErrorHandler(error.message, 500));
     }
   })
