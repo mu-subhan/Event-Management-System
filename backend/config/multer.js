@@ -22,7 +22,6 @@ const storage = new CloudinaryStorage({
     public_id: (req, file) => `computed-filename-${Date.now()}`,
   },
 });
-// const upload = multer({ storage: storage });
 const upload = multer({
   storage: storage,
   limits: { fileSize: 500000 }, // 500 KB file size limit
@@ -38,6 +37,4 @@ const upload = multer({
     }
   },
 });
-// limits: { fileSize: 500000 },
-
 module.exports = { upload };

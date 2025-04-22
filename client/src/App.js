@@ -24,6 +24,7 @@ import DashboardWithRouter from "./Components/Admin/AdminDashboard.jsx";
 import Activationpage from "./Pages/Activationpage.jsx";
 import CreateRoleForm from "./Components/Admin/CreateRoleForm.jsx";
 import EventListingPage from "./Pages/EventListingPage.jsx";
+import LoginCheck from "./Components/Shared/LoginCheck.jsx";
 // redux toolkit
 import Store from "./redux/store";
 import { getAllEvents } from "./redux/actions/events.js";
@@ -44,9 +45,11 @@ const App = () => {
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/admin/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/login" element={<Login />} />
+          <Route element={<LoginCheck />}>
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/login" element={<Login />} />
+          </Route>
+          {/* <Route path="/login" element={<Login />} /> */}
           <Route path="/profile" element={<UserProfile />} />
           <Route path="/event/:id" element={<EventDetailsPage />} />
           <Route path="/events" element={<EventListingPage />} />

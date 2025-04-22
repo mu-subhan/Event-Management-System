@@ -13,7 +13,6 @@ import { Link } from "react-router-dom";
 
 const Navbar = ({ scroll = true }) => {
   const location = useLocation();
-  console.log("location is: ", location);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
@@ -54,8 +53,6 @@ const Navbar = ({ scroll = true }) => {
   // Load User UseEffect
   useEffect(() => {
     if (user == null) dispatch(loaduser());
-    console.log("User in navbar is: ", user);
-    console.log("loadin in navbar is: ", isLoading);
   }, []);
   // Add scroll event listener on component mount
   useEffect(() => {
@@ -92,8 +89,6 @@ const Navbar = ({ scroll = true }) => {
           dispatch(logoutUser());
         } else {
           toast.error("Error During Logout!");
-          console.log(res.data);
-          // console.log(res);
         }
       })
       .catch((error) => {
@@ -110,7 +105,7 @@ const Navbar = ({ scroll = true }) => {
         <div className="flex justify-between items-center">
           {/* Logo */}
           <div className="flex items-center">
-            <a href="#" className="flex items-center">
+            <Link to="/" className="flex items-center">
               <svg
                 className="h-8 w-8 text-purple-600"
                 fill="none"
@@ -131,48 +126,48 @@ const Navbar = ({ scroll = true }) => {
               >
                 <Link to={"/"}>EventPro</Link>
               </span>
-            </a>
+            </Link>
           </div>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex md:items-center">
             <div className="flex space-x-8">
-              {[
-                { name: "Home", link: false },
-                { name: "Events", link: true },
-                { name: "Features", link: false },
-                { name: "How It Works", link: false },
-                { name: "Testimonials", link: false },
-                { name: "Contact", link: false },
-              ].map((item) => (
-                <>
-                  {item.link ? (
-                    <Link
-                      key={item}
-                      to={`${
-                        "/" + item.name.toLowerCase().replace(/\s+/g, "-")
-                      }`}
-                      className={`link text-sm font-medium transition-colors duration-300 hover:text-purple-600 ${
-                        scrolled ? "text-gray-700" : "text-white"
-                      }`}
-                    >
-                      {item.name}
-                    </Link>
-                  ) : (
-                    <a
-                      key={item}
-                      href={`${
-                        "#" + item.name.toLowerCase().replace(/\s+/g, "-")
-                      }`}
-                      className={`text-sm font-medium transition-colors duration-300 hover:text-purple-600 ${
-                        scrolled ? "text-gray-700" : "text-white"
-                      }`}
-                    >
-                      {item.name}
-                    </a>
-                  )}
-                </>
-              ))}
+              {location.pathname == "/" &&
+                [
+                  { name: "Home", link: false },
+                  { name: "Features", link: false },
+                  { name: "How It Works", link: false },
+                  { name: "Testimonials", link: false },
+                  { name: "Contact", link: false },
+                ].map((item) => (
+                  <>
+                    {item.link ? (
+                      <Link
+                        key={item}
+                        to={`${
+                          "/" + item.name.toLowerCase().replace(/\s+/g, "-")
+                        }`}
+                        className={`link text-sm font-medium transition-colors duration-300 hover:text-purple-600 ${
+                          scrolled ? "text-gray-700" : "text-white"
+                        }`}
+                      >
+                        {item.name}
+                      </Link>
+                    ) : (
+                      <a
+                        key={item}
+                        href={`${
+                          "#" + item.name.toLowerCase().replace(/\s+/g, "-")
+                        }`}
+                        className={`text-sm font-medium transition-colors duration-300 hover:text-purple-600 ${
+                          scrolled ? "text-gray-700" : "text-white"
+                        }`}
+                      >
+                        {item.name}
+                      </a>
+                    )}
+                  </>
+                ))}
             </div>
 
             <div className="relative" ref={dropdownRef}>
