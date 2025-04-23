@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 import Navbar from "../Components/Shared/Navbar";
 import Layout from "../Components/Shared/Layout";
+import { motion, AnimatePresence } from "framer-motion";
+// redux
 import { useDispatch, useSelector } from "react-redux";
 import { getAllEvents } from "../redux/actions/events";
+
 const EventListingPage = () => {
   const dispatch = useDispatch();
   // Sample event data
@@ -201,20 +204,25 @@ const EventListingPage = () => {
                           </span>
                         </div>
 
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          className={`w-full py-2 rounded-md font-medium ${
-                            event.status === "COMPLETED"
-                              ? "bg-gray-300 text-gray-700 cursor-not-allowed"
-                              : "bg-indigo-600 text-white hover:bg-indigo-700"
-                          }`}
-                          disabled={event.status === "COMPLETED"}
+                        <Link
+                          to={`/event/${event.id}`}
+                          className="w-full h-full"
                         >
-                          {event.status === "COMPLETED"
-                            ? "Event Ended"
-                            : "Register Now"}
-                        </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className={`w-full py-2 rounded-md font-medium ${
+                              event.status === "COMPLETED"
+                                ? "bg-gray-300 text-gray-700 cursor-not-allowed"
+                                : "bg-indigo-600 text-white hover:bg-indigo-700"
+                            }`}
+                            disabled={event.status === "COMPLETED"}
+                          >
+                            {event.status === "COMPLETED"
+                              ? "Event Ended"
+                              : "See Details"}
+                          </motion.button>
+                        </Link>
                       </div>
                     </motion.div>
                   ))}

@@ -30,7 +30,8 @@ import Store from "./redux/store";
 import { getAllEvents } from "./redux/actions/events.js";
 import { loaduser } from "./redux/actions/user.js";
 import UserProfile from "./Pages/ProfilePage.jsx";
-import EventDetailsPage from "./Pages/EventPage.jsx";
+import EventDetailsPage from "./Pages/EventDetailsPage.jsx";
+
 const App = () => {
   useEffect(() => {
     console.log("useEffect Run 2 Times");
@@ -51,8 +52,9 @@ const App = () => {
           </Route>
           {/* <Route path="/login" element={<Login />} /> */}
           <Route path="/profile" element={<UserProfile />} />
-          <Route path="/event/:id" element={<EventDetailsPage />} />
+          {/* <Route path="/event/:id" element={<EventDetailsPage />} /> */}
           <Route path="/events" element={<EventListingPage />} />
+          <Route path="/event/:id" element={<EventDetailsPage />} />
           <Route
             path="/activation/:activation_token"
             element={<Activationpage />}
