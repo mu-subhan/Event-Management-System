@@ -153,13 +153,17 @@ router.get("/:id", async (req, res) => {
     });
     console.log("event Found is: ", event);
     if (!event) {
-      return res.status(404).json({ error: "Event not found" });
+      return res.status(404).json({ success: false, error: "Event not found" });
     }
-    res.status(200).json(event);
+    res.status(200).json({ success: true, event });
   } catch (error) {
     res
       .status(500)
-      .json({ error: "Failed to fetch event", details: error.message });
+      .json({
+        success: false,
+        error: "Failed to fetch event",
+        details: error.message,
+      });
   }
 });
 
