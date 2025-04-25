@@ -109,7 +109,7 @@ const AdminLayout = () => {
   return (
     <div className="flex">
       <AdminSidebar menuItems={menuItems} />
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-6 ml-52">
         <Outlet />
       </div>
     </div>

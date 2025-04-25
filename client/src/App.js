@@ -31,10 +31,9 @@ import { getAllEvents } from "./redux/actions/events.js";
 import { loaduser } from "./redux/actions/user.js";
 import UserProfile from "./Pages/ProfilePage.jsx";
 import EventDetailsPage from "./Pages/EventDetailsPage.jsx";
-
+import EventPage from "./Pages/EventPage.jsx";
 const App = () => {
   useEffect(() => {
-    console.log("useEffect Run 2 Times");
     Store.dispatch(getAllEvents());
     Store.dispatch(loaduser());
   }, []);
@@ -64,11 +63,11 @@ const App = () => {
             <Route path="dashboard" element={<DashboardWithRouter />} />
             <Route path="create-event" element={<CreateEventForm />} />
             <Route path="create-role" element={<CreateRoleForm />} />
-
             <Route path="event-list" element={<EventList />} />
             <Route path="role-suggestion" element={<RoleSuggestionPanel />} />
             <Route path="sidebar" element={<AdminSidebar />} />
             <Route path="vol-stats" element={<VolunteerStats />} />
+            <Route path="event/:id" element={<EventPage />} />
           </Route>
 
           {/* Volunteer Routes with Sidebar */}
