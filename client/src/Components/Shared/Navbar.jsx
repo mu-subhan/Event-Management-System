@@ -1,14 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FaUserShield, FaHandsHelping } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+// custom packages
+import { FaUserShield, FaHandsHelping } from "react-icons/fa";
 import { toast } from "react-toastify";
+
 // redux
 import { loaduser, logoutUser } from "../../redux/actions/user";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({ scroll = true }) => {
+  const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showOptions, setShowOptions] = useState(false);
@@ -49,15 +53,15 @@ const Navbar = () => {
   // Load User UseEffect
   useEffect(() => {
     if (user == null) dispatch(loaduser());
-    console.log("User in navbar is: ", user);
-    console.log("loadin in navbar is: ", isLoading);
   }, []);
   // Add scroll event listener on component mount
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    if (scroll) {
+      window.addEventListener("scroll", handleScroll);
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
+      };
+    } else setScrolled(true);
   }, []);
 
   // Toggle mobile menu
@@ -85,8 +89,6 @@ const Navbar = () => {
           dispatch(logoutUser());
         } else {
           toast.error("Error During Logout!");
-          console.log(res.data);
-          // console.log(res);
         }
       })
       .catch((error) => {
@@ -103,7 +105,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center">
           {/* Logo */}
           <div className="flex items-center">
-            <a href="#" className="flex items-center">
+            <Link to="/" className="flex items-center">
               <svg
                 className="h-8 w-8 text-purple-600"
                 fill="none"
@@ -122,31 +124,50 @@ const Navbar = () => {
                   scrolled ? "text-gray-800" : "text-white"
                 }`}
               >
-                EventPro
+                <Link to={"/"}>EventPro</Link>
               </span>
-            </a>
+            </Link>
           </div>
 
           {/* Desktop Menu */}
           <div className="hidden md:flex md:items-center">
             <div className="flex space-x-8">
-              {[
-                "Home",
-                "Features",
-                "How It Works",
-                "Testimonials",
-                "Contact",
-              ].map((item) => (
-                <a
-                  key={item}
-                  href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-                  className={`text-sm font-medium transition-colors duration-300 hover:text-purple-600 ${
-                    scrolled ? "text-gray-700" : "text-white"
-                  }`}
-                >
-                  {item}
-                </a>
-              ))}
+              {location.pathname == "/" &&
+                [
+                  { name: "Home", link: false },
+                  { name: "Features", link: false },
+                  { name: "How It Works", link: false },
+                  { name: "Testimonials", link: false },
+                  { name: "Contact", link: false },
+                ].map((item) => (
+                  <>
+                    {item.link ? (
+                      <Link
+                        key={item}
+                        to={`${
+                          "/" + item.name.toLowerCase().replace(/\s+/g, "-")
+                        }`}
+                        className={`link text-sm font-medium transition-colors duration-300 hover:text-purple-600 ${
+                          scrolled ? "text-gray-700" : "text-white"
+                        }`}
+                      >
+                        {item.name}
+                      </Link>
+                    ) : (
+                      <a
+                        key={item}
+                        href={`${
+                          "#" + item.name.toLowerCase().replace(/\s+/g, "-")
+                        }`}
+                        className={`text-sm font-medium transition-colors duration-300 hover:text-purple-600 ${
+                          scrolled ? "text-gray-700" : "text-white"
+                        }`}
+                      >
+                        {item.name}
+                      </a>
+                    )}
+                  </>
+                ))}
             </div>
 
             <div className="relative" ref={dropdownRef}>

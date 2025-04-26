@@ -23,11 +23,15 @@ import AdminSidebar from "./Components/Admin/AdminSidebar.jsx";
 import DashboardWithRouter from "./Components/Admin/AdminDashboard.jsx";
 import Activationpage from "./Pages/Activationpage.jsx";
 import CreateRoleForm from "./Components/Admin/CreateRoleForm.jsx";
+import EventListingPage from "./Pages/EventListingPage.jsx";
+import LoginCheck from "./Components/Shared/LoginCheck.jsx";
 // redux toolkit
 import Store from "./redux/store";
 import { getAllEvents } from "./redux/actions/events.js";
 import { loaduser } from "./redux/actions/user.js";
 import UserProfile from "./Pages/ProfilePage.jsx";
+import EventDetailsPage from "./Pages/EventDetailsPage.jsx";
+import EventPage from "./Pages/EventPage.jsx";
 const App = () => {
   useEffect(() => {
     Store.dispatch(getAllEvents());
@@ -41,11 +45,15 @@ const App = () => {
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/admin/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/login" element={<Login />} />
+          <Route element={<LoginCheck />}>
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/login" element={<Login />} />
+          </Route>
+          {/* <Route path="/login" element={<Login />} /> */}
           <Route path="/profile" element={<UserProfile />} />
-
+          {/* <Route path="/event/:id" element={<EventDetailsPage />} /> */}
+          <Route path="/events" element={<EventListingPage />} />
+          <Route path="/event/:id" element={<EventDetailsPage />} />
           <Route
             path="/activation/:activation_token"
             element={<Activationpage />}
@@ -55,11 +63,11 @@ const App = () => {
             <Route path="dashboard" element={<DashboardWithRouter />} />
             <Route path="create-event" element={<CreateEventForm />} />
             <Route path="create-role" element={<CreateRoleForm />} />
-
             <Route path="event-list" element={<EventList />} />
             <Route path="role-suggestion" element={<RoleSuggestionPanel />} />
             <Route path="sidebar" element={<AdminSidebar />} />
             <Route path="vol-stats" element={<VolunteerStats />} />
+            <Route path="event/:id" element={<EventPage />} />
           </Route>
 
           {/* Volunteer Routes with Sidebar */}

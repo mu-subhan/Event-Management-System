@@ -51,34 +51,29 @@ export const loadSeller = () => async (dispatch) => {
 
 // error.response.data.message
 
-export const updateUserInformation =
-  (name, email, phoneNumber, password) => async (dispatch) => {
-    try {
-      dispatch({
-        type: "updateUserInfoRequest",
-      });
-      const { data } = await axios.put(
-        `${process.env.REACT_APP_SERVER}user/update-user-info`,
-        {
-          email,
-          name,
-          phoneNumber,
-          password,
-        },
-        { withCredentials: true }
-      );
-      console.log("response of Address updation is:", data);
-      dispatch({
-        type: "updateUserInfoSuccess",
-        payload: data.user,
-      });
-    } catch (error) {
-      dispatch({
-        type: "updateUserInfoFailed",
-        payload: error.response.data.message,
-      });
-    }
-  };
+export const updateUserInformation = (inputData) => async (dispatch) => {
+  try {
+    dispatch({
+      type: "updateUserInfoRequest",
+    });
+    const { data } = await axios.put(
+      `${process.env.REACT_APP_SERVER}/api/user/update-user-info`,
+      inputData,
+      { withCredentials: true }
+    );
+    console.log("response of Address updation is:", data);
+    dispatch({
+      type: "updateUserInfoSuccess",
+      payload: data.user,
+    });
+  } catch (error) {
+    console.log("error during updatign teh User: ", error);
+    dispatch({
+      type: "updateUserInfoFailed",
+      payload: error?.response?.data?.message,
+    });
+  }
+};
 
 export const updatUserAddress =
   (country, city, address1, address2, zipCode, addressType) =>
@@ -127,15 +122,15 @@ export const getAllUsers = () => async (dispatch) => {
     });
 
     const { data } = await axios.get(
-      `${process.env.REACT_APP_SERVER}admin-all-users`,
+      `${process.env.REACT_APP_SERVER}/api/user/admin-all-users`,
       {
         withCredentials: true,
       }
     );
-
+    console.log("getAllusers Data Is: ", data);
     dispatch({
       type: "getAllUsersSuccess",
-      payload: data.users,
+      payload: data,
     });
   } catch (error) {
     dispatch({

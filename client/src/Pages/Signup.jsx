@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { useSelector } from "react-redux";
 
 const Signup = () => {
   // static values
@@ -15,6 +16,7 @@ const Signup = () => {
     "AI/ML",
   ];
   const interestOptions = ["Development", "cricket", "Outdoor", "Management"];
+  const { user } = useSelector((state) => state.user);
   // states
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -59,13 +61,18 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Validation Check
-    if (!fullName || !email || !password || !confirmPassword || !acceptTerms) {
+    if (!fullName || !email || !password || !confirmPassword) {
       toast.error("Fill All Required Fields!");
       setError("All fields are required.");
       return;
     }
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
+      return;
+    }
+    if (!acceptTerms) {
+      toast.error("Please Accept Terms And Condition!");
+      setError("Pls Accept Terms And Condition.");
       return;
     }
 
@@ -114,7 +121,10 @@ const Signup = () => {
       console.error("API Error:", error.response?.data || error.message);
     }
   };
-
+  // useEffect
+  // useEffect(() => {
+  //   if (user) navigate("/");
+  // }, [user]);
   return (
     <div className="flex min-h-screen">
       {/* Left Side - Welcome Section */}
@@ -230,7 +240,7 @@ const Signup = () => {
                 className="block text-lg font-medium text-gray-700 mb-2"
                 htmlFor="experience-years"
               >
-                Expereince in Years
+                Expereince in Your Field
               </label>
               <input
                 type="number"
@@ -376,6 +386,7 @@ const Signup = () => {
                     accept=".jpg,.jpeg,.png"
                     onChange={handleFileInputChange}
                     className="sr-only"
+                    required
                   />
                 </label>
               </div>

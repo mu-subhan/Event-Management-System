@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Home, Calendar, Users, Settings, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import axios from "axios";
 
 const AdminSidebar = ({ menuItems }) => {
   const [collapsed, setCollapsed] = useState(false);
@@ -29,7 +30,10 @@ const AdminSidebar = ({ menuItems }) => {
         <ul className="space-y-2 px-2">
           {menuItems?.length > 0 &&
             menuItems.map((item) => (
-              <li key={item.path}>
+              <li
+                key={item.path}
+                onClick={() => (item?.callback ? item?.callback() : "")}
+              >
                 <Link
                   to={item.path}
                   className={`flex items-center px-4 py-3 rounded-md transition-colors ${

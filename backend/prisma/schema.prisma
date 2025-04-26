@@ -92,3 +92,14 @@ enum NotificationStatus {
   Read
   Dismissed
 }
+
+model EventTest {
+  id          String       @id @default(uuid())
+  title       String
+  startTime   DateTime
+  endTime     DateTime
+  isPass      Boolean  @default(false)
+  status      Status    @default(PENDING)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
