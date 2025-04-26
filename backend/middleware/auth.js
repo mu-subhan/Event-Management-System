@@ -15,7 +15,23 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Please login to continue", 401));
   }
   const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-  req.user = await prisma.User.findUnique({ where: { id: decoded.id } });
+  req.user = await prisma.User.findUnique({
+    where: { id: decoded.id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      contactNumber: true,
+      role: true,
+      skills: true,
+      interests: true,
+      experienceYears: true,
+      profileImage: true,
+      description: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
   if (req.user.role === "Admin") req.body.adminId = req?.user?.id;
   console.log("req.user: ", req.user);
   // req.user.role = "Admin";

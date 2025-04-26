@@ -12,6 +12,7 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
+      console.log("hanlde login run !");
       if (!email || !password) {
         setError("Please fill all fields");
         return;
@@ -29,8 +30,8 @@ const Login = () => {
         toast.error("Inavlid Credentials!");
       }
     } catch (error) {
-      console.log("erroris: ", error);
-      toast.error("Internal fault!");
+      const message = error?.response?.data?.message;
+      toast.error(message || "Internal Server Failure");
     }
   };
 

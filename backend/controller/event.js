@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 // custome files
-const updateEventStatus = require("../helper/updateEventStatus");
+const { scheduleStatusUpdate } = require("../helper/updateEventStatus");
 const prisma = require("../db/db.server");
 const eventValidator = require("../validation/Validator/event");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
@@ -20,6 +20,8 @@ router.post(
           .status(400)
           .send({ success: false, message: "StartTDate Should b In Future" });
       }
+      const startTime = new Date(req.body.startTime);
+      const endTime = new Date(req.body.endTime);
       let status = "UPCOMING";
       if (
         now >= new Date(req.body.startTime) &&
@@ -32,18 +34,27 @@ router.post(
       const event = await prisma.Event.create({
         data: {
           ...req.body,
-          startTime: new Date(req.body.startTime),
-          endTime: new Date(req.body.endTime),
+          startTime,
+          endTime,
           status,
           role: { create: [...req.body.role] },
         },
       });
       console.log("event is: ", event);
-      await updateEventStatus(event);
-      res.status(201).json({ success: true, event });
+      // Schedule status update to ONGOING
+      if (status === "UPCOMING") {
+        scheduleStatusUpdate(event.id, req.body.startTime, "ONGOING");
+        scheduleStatusUpdate(event.id, req.body.endTime, "COMPLETED", true);
+      }
+
+      if (status === "ONGOING") {
+        scheduleStatusUpdate(event.id, req.body.endTime, "COMPLETED", true);
+      }
+      // await updateEventStatus(event);
+      return res.status(201).json({ success: true, event });
     } catch (error) {
       console.log("error is: ", error);
-      res
+      return res
         .status(500)
         .json({ error: "Failed to create event", details: error.message });
     }
@@ -83,20 +94,76 @@ router.get("/events", async (req, res) => {
   }
 });
 
+router.get("/status-counts", async (req, res) => {
+  try {
+    const now = new Date();
+
+    // Count for UPCOMING events
+    const upcomingCount = await prisma.Event.count({
+      where: {
+        startTime: { gt: now },
+      },
+    });
+
+    // Count for ONGOING events
+    const ongoingCount = await prisma.Event.count({
+      where: {
+        startTime: { lte: now },
+        endTime: { gte: now },
+      },
+    });
+
+    // Count for PAST events
+    const pastCount = await prisma.Event.count({
+      where: {
+        endTime: { lt: now },
+      },
+    });
+
+    // Count for PENDING events based on status field in DB
+    const pendingCount = await prisma.event.count({
+      where: {
+        status: "PENDING",
+      },
+    });
+
+    const result = [
+      { status: "UPCOMING", count: upcomingCount },
+      { status: "ONGOING", count: ongoingCount },
+      { status: "COMPLETED", count: pastCount },
+      { status: "PENDING", count: pendingCount },
+    ];
+
+    res.status(200).json({ success: true, eventsCount: result });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch status counts",
+      details: error.message,
+    });
+  }
+});
+
 // Read a single event by ID
-router.get("/events/:id", async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const event = await prisma.Event.findUnique({
       where: { id: req.params.id },
+      include: { role: true },
     });
+    console.log("event Found is: ", event);
     if (!event) {
-      return res.status(404).json({ error: "Event not found" });
+      return res.status(404).json({ success: false, error: "Event not found" });
     }
-    res.status(200).json(event);
+    res.status(200).json({ success: true, event });
   } catch (error) {
     res
       .status(500)
-      .json({ error: "Failed to fetch event", details: error.message });
+      .json({
+        success: false,
+        error: "Failed to fetch event",
+        details: error.message,
+      });
   }
 });
 
@@ -132,7 +199,7 @@ router.put(
         where: { id: req.params.id },
         data: { ...req.body, role: { create: [...req.body.role] } },
       });
-      await updateEventStatus(event);
+      // await updateEventStatus(event);
       res.status(200).json({ success: true, event });
     } catch (error) {
       console.log("error is: ", error);
@@ -150,13 +217,13 @@ router.delete(
   isAdmin("Admin"),
   async (req, res) => {
     try {
-      await prisma.Event.delete({
+      const event = await prisma.Event.delete({
         where: { id: req.params.id },
       });
 
       res
         .status(200)
-        .json({ success: true, message: "Event Deleted Successfully!" });
+        .json({ success: true, message: "Event Deleted Successfully!", event });
     } catch (error) {
       res
         .status(500)

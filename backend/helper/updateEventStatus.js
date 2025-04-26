@@ -98,4 +98,27 @@ const scheduleJob = (date, callback) => {
   cron.schedule(cronTime, callback, { timezone: "UTC" });
 };
 
-module.exports = updateEventStatus;
+const scheduleStatusUpdate = (eventId, time, newStatus, markPass = false) => {
+  console.log("schedule Events Run!");
+  const date = new Date(time);
+
+  // Schedule format: 'sec min hour day month weekday'
+  const cronTime = `${date.getSeconds()} ${date.getMinutes()} ${date.getHours()} ${date.getDate()} ${
+    date.getMonth() + 1
+  } *`;
+
+  cron.schedule(cronTime, async () => {
+    await prisma.Event.update({
+      where: { id: eventId },
+      data: {
+        status: newStatus,
+        isPass: markPass,
+      },
+    });
+    console.log(`Event ${eventId} updated to ${newStatus}`);
+  });
+
+  console.log(`Scheduled ${newStatus} update for event ${eventId} at ${date}`);
+};
+
+module.exports = { updateEventStatus, scheduleStatusUpdate };
