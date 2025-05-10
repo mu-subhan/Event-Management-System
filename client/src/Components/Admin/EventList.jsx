@@ -126,123 +126,126 @@ const EventList = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Main Content */}
-      <div className="flex-1 ml-64 p-6">
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800">
-              Event Management
-            </h2>
-            <button className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md flex items-center">
-              <Link to="/admin/create-event">
-                <span className="mr-2">+</span> Add Event
-              </Link>
-            </button>
-          </div>
+    <div className="flex bg-gray-50">
+    {/* Main Content */}
+    <div className="w-full h-full p-6 bg-gray-50">
+  <div className="bg-white p-6 rounded-lg shadow-lg mx-auto max-w-7xl">
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+      <h2 className="text-2xl font-semibold text-gray-800">
+        Event Management
+      </h2>
+      <button className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md flex items-center whitespace-nowrap">
+        <Link to="/admin/create-event">
+          <span className="mr-2">+</span> Add Event
+        </Link>
+      </button>
+    </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full table-auto">
-              <thead>
-                <tr className="bg-gray-50">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Event Name
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Location
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Volunteers
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-max table-auto">
+        <thead>
+          <tr className="bg-gray-50">
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+              Event Name
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+              Date
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+              Location
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+              Volunteers
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+              Status
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200">
+          {allEvents?.length > 0 &&
+            allEvents.map((event, index) => {
+              const startIndex = (page - 1) * 6;
+              const endIndex = page * 6;
+              if (index < startIndex || index >= endIndex) return null;
+
+              return (
+                <tr key={event.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-4">
+                    <div className="font-medium text-gray-900 break-words max-w-xs">
+                      {event.title}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="text-gray-600">
+                      {event?.startTime}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="text-gray-600 break-words max-w-xs">
+                      {event.location}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="text-gray-600">
+                      Pending Functionality
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {getStatusBadge(event.status)}
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="flex space-x-2">
+                      <button className="text-indigo-600 hover:text-indigo-900 whitespace-nowrap">
+                        Edit
+                      </button>
+                      <button
+                        className="text-red-600 hover:text-red-900 whitespace-nowrap"
+                        onClick={() => {
+                          deleteEventFunc(event.id);
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {allEvents?.length > 0 &&
-                  allEvents.map((event, index) => {
-                    const startIndex = (page - 1) * 6;
-                    const endIndex = page * 6;
-                    if (index < startIndex || index >= endIndex) return null;
+              );
+            })}
+        </tbody>
+      </table>
+    </div>
 
-                    return (
-                      <tr key={event.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="font-medium text-gray-900">
-                            {event.title}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="text-gray-600">
-                            {event?.startTime}
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="text-gray-600">{event.location}</div>
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="text-gray-600">
-                            {/* {event?.role?.length>0?event?.role.map((value,index)=>{
-                        return(value.role_name)
-                      }):"No Role Available"} */}
-                            Pending Functionality
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          {getStatusBadge(event.status)}
-                        </td>
-                        <td className="px-4 py-4 whitespace-nowrap">
-                          <div className="flex space-x-2">
-                            <button className="text-indigo-600 hover:text-indigo-900">
-                              Edit
-                            </button>
-                            <button
-                              className="text-red-600 hover:text-red-900"
-                              onClick={() => {
-                                deleteEventFunc(event.id);
-                              }}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-4 flex items-center justify-between">
-            <div className="text-sm text-gray-500">Showing 4 of 4 events</div>
-            <div className="flex items-center space-x-2">
-              <button
-                className="px-3 py-1 border rounded bg-gray-50 text-gray-600"
-                onClick={() => pageChange("-")}
-              >
-                Previous
-              </button>
-              <button className="px-3 py-1 border rounded bg-indigo-600 text-white">
-                {page}
-              </button>
-              <button
-                className="px-3 py-1 border rounded bg-gray-50 text-gray-600"
-                onClick={() => pageChange("+")}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        </div>
+    <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="text-sm text-gray-500 whitespace-nowrap">
+        Showing {Math.min(6, allEvents?.length || 0)} of {allEvents?.length || 0} events
+      </div>
+      <div className="flex items-center space-x-2">
+        <button
+          className="px-3 py-1 border rounded bg-gray-50 text-gray-600 whitespace-nowrap"
+          onClick={() => pageChange("-")}
+          disabled={page === 1}
+        >
+          Previous
+        </button>
+        <button className="px-3 py-1 border rounded bg-indigo-600 text-white whitespace-nowrap">
+          {page}
+        </button>
+        <button
+          className="px-3 py-1 border rounded bg-gray-50 text-gray-600 whitespace-nowrap"
+          onClick={() => pageChange("+")}
+          disabled={page * 6 >= (allEvents?.length || 0)}
+        >
+          Next
+        </button>
       </div>
     </div>
+  </div>
+</div>
+  </div>
   );
 };
 

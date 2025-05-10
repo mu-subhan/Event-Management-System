@@ -1,29 +1,43 @@
-import React, { useState, useEffect } from "react";
-import { Home, Calendar, Users, Settings, Menu, X } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import axios from "axios";
 
-const AdminSidebar = ({ menuItems }) => {
-  const [collapsed, setCollapsed] = useState(false);
+const AdminSidebar = ({ menuItems, isOpen, toggleSidebar=()=>{}, collapsed }) => {
   const location = useLocation();
   const [activeLink, setActiveLink] = useState("/admin/dashboard");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const sidebarRef = useRef();
 
   useEffect(() => {
     setActiveLink(location.pathname);
-    console.log("menutItems are: ", menuItems);
   }, [location]);
 
-  const currentPath = location.pathname;
+  // Close sidebar on outside click (for mobile)
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (isOpen && sidebarRef.current && !sidebarRef.current.contains(e.target)) {
+        toggleSidebar(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
 
   return (
     <div
-      className={`fixed left-0 top-0 h-full bg-indigo-800 text-white transition-all duration-300 ${
-        collapsed ? "w-16" : "w-64"
-      } shadow-xl z-10`}
+      ref={sidebarRef}
+      className={`fixed top-0 left-0 h-screen bg-indigo-800 text-white transition-all duration-300 z-50 shadow-xl
+      ${collapsed ? "w-16" : "w-64"} 
+      ${isOpen ? "translate-x-0" : "-translate-x-full"} 
+      md:translate-x-0 md:static`}
     >
       <div className="flex items-center justify-between p-4 border-b border-indigo-700">
         {!collapsed && <h1 className="text-xl font-bold">Admin Portal</h1>}
+        {/* Close icon only on mobile */}
+        <div className="md:hidden">
+          <button onClick={() => toggleSidebar(false)}>
+            <X size={24} />
+          </button>
+        </div>
       </div>
 
       <nav className="mt-6">
@@ -32,7 +46,10 @@ const AdminSidebar = ({ menuItems }) => {
             menuItems.map((item) => (
               <li
                 key={item.path}
-                onClick={() => (item?.callback ? item?.callback() : "")}
+                onClick={() => {
+                  if (item?.callback) item.callback();
+                  toggleSidebar(false); // auto-close on mobile when clicking item
+                }}
               >
                 <Link
                   to={item.path}
