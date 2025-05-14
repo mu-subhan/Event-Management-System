@@ -15,8 +15,8 @@ const AdminLayout = () => {
     { path: "/admin/dashboard", name: "Dashboard", icon: <Home size={20} /> },
     { path: "/admin/event-list", name: "Event-List", icon: <Calendar size={20} /> },
     { path: "/admin/create-event", name: "Create-Event", icon: <Calendar size={20} /> },
-    { path: "/admin/create-role", name: "Create-Role", icon: <Calendar size={20} /> },
-    { path: "/admin/role-suggestion", name: "Role-suggestion", icon: <Calendar size={20} /> },
+    // { path: "/admin/create-role", name: "Create-Role", icon: <Calendar size={20} /> },
+    // { path: "/admin/role-suggestion", name: "Role-suggestion", icon: <Calendar size={20} /> },
     { path: "/admin/vol-stats", name: "Volunteer Stats", icon: <Calendar size={20} /> },
   ];
 
