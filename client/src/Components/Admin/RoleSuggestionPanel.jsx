@@ -9,7 +9,7 @@ const RoleSuggestionPanel = () => {
   ];
 
   const getUrgencyStyles = (urgency) => {
-    switch(urgency) {
+    switch (urgency) {
       case 'High':
         return { icon: <AlertTriangle size={14} />, color: 'bg-red-100 text-red-600' };
       case 'Medium':
@@ -21,33 +21,42 @@ const RoleSuggestionPanel = () => {
     }
   };
 
+  const handleViewAll = () => {
+    // Add logic here: redirect, modal, or toast
+    alert('Redirecting to all roles...');
+  };
+
+  const handleAddCustomRole = () => {
+    // Add logic here: open modal or navigate
+    alert('Open form to add a custom role...');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 sm:p-6">
-      {/* Main Card */}
-      <div className="w-full max-w-3xl bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all hover:shadow-md">
-        {/* Card Header */}
-        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
+      <div className="w-full max-w-4xl bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all hover:shadow-md">
+        {/* Header */}
+        <div className="px-4 sm:px-6 py-5 border-b border-gray-100 flex justify-between items-center flex-wrap">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Role Suggestions</h2>
             <p className="text-sm text-gray-500 mt-1">Based on your event requirements</p>
           </div>
-          <button className="flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
+          <button
+            onClick={handleViewAll}
+            className="flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-800 mt-2 sm:mt-0"
+          >
             View all <ChevronRight size={16} className="ml-1" />
           </button>
         </div>
-        
-        {/* Suggestions List */}
+
+        {/* Suggestions */}
         <div className="divide-y divide-gray-100">
           {suggestions.map((suggestion) => {
             const urgency = getUrgencyStyles(suggestion.urgency);
             const progressPercentage = Math.min(100, (suggestion.assigned / suggestion.volunteers) * 100);
-            
+
             return (
-              <div 
-                key={suggestion.id} 
-                className="p-5 hover:bg-gray-50 transition-colors duration-150"
-              >
-                <div className="flex justify-between items-start">
+              <div key={suggestion.id} className="p-5 hover:bg-gray-50 transition-colors duration-150">
+                <div className="flex justify-between items-start flex-wrap gap-3">
                   <div>
                     <h3 className="font-medium text-gray-900">{suggestion.role}</h3>
                     <div className="flex items-center mt-2">
@@ -57,7 +66,7 @@ const RoleSuggestionPanel = () => {
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="text-right">
                     <span className="text-sm font-medium text-gray-500">
                       {suggestion.assigned}/{suggestion.volunteers}
@@ -65,28 +74,28 @@ const RoleSuggestionPanel = () => {
                     <span className="block text-xs text-gray-400 mt-1">volunteers</span>
                   </div>
                 </div>
-                
-                {/* Progress Bar */}
+
+                {/* Progress */}
                 <div className="mt-4">
                   <div className="flex justify-between text-xs text-gray-500 mb-1">
                     <span>Progress</span>
                     <span>{Math.round(progressPercentage)}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="h-2 rounded-full bg-gradient-to-r from-indigo-400 to-indigo-600 transition-all duration-500 ease-out" 
+                    <div
+                      className="h-2 rounded-full bg-gradient-to-r from-indigo-400 to-indigo-600 transition-all duration-500 ease-out"
                       style={{ width: `${progressPercentage}%` }}
                     ></div>
                   </div>
                 </div>
-                
+
                 {/* Action Buttons */}
-                <div className="mt-4 flex space-x-3">
-                  <button className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
+                <div className="mt-4 flex flex-col sm:flex-row gap-3">
+                  <button className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition">
                     <Plus size={16} className="mr-2" />
                     Assign Volunteers
                   </button>
-                  <button className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
+                  <button className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
                     Details
                   </button>
                 </div>
@@ -94,10 +103,13 @@ const RoleSuggestionPanel = () => {
             );
           })}
         </div>
-        
-        {/* Card Footer */}
-        <div className="px-6 py-4 bg-gray-50 text-center border-t border-gray-100">
-          <button className="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
+
+        {/* Footer */}
+        <div className="px-4 sm:px-6 py-4 bg-gray-50 text-center border-t border-gray-100">
+          <button
+            onClick={handleAddCustomRole}
+            className="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+          >
             + Add Custom Role
           </button>
         </div>
