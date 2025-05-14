@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import AdminSidebar from "../Admin/AdminSidebar";
-import { Home, LogOut, User } from "lucide-react";
+import { Home, LogOut, User, Edit, X, Check, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../../redux/actions/user";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,212 +20,224 @@ const Profile = ({
   handleChange,
   setFormData,
 }) => {
-  // preset Values
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  // state
   const [menuItems, setMenuItems] = useState([
-    { path: "/profile", name: "Profile", icon: <Home size={20} /> },
+    { path: "/profile", name: "Profile", icon: <User size={20} /> },
     {
-      //   path: "/Logout",
       name: "Logout",
       icon: <LogOut size={20} />,
       callback: () => {
-        console.log("callbackr run");
         axios
           .get(`${process.env.REACT_APP_SERVER}/api/user/logout`, {
             withCredentials: true,
           })
           .then((res) => {
             if (res.data.success) {
-              toast.success("Logout SUccessfully!");
+              toast.success("Logged out successfully!");
               dispatch(logoutUser());
               navigate("/");
             } else {
-              toast.error("Error During Logout!");
-              console.log(res.data);
-              // console.log(res);
+              toast.error("Error during logout!");
             }
           })
           .catch((error) => {
-            console.log("Something Went Wrong", error);
+            console.error("Logout error:", error);
           });
       },
     },
   ]);
-  //   useEffect
+
   useEffect(() => {
-    console.log("uSeEffectrin");
     if (userInfo?.role === "Admin") {
       setMenuItems((prev) => {
         if (!prev.some((item) => item.name === "Dashboard")) {
-          prev.push({
-            path: "/admin/dashboard",
-            name: "Dashboard",
-            icon: <Home size={20} />,
-          });
+          return [
+            ...prev,
+            {
+              path: "/admin/dashboard",
+              name: "Dashboard",
+              icon: <Home size={20} />,
+            },
+          ];
         }
         return prev;
       });
     }
-    // setUser(userInfo);
     setFormData(userInfo);
-  }, []);
+  }, [userInfo]);
+
   return (
-    <div className="flex">
-      <div className="w-[30%]">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-gray-50">
+      <div className="lg:w-64 w-full lg:min-h-screen bg-white shadow-sm">
         <AdminSidebar menuItems={menuItems} />
       </div>
-      <div className="flex-1 p-6 w-[70%]">
-        <div className="max-w-md mx-auto my-8 bg-white rounded-lg shadow-md overflow-hidden">
-          {/* Header */}
-          <div className="bg-indigo-600 p-6 text-center">
-            <div className="relative inline-block">
-              {userInfo?.profileImage?.url ? (
-                <img
-                  src={userInfo.profileImage.url}
-                  alt={userInfo.name}
-                  className="w-24 h-24 rounded-full border-4 border-white"
-                />
-              ) : (
-                <div className="w-24 h-24 rounded-full border-4 border-white flex justify-center items-center">
-                  <User className="h-[80%] w-[80%] text-white" />
-                </div>
-              )}
-              {isEditing && (
-                <button className="absolute bottom-0 right-0 bg-white p-1 rounded-full shadow">
-                  <svg
-                    className="w-4 h-4 text-indigo-600"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                  </svg>
-                </button>
-              )}
+
+      <div className="flex-1 p-4 sm:p-6 lg:p-8 flex justify-center">
+        <div className="w-full max-w-2xl">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-all hover:shadow-md">
+            <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 p-6 text-center relative">
+              <div className="relative inline-block">
+                {userInfo?.profileImage?.url ? (
+                  <img
+                    src={userInfo.profileImage.url}
+                    alt={userInfo.name}
+                    className="w-24 h-24 rounded-full border-4 border-white/80 object-cover shadow-md"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full border-4 border-white/80 bg-indigo-400 flex justify-center items-center shadow-md">
+                    <User className="h-12 w-12 text-white" />
+                  </div>
+                )}
+                {isEditing && (
+                  <button className="absolute bottom-0 right-0 bg-white p-2 rounded-full shadow-md hover:bg-gray-100 transition-colors">
+                    <Edit className="w-4 h-4 text-indigo-600" />
+                  </button>
+                )}
+              </div>
+              <h1 className="mt-4 text-2xl font-bold text-white">
+                {userInfo?.name}
+              </h1>
+              <p className="text-indigo-100 mt-1">{userInfo?.email}</p>
             </div>
-            <h1 className="mt-4 text-xl font-bold text-white">
-              {userInfo?.name}
-            </h1>
-            <p className="text-indigo-200">{userInfo.email}</p>
-          </div>
 
-          {/* Content */}
-          <div className="p-6">
-            {isEditing ? (
-              <>
-                <div className="space-y-4">
-                  <InputField
-                    label="Name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                  />
-                  <InputField
-                    label="Email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                  />
-                  <InputField
-                    label="Phone"
-                    name="contactNumber"
-                    value={formData.contactNumber}
-                    onChange={handleChange}
-                  />
-                  <InputField
-                    label="Experience (years)"
-                    name="experienceYears"
-                    type="number"
-                    value={formData.experienceYears}
-                    onChange={handleChange}
-                  />
-
-                  <TagInput
-                    label="Skills"
-                    tags={formData.skills}
-                    onAdd={(value) => handleArrayChange("skills", value, "add")}
-                    onRemove={(value) =>
-                      handleArrayChange("skills", value, "remove")
-                    }
-                  />
-
-                  <TagInput
-                    label="Interests"
-                    tags={formData.interests}
-                    onAdd={(value) =>
-                      handleArrayChange("interests", value, "add")
-                    }
-                    onRemove={(value) =>
-                      handleArrayChange("interests", value, "remove")
-                    }
-                  />
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      About
-                    </label>
-                    <textarea
-                      name="description"
-                      rows={3}
-                      value={formData.description}
+            <div className="p-6 sm:p-8">
+              {isEditing ? (
+                <>
+                  <div className="space-y-5">
+                    <InputField
+                      label="Name"
+                      name="name"
+                      value={formData.name || ""}
                       onChange={handleChange}
-                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                    <InputField
+                      label="Email"
+                      name="email"
+                      value={formData.email || ""}
+                      onChange={handleChange}
+                    />
+                    <InputField
+                      label="Phone"
+                      name="contactNumber"
+                      value={formData.contactNumber || ""}
+                      onChange={handleChange}
+                    />
+                    <InputField
+                      label="Experience (years)"
+                      name="experienceYears"
+                      type="number"
+                      value={formData.experienceYears || ""}
+                      onChange={handleChange}
+                    />
+                    <TagInput
+                      label="Skills"
+                      tags={formData.skills || []}
+                      onAdd={(value) =>
+                        handleArrayChange("skills", value, "add")
+                      }
+                      onRemove={(value) =>
+                        handleArrayChange("skills", value, "remove")
+                      }
+                    />
+                    <TagInput
+                      label="Interests"
+                      tags={formData.interests || []}
+                      onAdd={(value) =>
+                        handleArrayChange("interests", value, "add")
+                      }
+                      onRemove={(value) =>
+                        handleArrayChange("interests", value, "remove")
+                      }
+                    />
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        About
+                      </label>
+                      <textarea
+                        name="description"
+                        rows={3}
+                        value={formData.description || ""}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                        placeholder="Tell us about yourself..."
+                      />
+                    </div>
+                    <InputField
+                      label="Password"
+                      name="password"
+                      type="password"
+                      value={formData.password || ""}
+                      onChange={handleChange}
+                      placeholder="Leave blank to keep current"
                     />
                   </div>
-                  <InputField
-                    label="Password"
-                    name="password"
-                    type="text"
-                    value={formData.password}
-                    onChange={handleChange}
-                  />
-                </div>
 
-                <div className="mt-6 flex justify-end space-x-3">
-                  <button
-                    onClick={handleCancel}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                  >
-                    Save
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="space-y-4">
-                  <InfoItem label="Phone" value={userInfo.contactNumber} />
-                  <InfoItem
-                    label="Experience"
-                    value={`${userInfo.experienceYears} years`}
-                  />
-                  <InfoItem label="Skills" value={userInfo.skills.join(", ")} />
-                  <InfoItem
-                    label="Interests"
-                    value={userInfo.interests.join(", ")}
-                  />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">About</p>
-                    <p className="text-gray-900 mt-1">
-                      {userInfo?.description}
-                    </p>
+                  <div className="mt-8 flex justify-end space-x-3">
+                    <button
+                      onClick={handleCancel}
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center"
+                    >
+                      <X className="w-4 h-4 mr-2" /> Cancel
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
+                    >
+                      <Check className="w-4 h-4 mr-2" /> Save Changes
+                    </button>
                   </div>
-                </div>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-5">
+                    <InfoItem
+                      label="Phone"
+                      value={userInfo?.contactNumber || "Not specified"}
+                    />
+                    <InfoItem
+                      label="Experience"
+                      value={
+                        userInfo?.experienceYears
+                          ? `${userInfo.experienceYears} years`
+                          : "Not specified"
+                      }
+                    />
+                    <InfoItem
+                      label="Skills"
+                      value={
+                        userInfo?.skills?.length > 0
+                          ? userInfo.skills.join(", ")
+                          : "Not specified"
+                      }
+                    />
+                    <InfoItem
+                      label="Interests"
+                      value={
+                        userInfo?.interests?.length > 0
+                          ? userInfo.interests.join(", ")
+                          : "Not specified"
+                      }
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 mb-2">
+                        About
+                      </p>
+                      <p className="text-gray-800">
+                        {userInfo?.description || "No description provided"}
+                      </p>
+                    </div>
+                  </div>
 
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="mt-6 w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                >
-                  Edit Profile
-                </button>
-              </>
-            )}
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="mt-8 w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center"
+                  >
+                    <Edit className="w-4 h-4 mr-2" /> Edit Profile
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -233,38 +245,45 @@ const Profile = ({
   );
 };
 
-// Reusable sub-components
-const InputField = ({ label, name, type = "text", value, onChange }) => (
+// Reusable Components
+
+const InputField = ({ label, name, type = "text", value, onChange, placeholder }) => (
   <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">
-      {label}
-    </label>
+    <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
     <input
       type={type}
       name={name}
       value={value}
       onChange={onChange}
-      className="w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500"
+      placeholder={placeholder}
+      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
     />
   </div>
 );
 
 const InfoItem = ({ label, value }) => (
   <div>
-    <p className="text-sm font-medium text-gray-700">{label}</p>
-    <p className="text-gray-900 mt-1">{value || "Not specified"}</p>
+    <p className="text-sm font-medium text-gray-700 mb-1">{label}</p>
+    <p className="text-gray-800">{value}</p>
   </div>
 );
 
 const TagInput = ({ label, tags, onAdd, onRemove }) => {
   const [inputValue, setInputValue] = useState("");
 
+  const handleAdd = () => {
+    if (inputValue.trim()) {
+      onAdd(inputValue.trim());
+      setInputValue("");
+    }
+  };
+
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+      <label className="block text-sm font-medium text-gray-700 mb-2">
         {label}
       </label>
-      <div className="flex flex-wrap gap-2 mb-2">
+      <div className="flex flex-wrap gap-2 mb-3">
         {tags.map((tag, index) => (
           <span
             key={index}
@@ -274,7 +293,7 @@ const TagInput = ({ label, tags, onAdd, onRemove }) => {
             <button
               type="button"
               onClick={() => onRemove(tag)}
-              className="ml-2 text-indigo-600 hover:text-indigo-900"
+              className="ml-1.5 text-indigo-600 hover:text-indigo-900"
             >
               ×
             </button>
@@ -286,19 +305,15 @@ const TagInput = ({ label, tags, onAdd, onRemove }) => {
           type="text"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          //   onKeyPress={(e) => e.key === 'Enter' && (onAdd(inputValue), setInputValue('')}
+          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAdd())}
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
           placeholder={`Add ${label.toLowerCase()}`}
-          className="flex-1 border border-gray-300 rounded-l-md p-2 focus:ring-indigo-500 focus:border-indigo-500"
         />
         <button
-          type="button"
-          onClick={() => {
-            onAdd(inputValue);
-            setInputValue("");
-          }}
-          className="px-3 bg-indigo-600 text-white rounded-r-md hover:bg-indigo-700"
+          onClick={handleAdd}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-r-lg hover:bg-indigo-700 transition-colors"
         >
-          Add
+          <Plus size={16} />
         </button>
       </div>
     </div>

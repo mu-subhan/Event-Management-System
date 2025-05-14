@@ -8,7 +8,6 @@ const StepCard = ({ number, title, description, icon, isLast }) => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          console.log(`Step ${number} is in view!`); // Debugging
           setTimeout(() => {
             entry.target.classList.add('opacity-100', 'translate-y-0');
           }, number * 200);
@@ -30,33 +29,32 @@ const StepCard = ({ number, title, description, icon, isLast }) => {
   }, [number]);
 
   return (
-    <div className="flex flex-col md:flex-row items-center opacity-0 translate-y-10 transition-all duration-500" ref={stepRef}>
-      <div className="flex flex-col items-center">
-        <div className="w-16 h-16 flex items-center justify-center rounded-full bg-purple-600 text-white text-2xl font-bold">
+    <div 
+      className={`flex flex-col items-center opacity-0 translate-y-10 transition-all duration-500 ${
+        !isLast ? 'mb-12 md:mb-0' : ''
+      }`} 
+      ref={stepRef}
+    >
+      {/* Step number with connecting line */}
+      <div className="relative flex flex-col items-center">
+        <div className="w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 text-white text-2xl font-bold shadow-lg z-10">
           {number}
         </div>
         {!isLast && (
-          <div className="h-24 w-1 bg-purple-200 my-4 md:hidden"></div>
+          <div className="hidden md:block absolute top-16 left-1/2 h-full w-0.5 bg-gradient-to-b from-purple-300 to-purple-100 transform -translate-x-1/2"></div>
         )}
       </div>
       
-      {!isLast && (
-        <div className="hidden md:block h-1 w-12 bg-purple-200 mx-4"></div>
-      )}
-      
-      <div className="bg-white rounded-xl shadow-md p-6 md:p-8 flex-1">
-        <div className="flex items-start mb-4">
-          <div className="w-12 h-12 flex items-center justify-center rounded-full bg-purple-100 text-purple-600 mr-4 flex-shrink-0">
-            {icon || 'Icon not loaded'} {/* Fallback text if the icon doesn't render */}
+      {/* Card content */}
+      <div className="mt-6 bg-white rounded-xl shadow-lg p-6 w-full max-w-md border border-gray-100 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-xl">
+        <div className="flex flex-col items-center text-center">
+          <div className="w-14 h-14 flex items-center justify-center rounded-full bg-purple-100 text-purple-600 mb-4">
+            {icon}
           </div>
-          <h3 className="text-xl font-bold text-gray-900">{title}</h3>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
+          <p className="text-gray-600">{description}</p>
         </div>
-        <p className="text-gray-600">{description}</p>
       </div>
-
-      {!isLast && (
-        <div className="hidden md:block h-1 w-12 bg-purple-200 mx-4"></div>
-      )}
     </div>
   );
 };
@@ -127,18 +125,22 @@ const HowItWorksSection = () => {
   }, []);
 
   return (
-    <section id="how-it-works" className="py-20 bg-gradient-to-b from-white to-purple-50">
+    <section id="how-it-works" className="py-16 md:py-24 bg-gradient-to-b from-white to-purple-50">
       <div 
         ref={sectionRef}
         className="container mx-auto px-4 md:px-6 opacity-0 transition-opacity duration-1000"
       >
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
-          <p className="text-xl text-gray-600">Get started in just a few simple steps</p>
+        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            How It <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-indigo-600">Works</span>
+          </h2>
+          <p className="text-lg md:text-xl text-gray-600">
+            Join thousands of volunteers making a difference in just 4 simple steps
+          </p>
         </div>
         
-        <div className="max-w-4xl ">
-          <div className="flex flex-col md:flex-row md:items-start space-y-12 md:space-y-0">
+        <div className="flex justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-6 lg:gap-8">
             {steps.map((step, index) => (
               <StepCard 
                 key={index}
@@ -153,8 +155,11 @@ const HowItWorksSection = () => {
         </div>
 
         <div className="text-center mt-16">
-          <button className="px-8 py-3 text-base font-medium text-white bg-purple-600 rounded-full hover:bg-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+          <button className="px-8 py-3 md:px-10 md:py-4 text-base md:text-lg font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
             Get Started Now
+            <svg className="w-5 h-5 ml-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+            </svg>
           </button>
         </div>
       </div>

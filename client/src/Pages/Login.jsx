@@ -25,7 +25,7 @@ const Login = () => {
       console.log("data is ", data);
       if (data.success === true) {
         toast.success("Login SuccessFully!");
-        navigate("/");
+        navigate("/admin/dashboard");
       } else {
         toast.error("Inavlid Credentials!");
       }
