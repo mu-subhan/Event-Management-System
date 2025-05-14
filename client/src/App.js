@@ -62,9 +62,9 @@ const App = () => {
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<DashboardWithRouter />} />
             <Route path="create-event" element={<CreateEventForm />} />
-            <Route path="create-role" element={<CreateRoleForm />} />
+            {/* <Route path="create-role" element={<CreateRoleForm />} /> */}
             <Route path="event-list" element={<EventList />} />
-            <Route path="role-suggestion" element={<RoleSuggestionPanel />} />
+            {/* <Route path="role-suggestion" element={<RoleSuggestionPanel />} /> */}
             <Route path="sidebar" element={<AdminSidebar />} />
             <Route path="vol-stats" element={<VolunteerStats />} />
             <Route path="event/:id" element={<EventPage />} />

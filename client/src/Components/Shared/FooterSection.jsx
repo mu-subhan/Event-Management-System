@@ -60,8 +60,10 @@ const FooterSection = () => {
 
   return (
     <footer id="contact" className="bg-gray-900 text-white pt-16 pb-8">
-      <div className="container mx-auto px-4 md:px-6">
+      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Grid Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 mb-12">
+          {/* Logo + Description + Social */}
           <div className="lg:col-span-2">
             <div className="flex items-center mb-6">
               <svg className="h-8 w-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -70,14 +72,15 @@ const FooterSection = () => {
               <span className="ml-2 text-xl font-bold">EventPro</span>
             </div>
 
-            <p className="text-gray-400 mb-6 w-96 text-justify">
+            <p className="text-gray-400 mb-6 text-sm md:text-base text-justify max-w-md">
               Your all-in-one platform to create, manage, and join events that matter. Connect with like-minded individuals and make an impact together.
             </p>
+
             <div className="flex space-x-4">
               {socialIcons.map((social, index) => (
                 <a 
                   key={index}
-                  href="#" 
+                  href="#"
                   className="text-gray-400 hover:text-white transition-colors duration-300"
                   aria-label={social.name}
                 >
@@ -86,11 +89,12 @@ const FooterSection = () => {
               ))}
             </div>
           </div>
-          
+
+          {/* Footer Link Sections */}
           {footerLinks.map((column, index) => (
             <div key={index}>
-              <h3 className="text-lg font-bold mb-4">{column.title}</h3>
-              <ul className="space-y-2">
+              <h3 className="text-lg font-semibold mb-4">{column.title}</h3>
+              <ul className="space-y-2 text-sm">
                 {column.links.map((link, linkIndex) => (
                   <li key={linkIndex}>
                     <a 
@@ -105,34 +109,36 @@ const FooterSection = () => {
             </div>
           ))}
         </div>
-        
+
+        {/* Bottom Section */}
         <div className="border-t border-gray-800 pt-8 mt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-500 text-sm mb-4 md:mb-0">
+          <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
+            <p className="text-gray-500 text-sm text-center lg:text-left">
               © {new Date().getFullYear()} EventPro. All rights reserved.
             </p>
-            
-            <div className="flex flex-col md:flex-row items-center">
-              <div className="mb-4 md:mb-0 md:mr-6 w-full md:w-auto">
-                <form className="flex">
-                  <input 
-                    type="email" 
-                    placeholder="Your email address" 
-                    className="px-4 py-2 rounded-l-md text-gray-900 w-full focus:outline-none"
-                  />
-                  <button 
-                    type="submit" 
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-r-md transition-colors duration-300"
-                  >
-                    Subscribe
-                  </button>
-                </form>
-              </div>
-              
-              <div className="flex space-x-4">
-                <a href="#" className="text-gray-400 hover:text-white transition-colors duration-300 text-sm">Terms</a>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors duration-300 text-sm">Privacy</a>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors duration-300 text-sm">Cookies</a>
+
+            {/* Subscribe + Links */}
+            <div className="w-full lg:w-auto flex flex-col md:flex-row items-center gap-4">
+              {/* Email Form */}
+              <form className="flex w-full max-w-sm">
+                <input 
+                  type="email" 
+                  placeholder="Your email address" 
+                  className="px-4 py-2 rounded-l-md text-gray-900 w-full focus:outline-none"
+                />
+                <button 
+                  type="submit" 
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-r-md transition-colors duration-300"
+                >
+                  Subscribe
+                </button>
+              </form>
+
+              {/* Footer Links (Terms, Privacy, Cookies) */}
+              <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm">
+                <a href="#" className="text-gray-400 hover:text-white transition">Terms</a>
+                <a href="#" className="text-gray-400 hover:text-white transition">Privacy</a>
+                <a href="#" className="text-gray-400 hover:text-white transition">Cookies</a>
               </div>
             </div>
           </div>
