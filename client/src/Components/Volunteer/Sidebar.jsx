@@ -19,7 +19,7 @@ const Sidebar = () => {
     { path: '/volunteer/skills', icon: <FaListAlt size={20} />, label: 'Skills' },
     { path: '/volunteer/notification', icon: <FaBell size={20} />, label: 'Notifications' },
     { path: '/volunteer/impact', icon: <FaChartLine size={20} />, label: 'Impact' },
-    { path: '/volunteer/feedback', icon: <FaFedex size={20} />, label: 'Feedback' }
+    // { path: '/volunteer/feedback', icon: <FaFedex size={20} />, label: 'Feedback' }
 
   ];
 
@@ -83,14 +83,14 @@ const Sidebar = () => {
         </ul>
       </nav>
       
-      <div className="mt-auto pt-8">
+      {/* <div className="mt-auto pt-8">
         <div className="bg-white rounded-lg p-4 mt-6">
           <p className="text-xl text-black mb-2">Need assistance?</p>
           <button className="w-full py-2 bg-white text-blue-800 rounded-lg font-medium hover:bg-blue-100 transition-colors">
             Contact Support
           </button>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
