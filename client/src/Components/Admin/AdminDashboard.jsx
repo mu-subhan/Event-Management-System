@@ -268,7 +268,7 @@ const AdminDashboard = () => {
                 <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
                   <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">Quick Actions</h3>
                   <div className="space-y-2 sm:space-y-3">
-                    <button 
+                    {/* <button 
                       className="w-full flex items-center justify-between p-2 sm:p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
                       onClick={toggleCreateEvent}
                     >
@@ -276,15 +276,22 @@ const AdminDashboard = () => {
                       <span className="bg-blue-100 text-blue-700 p-1 rounded-lg">
                         <FaPlus className="h-4 w-4 sm:h-5 sm:w-5" />
                       </span>
-                    </button>
-                    <button className="w-full flex items-center justify-between p-2 sm:p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
-                      <span className="text-sm sm:text-base font-medium text-purple-700">Manage Users</span>
+                    </button> */}
+                    <Link to="/admin/create-event" className="w-full flex items-center justify-between p-2 sm:p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                      <span className="text-sm sm:text-base font-medium text-blue-700">Create New Event</span>
+                      <span className="bg-blue-100 text-blue-700 p-1 rounded-lg">
+                        <FaPlus className="h-4 w-4 sm:h-5 sm:w-5" />
+                      </span>
+                      </Link>
+                    
+                    <Link to ="/admin/vol-stats" className="w-full flex items-center justify-between p-2 sm:p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
+                    <span className="text-sm sm:text-base font-medium text-purple-700">Manage Users</span>
                       <span className="bg-purple-100 text-purple-700 p-1 rounded-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
                           <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 12.094A5.973 5.973 0 004 15v1H1v-1a3 3 0 013.75-2.906z" />
                         </svg>
                       </span>
-                    </button>
+                    </Link>
                     {/* <button className="w-full flex items-center justify-between p-2 sm:p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
                       <span className="text-sm sm:text-base font-medium text-green-700">Generate Reports</span>
                       <span className="bg-green-100 text-green-700 p-1 rounded-lg">
