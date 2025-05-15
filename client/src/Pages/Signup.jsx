@@ -126,37 +126,34 @@ const Signup = () => {
   //   if (user) navigate("/");
   // }, [user]);
   return (
-    <div className="flex min-h-screen">
-      {/* Left Side - Welcome Section */}
-      <div className="w-1/3 bg-gradient-to-br from-purple-600 to-indigo-600 text-white p-8 flex flex-col justify-center items-center">
-        <h2 className="text-5xl font-extrabold mb-6 animate-slideIn">
-          Join Us!
-        </h2>
-        <p className="text-lg mb-6 text-center">
-          Create an account to start managing your events today. Stay organized,
-          stay ahead!
-        </p>
-        <p className="text-center leading-relaxed tracking-wide">
-          Already have an account?{" "}
-          <a
-            href="/login"
-            className="font-extrabold underline hover:text-purple-200 transition-colors duration-300"
-          >
-            Login
-          </a>
-        </p>
-        <div className="w-full">
-          <img
-            src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-            className="w-50 h-50 mt-12  object-cover shadow-lg"
-            alt="Event Management Illustration"
-          />
-        </div>
-      </div>
+    <div className="flex min-h-screen flex-col lg:flex-row">
+  {/* Left Panel (Visible on lg+) */}
+  <div className="hidden lg:flex lg:flex-col lg:justify-center lg:items-center lg:w-1/3 lg:fixed top-0 left-0 h-screen bg-gradient-to-br from-purple-600 to-indigo-600 text-white p-8 z-10">
+    <h2 className="text-5xl font-extrabold mb-6">Join Us!</h2>
+    <p className="text-lg mb-6 text-center">
+      Create an account to start managing your events today.
+    </p>
+    <p className="text-center leading-relaxed tracking-wide">
+      Already have an account?{" "}
+      <a
+        href="/login"
+        className="font-extrabold underline hover:text-purple-200"
+      >
+        Login
+      </a>
+    </p>
+    <div className="w-full mt-12">
+      <img
+        src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
+        className="w-50 h-50 object-cover shadow-lg rounded"
+        alt="Event Illustration"
+      />
+    </div>
+  </div>
 
-      {/* Right Side - Signup Form */}
-      <div className="flex justify-center items-center w-2/3 bg-gray-50">
-        <div className="w-full max-w-xl bg-white rounded-lg shadow-2xl p-12 transform transition-all duration-500 hover:shadow-3xl">
+  {/* Right Panel */}
+  <div className="w-full lg:ml-[33.3333%] flex justify-center items-center min-h-screen bg-gray-50 px-4 py-12">
+    <div className="w-full max-w-xl bg-white rounded-lg shadow-2xl p-8 sm:p-12">
           <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
             Sign Up
           </h2>
