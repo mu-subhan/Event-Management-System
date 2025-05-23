@@ -31,6 +31,8 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
 const user = require("./controller/user");
 const event = require("./controller/event");
 const role = require("./controller/role");
+const roleSuggest = require("./routes/roleSuggestion");
+
 const { createEvent } = require("./controller/testEvent");
 // User
 app.use("/api/user", user);
@@ -38,6 +40,9 @@ app.use("/api/user", user);
 app.use("/api/event", event);
 // Event Roles
 app.use("/api/role", role);
+// Event Roles
+app.use("/api/role-suggest", roleSuggest);
+
 app.post("/create-event", (req, res) => {
   try {
     const { title, startTime, endTime } = req.body;

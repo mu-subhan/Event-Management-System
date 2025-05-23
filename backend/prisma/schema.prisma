@@ -20,8 +20,8 @@ model User {
   password        String
   contactNumber   String?   // Optional for both roles
   role            String      @default("volunteer") // Set the default role to VOLUNTEER
-  skills          Json?     // For volunteers, null for admins
-  interests       Json?     // For volunteers, null for admins
+  skills          String[]    @default([]) // For volunteers, null for admins
+  interests       String[]    @default([]) // For volunteers, null for admins
   experienceYears Int?      @default(0) // Default 0, for volunteers
   profileImage    Json?   // Optional for volunteers
   description     String?   // For volunteers, null for admins
@@ -30,7 +30,6 @@ model User {
   events          Event[]  // A user (admin) can manage multiple events
   roles           EventRole[]   
   notification    Notification[]
-
 }
 
 enum Role {
