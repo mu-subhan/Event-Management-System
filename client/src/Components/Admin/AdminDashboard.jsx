@@ -227,15 +227,15 @@ const AdminDashboard = () => {
                     <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-3 sm:mb-0">
                       Event Management
                     </h2>
-                    <motion.button
+                    {/* <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={toggleCreateEvent}
                       className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-3 sm:px-4 rounded-md flex items-center justify-center sm:justify-start"
                     >
                       <FaPlus className="mr-2" />
-                      {showCreateEvent ? "Hide Form" : "Create Event"}
-                    </motion.button>
+                      {showCreateEvent ? "Hide Form" : "Create bbb Event"}
+                    </motion.button> */}
                   </div>
                   <EventList />
                 </div>

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
+import axios from "axios";
 import event from "../../Assessts/event.jpg";
 import {
   FiCalendar,
@@ -13,7 +14,7 @@ import {
 } from "react-icons/fi";
 import VolunteerAssignment from "./VolunteerAssignment";
 
-const EditEventCard = ({ event: initialEvent }) => {
+const EditEventCard = ({ event: initialEvent, onUpdate }) => {
   const [event, setEvent] = useState(initialEvent);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedVolunteers, setSelectedVolunteers] = useState({});
@@ -25,7 +26,6 @@ const EditEventCard = ({ event: initialEvent }) => {
     slots_available: 1,
   });
 
-  // نیچے والا volunteers کا ڈیٹا شامل کیا ہے (اہم تبدیلی)
   const [volunteers] = useState([
     {
       id: "1",
@@ -56,6 +56,10 @@ const EditEventCard = ({ event: initialEvent }) => {
     completed: "bg-purple-100 text-purple-800",
     cancelled: "bg-red-100 text-red-800",
   };
+
+  useEffect(() => {
+    setEvent(initialEvent);
+  }, [initialEvent]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -127,12 +131,36 @@ const EditEventCard = ({ event: initialEvent }) => {
 
   const handleSave = async () => {
     try {
-      // Add your API call to save the event here
-      // await axios.put(`${process.env.REACT_APP_SERVER}/api/event/${event.id}`, event, { withCredentials: true });
-      toast.success("Event updated successfully!");
-      setIsEditing(false);
+      console.log("Saving event:", event); // Debug what's being sent
+      console.log("Endpoint:", `${process.env.REACT_APP_SERVER}/api/event/${event.id}`);
+      
+      const response = await axios.put(
+        `${process.env.REACT_APP_SERVER}/api/event/${event.id}`,
+        event,
+        { 
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      console.log("Response:", response); // Inspect full response
+      
+      if (response.status === 200) {
+        toast.success("Event updated successfully!");
+        setIsEditing(false);
+        onUpdate();
+      } else {
+        throw new Error(response.data.message || "Failed to update event");
+      }
     } catch (error) {
-      toast.error("Failed to update event");
+      console.error("Update error details:", {
+        message: error.message,
+        response: error.response,
+        stack: error.stack
+      });
+      toast.error(error.response?.data?.message || "Failed to update event. Check console for details.");
     }
   };
 
@@ -140,6 +168,35 @@ const EditEventCard = ({ event: initialEvent }) => {
     setEvent(initialEvent);
     setIsEditing(false);
   };
+
+  // Header buttons component
+  const HeaderButtons = () => (
+    <div className="flex space-x-2">
+      {isEditing ? (
+        <>
+          <button
+            onClick={handleCancel}
+            className="p-2 bg-white/90 rounded-full hover:bg-white transition-all text-red-600 flex items-center"
+          >
+            <FiX className="mr-1" /> Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="p-2 bg-white/90 rounded-full hover:bg-white transition-all text-green-600 flex items-center"
+          >
+            <FiSave className="mr-1" /> Save
+          </button>
+        </>
+      ) : (
+        <button
+          onClick={() => setIsEditing(true)}
+          className="p-2 bg-white/90 rounded-full hover:bg-white transition-all flex items-center"
+        >
+          <FiEdit2 className="text-gray-800 mr-1" /> Edit
+        </button>
+      )}
+    </div>
+  );
 
   return (
     <>
@@ -179,34 +236,11 @@ const EditEventCard = ({ event: initialEvent }) => {
                   {event.status}
                 </div>
               </div>
-              <div className="flex space-x-2">
-                {isEditing ? (
-                  <>
-                    <button
-                      onClick={handleCancel}
-                      className="p-2 bg-white/90 rounded-full hover:bg-white transition-all text-red-600"
-                    >
-                      <FiX />
-                    </button>
-                    <button
-                      onClick={handleSave}
-                      className="p-2 bg-white/90 rounded-full hover:bg-white transition-all text-green-600"
-                    >
-                      <FiSave />
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="p-2 bg-white/90 rounded-full hover:bg-white transition-all"
-                  >
-                    <FiEdit2 className="text-gray-800" />
-                  </button>
-                )}
-              </div>
+              <HeaderButtons />
             </div>
           </div>
         </div>
+
 
         <div className="p-6">
           {isEditing ? (

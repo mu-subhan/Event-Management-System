@@ -1,5 +1,6 @@
 import React from 'react';
 import { Users, TrendingUp, AlertTriangle, ChevronRight, Plus } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const RoleSuggestionPanel = () => {
   const suggestions = [
@@ -91,10 +92,14 @@ const RoleSuggestionPanel = () => {
 
                 {/* Action Buttons */}
                 <div className="mt-4 flex flex-col sm:flex-row gap-3">
-                  <button className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition">
+                  {/* <button className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition">
                     <Plus size={16} className="mr-2" />
                     Assign Volunteers
-                  </button>
+                  </button> */}
+                  <Link to ="/admin/vol-stats" className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition">
+                    <Plus size={16} className="mr-2" />
+                    Assign Volunteers
+                  </Link>
                   <button className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition">
                     Details
                   </button>
