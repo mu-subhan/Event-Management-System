@@ -32,6 +32,7 @@ import { loaduser } from "./redux/actions/user.js";
 import UserProfile from "./Pages/ProfilePage.jsx";
 import EventDetailsPage from "./Pages/EventDetailsPage.jsx";
 import EventPage from "./Pages/EventPage.jsx";
+import EditEvent from "./Components/Admin/EditEvent.jsx";
 const App = () => {
   useEffect(() => {
     Store.dispatch(getAllEvents());
@@ -68,6 +69,7 @@ const App = () => {
             <Route path="sidebar" element={<AdminSidebar />} />
             <Route path="vol-stats" element={<VolunteerStats />} />
             <Route path="event/:id" element={<EventPage />} />
+            <Route path="event/:id/edit" element={<EditEvent />} /> 
           </Route>
 
           {/* Volunteer Routes with Sidebar */}
