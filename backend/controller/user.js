@@ -164,6 +164,7 @@ router.post(
           id: true,
           password: true,
           email: true,
+          role: true,
         },
       });
       if (!user) {

@@ -22,7 +22,9 @@ const Login = () => {
         { withCredentials: true }
       );
       if (data.success === true) {
+        console.log("data of user is :", data);
         toast.success("Login Successfully!");
+
         navigate("/admin/dashboard");
 
       } 
