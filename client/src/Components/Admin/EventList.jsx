@@ -184,16 +184,19 @@ const EventList = () => {
                       {event.location}
                     </td>
                     <td className="px-4 py-4 text-gray-600 whitespace-nowrap">
-                      Pending Functionality
+                      {event.volunteers?.length || 0} Volunteers
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       {getStatusBadge(event.status)}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="flex flex-col sm:flex-row gap-2">
-                        <button className="text-indigo-600 hover:text-indigo-900">
-                          Edit
-                        </button>
+                      <Link
+  to={`/admin/event/${event.id}/edit`}  // Changed to match the new route
+  className="text-indigo-600 hover:text-indigo-900"
+>
+  Edit
+</Link>
                         <button
                           className="text-red-600 hover:text-red-900"
                           onClick={() => deleteEventFunc(event.id)}

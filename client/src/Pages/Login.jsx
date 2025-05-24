@@ -24,7 +24,10 @@ const Login = () => {
       if (data.success === true) {
         toast.success("Login Successfully!");
         navigate("/admin/dashboard");
-      } else {
+
+      } 
+      
+      else {
         toast.error("Invalid Credentials!");
       }
     } catch (error) {
