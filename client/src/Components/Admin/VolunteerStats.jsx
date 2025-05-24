@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { UserCheck, UserPlus, Clock, Award, ChevronRight, ChevronLeft, Pencil, Trash2 } from 'lucide-react';
-import VolunteerForm from './VolunteerForm'; // You'll need to create this component
+import { Plus, UserCheck, UserPlus, Clock, Award, ChevronRight, ChevronLeft, Pencil, Trash2 } from 'lucide-react';
+import VolunteerForm from './VolunteerForm';
+import VolunteerAssignment from './VolunteerAssignment';
+import { toast } from 'react-toastify';
 
 const VolunteerStats = () => {
   const [volunteers, setVolunteers] = useState([
@@ -11,6 +13,32 @@ const VolunteerStats = () => {
     { id: 5, name: 'Emma Thompson', role: 'Cleanup Crew', hours: 16, events: 3, status: 'Active' },
   ]);
 
+  const [availableVolunteers] = useState([
+    {
+      id: "1",
+      name: "Ali Khan",
+      email: "ali@example.com",
+      skills: ["Event Organizer", "Cleanup Crew"],
+      profilePic: "https://randomuser.me/api/portraits/men/1.jpg",
+    },
+    {
+      id: "2",
+      name: "Sara Ahmed",
+      email: "sara@example.com",
+      skills: ["Food Distribution", "Cleanup Crew"],
+      profilePic: "https://randomuser.me/api/portraits/women/2.jpg",
+    },
+    {
+      id: "3",
+      name: "Usman Malik",
+      email: "usman@example.com",
+      skills: ["Event Organizer", "Food Distribution"],
+      profilePic: "https://randomuser.me/api/portraits/men/3.jpg",
+    },
+  ]);
+
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [assignedVolunteers, setAssignedVolunteers] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editingVolunteer, setEditingVolunteer] = useState(null);
@@ -39,21 +67,35 @@ const VolunteerStats = () => {
   const handleDeleteVolunteer = (id) => {
     if (window.confirm('Are you sure you want to delete this volunteer?')) {
       setVolunteers(volunteers.filter(volunteer => volunteer.id !== id));
+      toast.success('Volunteer deleted successfully!');
     }
   };
+  
 
   const handleSaveVolunteer = (volunteerData) => {
     if (editingVolunteer) {
-      // Update existing volunteer
       setVolunteers(volunteers.map(v => 
         v.id === editingVolunteer.id ? { ...v, ...volunteerData } : v
       ));
     } else {
-      // Add new volunteer
       const newId = Math.max(...volunteers.map(v => v.id)) + 1;
       setVolunteers([...volunteers, { ...volunteerData, id: newId }]);
     }
     setShowForm(false);
+  };
+
+  const handleAssignVolunteer = (roleId, volunteerId) => {
+    setAssignedVolunteers(prev => ({
+      ...prev,
+      [roleId]: volunteerId
+    }));
+  };
+
+  const handleSaveAssignments = () => {
+    // Here you would typically send the assignments to your backend
+    console.log("Saved assignments:", assignedVolunteers);
+    setShowAssignmentModal(false);
+    // You might want to update your volunteers state here
   };
 
   return (
@@ -136,25 +178,40 @@ const VolunteerStats = () => {
           </div>
         </div>
 
+        {/* Assign Volunteers Button */}
+        <div className="mt-4 flex flex-col sm:flex-row gap-3">
+          <button 
+            onClick={() => setShowAssignmentModal(true)}
+            className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition"
+          >
+            <Plus size={16} className="mr-2" />
+            Assign Volunteers
+          </button>
+          {/* <button className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-100 bg-black hover:bg-gray-50 transition">
+            Details ???
+          </button> */}
+        </div>
+
         {/* Volunteers Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-6">
           {/* Table Header */}
           <div className="px-6 py-5 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Volunteers</h2>
               <p className="text-sm text-gray-500 mt-1">List of all volunteers</p>
             </div>
-            <button 
+            {/* <button 
               onClick={handleAddVolunteer}
-              className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all"
+              className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all"
             >
-              Add Volunteer
-            </button>
+              Add Volunteer ??
+            </button> */}
           </div>
 
-          {/* Responsive Table */}
+          {/* Table Content */}
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
+              {/* Table Headers */}
               <thead className="bg-gray-50">
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -204,12 +261,12 @@ const VolunteerStats = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button 
+                      {/* <button 
                         onClick={() => handleEditVolunteer(volunteer)}
                         className="text-indigo-600 hover:text-indigo-900 mr-4 inline-flex items-center"
                       >
                         <Pencil size={16} className="mr-1" /> Edit
-                      </button>
+                      </button> */}
                       <button 
                         onClick={() => handleDeleteVolunteer(volunteer.id)}
                         className="text-red-600 hover:text-red-900 inline-flex items-center"
@@ -289,6 +346,53 @@ const VolunteerStats = () => {
                 onSave={handleSaveVolunteer}
                 onCancel={() => setShowForm(false)}
               />
+            </div>
+          </div>
+        )}
+
+        {/* Volunteer Assignment Modal */}
+        {showAssignmentModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-6">
+                  Assign Volunteers to Roles
+                </h3>
+                
+                {/* Sample roles for demonstration */}
+                {[
+                  { id: "role1", name: "Event Organizer", skills: ["Event Organizer"] },
+                  { id: "role2", name: "Cleanup Crew", skills: ["Cleanup Crew"] },
+                  { id: "role3", name: "Food Distribution", skills: ["Food Distribution"] }
+                ].map(role => (
+                  <div key={role.id} className="mb-6">
+                    <h4 className="font-medium text-gray-800 mb-2">
+                      {role.name} (Requires: {role.skills.join(", ")})
+                    </h4>
+                    <VolunteerAssignment
+                      role={role}
+                      volunteers={availableVolunteers}
+                      assignedVolunteer={assignedVolunteers[role.id]}
+                      onAssign={(volunteerId) => handleAssignVolunteer(role.id, volunteerId)}
+                    />
+                  </div>
+                ))}
+
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    onClick={() => setShowAssignmentModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveAssignments}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700"
+                  >
+                    Save Assignments
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
