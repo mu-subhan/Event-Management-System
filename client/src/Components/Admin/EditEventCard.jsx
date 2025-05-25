@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import axios from "axios";
-import event from "../../Assessts/event.jpg";
 import {
   FiCalendar,
   FiClock,
@@ -12,43 +11,28 @@ import {
   FiX,
   FiSave,
 } from "react-icons/fi";
+import event from "../../Assessts/event.jpg";
 import VolunteerAssignment from "./VolunteerAssignment";
-
+import AssignVolunteer from "../Shared/AssignVolunteer";
+import { Buttoen } from "../ui/Button";
+import { createRole } from "../../redux/actions/role";
+import { useDispatch } from "react-redux";
 const EditEventCard = ({ event: initialEvent, onUpdate }) => {
+  const dispatch = useDispatch();
+  // states
   const [event, setEvent] = useState(initialEvent);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
   const [selectedVolunteers, setSelectedVolunteers] = useState({});
   const [newSkill, setNewSkill] = useState("");
   const [newRole, setNewRole] = useState({
     role_name: "",
     description: "",
     skills: [],
+    newSkill: "",
     slots_available: 1,
   });
-
-  const [volunteers] = useState([
-    {
-      id: "1",
-      name: "Ali Khan",
-      email: "ali@example.com",
-      skills: ["React", "Node.js", "UI Design"],
-      profilePic: "https://randomuser.me/api/portraits/men/1.jpg",
-    },
-    {
-      id: "2",
-      name: "Sara Ahmed",
-      email: "sara@example.com",
-      skills: ["Graphic Design", "Content Writing"],
-      profilePic: "https://randomuser.me/api/portraits/women/2.jpg",
-    },
-    {
-      id: "3",
-      name: "Usman Malik",
-      email: "usman@example.com",
-      skills: ["Backend Development", "Database Management"],
-      profilePic: "https://randomuser.me/api/portraits/men/3.jpg",
-    },
-  ]);
+  const [isOpenVolunteerPopup, setIsOpenVolunteerPopup] = useState(false);
+  const [editRoleId, setEditRoleId] = useState(null);
 
   const statusColors = {
     upcoming: "bg-blue-100 text-blue-800",
@@ -107,18 +91,41 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
     }));
   };
 
-  const handleAddRole = () => {
-    if (newRole.role_name.trim()) {
-      setEvent((prev) => ({
-        ...prev,
-        role: [...prev.role, { ...newRole, id: Date.now().toString() }],
-      }));
-      setNewRole({
-        role_name: "",
-        description: "",
-        skills: [],
-        slots_available: 1,
-      });
+  const handleAddRole = async () => {
+    try {
+      console.log("newRole: ", newRole);
+      console.log("event: ", event);
+      if (
+        newRole.role_name.trim() &&
+        event.role.every((r) => r.role_name !== newRole?.role_name)
+      ) {
+        const data = {
+          role_name: newRole.role_name,
+          description: newRole.description,
+          skills: newRole.skills,
+          event_id: event?.id,
+        };
+        const response = await dispatch(createRole(data));
+        if (!response || response?.success === false)
+          throw new Error("Failed In Creation of New Role!");
+        setEvent((prev) => ({
+          ...prev,
+          role: [...prev.role, response.eventRole],
+        }));
+        setNewRole({
+          role_name: "",
+          description: "",
+          skills: [],
+          slots_available: 1,
+        });
+        toast.success("Role Added Successfully!");
+      } else {
+        toast.error(
+          role.trim() ? "RoleName is Empty!" : "RoleName Already Exist!"
+        );
+      }
+    } catch (error) {
+      toast.error(error?.message || "Role Add fail!");
     }
   };
 
@@ -128,25 +135,60 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
       role: prev.role.filter((role) => role.id !== roleId),
     }));
   };
+  const addVolunteerToRole = (roleId, volunteer) => {
+    setRoles((prevRoles) =>
+      prevRoles.map((role) => {
+        if (role.id === roleId) {
+          // Prevent duplicate volunteers by id
+          const exists = role.volunteers.some((v) => v.id === volunteer.id);
+          if (!exists) {
+            return {
+              ...role,
+              volunteers: [...role.volunteers, volunteer],
+            };
+          }
+        }
+        return role;
+      })
+    );
+  };
+
+  // Remove volunteer by volunteer id from role.volunteers by role id
+  const removeVolunteerFromRole = (roleId, volunteerId) => {
+    setRoles((prevRoles) =>
+      prevRoles.map((role) => {
+        if (role.id === roleId) {
+          return {
+            ...role,
+            volunteers: role.volunteers.filter((v) => v.id !== volunteerId),
+          };
+        }
+        return role;
+      })
+    );
+  };
 
   const handleSave = async () => {
     try {
       console.log("Saving event:", event); // Debug what's being sent
-      console.log("Endpoint:", `${process.env.REACT_APP_SERVER}/api/event/${event.id}`);
-      
+      console.log(
+        "Endpoint:",
+        `${process.env.REACT_APP_SERVER}/api/event/${event.id}`
+      );
+
       const response = await axios.put(
         `${process.env.REACT_APP_SERVER}/api/event/${event.id}`,
         event,
-        { 
+        {
           withCredentials: true,
           headers: {
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
-      
+
       console.log("Response:", response); // Inspect full response
-      
+
       if (response.status === 200) {
         toast.success("Event updated successfully!");
         setIsEditing(false);
@@ -158,9 +200,12 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
       console.error("Update error details:", {
         message: error.message,
         response: error.response,
-        stack: error.stack
+        stack: error.stack,
       });
-      toast.error(error.response?.data?.message || "Failed to update event. Check console for details.");
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to update event. Check console for details."
+      );
     }
   };
 
@@ -231,7 +276,10 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                   </h1>
                 )}
                 <div
-                  className={`px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center ${statusColors[event.status.toLowerCase()] || "bg-gray-100 text-gray-800"}`}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center ${
+                    statusColors[event.status.toLowerCase()] ||
+                    "bg-gray-100 text-gray-800"
+                  }`}
                 >
                   {event.status}
                 </div>
@@ -240,7 +288,6 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
             </div>
           </div>
         </div>
-
 
         <div className="p-6">
           {isEditing ? (
@@ -451,14 +498,30 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                 <div className="flex">
                   <input
                     type="text"
-                    value={newSkill}
-                    onChange={(e) => setNewSkill(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && handleAddSkill()}
+                    value={newRole.newSkill}
+                    onChange={(e) =>
+                      setNewRole({
+                        ...newRole,
+                        newSkill: e.target.value,
+                      })
+                    }
                     className="flex-1 p-2 border border-gray-300 rounded-l-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     placeholder="Add skill and press Enter"
                   />
                   <button
-                    onClick={() => handleAddSkill()}
+                    onClick={() => {
+                      setNewRole((prev) => {
+                        if (prev.skills.includes(prev.newSkill)) {
+                          toast.error("Skill Already Added");
+                          return prev;
+                        }
+                        return {
+                          ...prev,
+                          skills: [...prev.skills, prev.newSkill], // create new array
+                          newSkill: "", // reset newSkill
+                        };
+                      });
+                    }}
                     className="px-4 bg-blue-600 text-white rounded-r-md hover:bg-blue-700"
                   >
                     Add
@@ -611,35 +674,49 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                 </div>
 
                 <hr className="my-4 border-gray-200" />
-
-                {/* یہاں پر اہم تبدیلی کی ہے - VolunteerAssignment کو شامل کیا ہے */}
-                <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">
-                    Assign Volunteer
-                  </label>
-                  <VolunteerAssignment
-                    role={role}
-                    volunteers={volunteers} // Make sure this is passed
-                    assignedVolunteer={selectedVolunteers[role.id] || null}
-                    onAssign={(volunteerId) => {
-                      console.log("Assigning volunteer:", volunteerId); // Debug log
-                      handleSelect(role.id, volunteerId);
+                {!isEditing && (
+                  <button
+                    onClick={() => {
+                      setEditRoleId(role?.id);
+                      setIsEditing(true);
+                      setIsOpenVolunteerPopup(true);
                     }}
-                    disabled={isEditing}
-                  />
-                </div>
+                    className="px-4 py-2 sm:px-5 sm:py-2.5 bg-indigo-600 text-white rounded-md sm:rounded-lg hover:bg-indigo-700 transition-colors shadow-md text-sm sm:text-base"
+                  >
+                    Assign Volunteer
+                  </button>
+                )}
 
                 {isEditing && (
-                  <button
-                    onClick={() => handleRemoveRole(role.id)}
-                    className="mt-4 w-full py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
-                  >
-                    Remove Role
-                  </button>
+                  <div className=" flex flex-col gap-1">
+                    <button
+                      onClick={() => handleRemoveRole(role.id)}
+                      className="mt-4 w-full py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+                    >
+                      Remove Role
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditRoleId(role?.id);
+                        setIsEditing(true);
+                        setIsOpenVolunteerPopup(true);
+                      }}
+                      className="px-4 py-2 sm:px-5 sm:py-2.5 bg-indigo-600 text-white rounded-md sm:rounded-lg hover:bg-indigo-700 transition-colors shadow-md text-sm sm:text-base w-full"
+                    >
+                      Assign Volunteer
+                    </button>
+                  </div>
                 )}
               </div>
             </motion.div>
           ))}
+          {/* testing start */}
+          <AssignVolunteer
+            isOpen={isOpenVolunteerPopup}
+            setIsOpen={setIsOpenVolunteerPopup}
+            roleId={editRoleId}
+          />
+          {/* testing end */}
         </div>
       </motion.div>
     </>

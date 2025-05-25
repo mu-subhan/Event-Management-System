@@ -149,7 +149,13 @@ router.get("/:id", async (req, res) => {
   try {
     const event = await prisma.Event.findUnique({
       where: { id: req.params.id },
-      include: { role: true },
+      include: {
+        role: {
+          include: {
+            volunteers: true, // assuming volunteers is the field name in the relation
+          },
+        },
+      },
     });
     console.log("event Found is: ", event);
     if (!event) {
@@ -157,13 +163,11 @@ router.get("/:id", async (req, res) => {
     }
     res.status(200).json({ success: true, event });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        error: "Failed to fetch event",
-        details: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch event",
+      details: error.message,
+    });
   }
 });
 

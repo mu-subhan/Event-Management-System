@@ -20,8 +20,10 @@ const EditEvent = () => {
         `${process.env.REACT_APP_SERVER}/api/event/${id}`,
         { withCredentials: true }
       );
+      console.log("data is: ", data);
       setEvent(data.event);
     } catch (error) {
+      console.log("error: ", error);
       toast.error("Event not Found!");
     } finally {
       setLoading(false);
@@ -46,6 +48,5 @@ const EditEvent = () => {
     </motion.div>
   );
 };
-
 
 export default EditEvent;
