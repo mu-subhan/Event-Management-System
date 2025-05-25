@@ -31,13 +31,22 @@ if (process.env.NODE_ENV !== "PRODUCTION") {
 const user = require("./controller/user");
 const event = require("./controller/event");
 const role = require("./controller/role");
+const roleSuggest = require("./routes/roleSuggestion");
+const { isAuthenticated, isAdmin } = require("./middleware/auth");
 const { createEvent } = require("./controller/testEvent");
 // User
 app.use("/api/user", user);
 // Event
 app.use("/api/event", event);
 // Event Roles
-app.use("/api/role", role);
+app.use(
+  "/api/role",
+  // isAuthenticated, isAdmin("Admin"),
+  role
+);
+// Event Roles
+app.use("/api/role-suggest", roleSuggest);
+
 app.post("/create-event", (req, res) => {
   try {
     const { title, startTime, endTime } = req.body;
