@@ -11,7 +11,9 @@ const AdminLayout = () => {
   const dispatch = useDispatch();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // for mobile
   const collapsed = false; // keep your logic as-is
-  const { user, isLoading } = useSelector((state) => state.user);
+  const { user, isLoading, isAuthenticated } = useSelector(
+    (state) => state.user
+  );
 
   const menuItems = [
     { path: "/admin/dashboard", name: "Dashboard", icon: <Home size={20} /> },
@@ -41,32 +43,34 @@ const AdminLayout = () => {
 
   return (
     <>
-      {isLoading ? (
-        <Loader />
-      ) : user && user.role == "Admin" ? (
-        <div className="flex h-screen overflow-hidden">
-          {/* Menu icon for mobile */}
-          <button
-            className="md:hidden fixed top-4 left-4 z-50 text-white bg-indigo-800 p-2 rounded-md shadow-md"
-            onClick={() => setIsSidebarOpen(true)}
-          >
-            <Menu size={24} />
-          </button>
+      {isLoading === false ? (
+        !isAuthenticated || user?.role !== "Admin" ? (
+          <Navigate to="/" />
+        ) : (
+          <div className="flex h-screen overflow-hidden">
+            {/* Menu icon for mobile */}
+            <button
+              className="md:hidden fixed top-4 left-4 z-50 text-white bg-indigo-800 p-2 rounded-md shadow-md"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
 
-          <AdminSidebar
-            className="fixed h-full"
-            menuItems={menuItems}
-            isOpen={isSidebarOpen}
-            toggleSidebar={setIsSidebarOpen}
-            collapsed={collapsed}
-          />
+            <AdminSidebar
+              className="fixed h-full"
+              menuItems={menuItems}
+              isOpen={isSidebarOpen}
+              toggleSidebar={setIsSidebarOpen}
+              collapsed={collapsed}
+            />
 
-          <div className="flex-1 overflow-y-auto">
-            <Outlet />
+            <div className="flex-1 overflow-y-auto">
+              <Outlet />
+            </div>
           </div>
-        </div>
+        )
       ) : (
-        <Navigate to="/" />
+        <Loader />
       )}
     </>
   );

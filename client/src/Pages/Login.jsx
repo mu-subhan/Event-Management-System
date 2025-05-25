@@ -22,8 +22,13 @@ const Login = () => {
         { withCredentials: true }
       );
       if (data.success === true) {
+        if (data?.user?.role === "Admin") {
+          navigate("/admin/dashboard");
+        } else if (data?.user?.role === "Volunteer") {
+          navigate("/volunteer/dashboard");
+        }
+        console.log("  :", data);
         toast.success("Login Successfully!");
-        navigate("/admin/dashboard");
       } else {
         toast.error("Invalid Credentials!");
       }
