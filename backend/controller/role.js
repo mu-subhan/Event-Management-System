@@ -10,7 +10,7 @@ router.post(
   eventRoleValidator.validateCreate,
   async (req, res) => {
     try {
-      const { event_id, role_name, skills, description, volunteers } = req.body;
+      const { event_id, role_name, skills, description } = req.body;
 
       const newEventRole = await prisma.eventRole.create({
         data: {
@@ -18,14 +18,13 @@ router.post(
           role_name,
           skills,
           description,
-          volunteers: { connect: volunteers.map((userId) => ({ id: userId })) },
         },
       });
 
-      res.status(201).json(newEventRole);
+      res.status(201).json({ success: true, eventRole: newEventRole });
     } catch (error) {
       console.log("error is: ", error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 );
