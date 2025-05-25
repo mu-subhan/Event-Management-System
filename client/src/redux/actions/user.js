@@ -57,22 +57,38 @@ export const updateUserInformation = (inputData) => async (dispatch) => {
     dispatch({
       type: "updateUserInfoRequest",
     });
+
     const { data } = await axios.put(
-      `${process.env.REACT_APP_SERVER}/api/user/update-user-info`,
+      `${process.env.REACT_APP_SERVER}/api/user/update-profile`,
       inputData,
-      { withCredentials: true }
+      { 
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
     );
-    console.log("response of Address updation is:", data);
-    dispatch({
-      type: "updateUserInfoSuccess",
-      payload: data.user,
-    });
+
+    if (data.success) {
+      dispatch({
+        type: "updateUserInfoSuccess",
+        payload: data.user,
+      });
+      
+      // Reload user data to ensure we have the latest state
+      dispatch(loaduser());
+      
+      return { success: true };
+    } else {
+      throw new Error(data.message || 'Update failed');
+    }
   } catch (error) {
-    console.log("error during updatign teh User: ", error);
+    console.error("Error updating user:", error);
     dispatch({
       type: "updateUserInfoFailed",
-      payload: error?.response?.data?.message,
+      payload: error?.response?.data?.message || error.message,
     });
+    return { error: error?.response?.data?.message || error.message };
   }
 };
 
