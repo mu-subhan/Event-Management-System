@@ -48,26 +48,31 @@ const CreateEventForm = () => {
 
   const validateStep = () => {
     setShowError(true);
-    
+    console.log("current step: ", currentStep);
     if (currentStep === 1) {
       return eventData.eventName && eventData.startTime && eventData.endTime;
     }
-    
+
     if (currentStep === 2) {
       return eventData.location && eventData.eventDescription;
     }
-    
+
     if (currentStep === 3) {
       return eventData.roles?.length > 0;
     }
-    
+
     return true;
   };
 
   const validateAndNextStep = () => {
+    console.log("validate next steo run !");
     if (validateStep()) {
       setShowError(false);
-      nextStep();
+      setTimeout(() => {
+        nextStep();
+      }, 0);
+
+      // nextStep();
     } else {
       toast.error("Please fill all required fields");
     }
@@ -76,17 +81,15 @@ const CreateEventForm = () => {
   const handleAddRole = (e) => {
     e.preventDefault();
     try {
-      if (
-        !eventRole ||
-        !eventRole.role_name ||
-        !eventRole.description
-      ) {
+      if (!eventRole || !eventRole.role_name || !eventRole.description) {
         toast.error("Please fill all required fields to add role");
         setShowError(true);
         return;
       }
 
-      if (eventData?.roles?.some(role => role.role_name === eventRole.role_name)) {
+      if (
+        eventData?.roles?.some((role) => role.role_name === eventRole.role_name)
+      ) {
         toast.error("Role already exists!");
         return;
       }
@@ -98,7 +101,7 @@ const CreateEventForm = () => {
           roles: newRoles,
         };
       });
-      
+
       setEventRole({
         role_name: "",
         skills: [],
@@ -114,7 +117,7 @@ const CreateEventForm = () => {
   const removeSkill = (index) => {
     const updatedSkills = [...eventRole.skills];
     updatedSkills.splice(index, 1);
-    setEventRole({...eventRole, skills: updatedSkills});
+    setEventRole({ ...eventRole, skills: updatedSkills });
   };
 
   const handleRemoveRole = (index) => {
@@ -125,7 +128,7 @@ const CreateEventForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    console.log("handle Submit Run !");
     if (!validateStep()) {
       toast.error("Please fill all required fields");
       return;
@@ -146,7 +149,7 @@ const CreateEventForm = () => {
         payload,
         { withCredentials: true }
       );
-      
+      console.log("data of craete event is: ", data);
       if (data.success) {
         toast.success("Event created successfully!");
       } else {
@@ -182,7 +185,7 @@ const CreateEventForm = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50 items-center justify-center p-2 sm:p-4 md:p-6">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -235,13 +238,17 @@ const CreateEventForm = () => {
                     value={eventData.eventName}
                     onChange={handleChange}
                     className={`w-full p-2 sm:p-3 border ${
-                      !eventData.eventName && showError ? 'border-red-500' : 'border-gray-300'
+                      !eventData.eventName && showError
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md sm:rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all`}
                     placeholder="Enter event name"
                     required
                   />
                   {!eventData.eventName && showError && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-600">Event title is required</p>
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">
+                      Event title is required
+                    </p>
                   )}
                 </div>
 
@@ -260,12 +267,16 @@ const CreateEventForm = () => {
                         value={eventData.startTime}
                         onChange={handleChange}
                         className={`w-full pl-9 sm:pl-10 p-2 sm:p-3 border ${
-                          !eventData.startTime && showError ? 'border-red-500' : 'border-gray-300'
+                          !eventData.startTime && showError
+                            ? "border-red-500"
+                            : "border-gray-300"
                         } rounded-md sm:rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all`}
                         required
                       />
                       {!eventData.startTime && showError && (
-                        <p className="mt-1 text-xs sm:text-sm text-red-600">Start time is required</p>
+                        <p className="mt-1 text-xs sm:text-sm text-red-600">
+                          Start time is required
+                        </p>
                       )}
                     </div>
                   </div>
@@ -283,12 +294,16 @@ const CreateEventForm = () => {
                         value={eventData.endTime}
                         onChange={handleChange}
                         className={`w-full pl-9 sm:pl-10 p-2 sm:p-3 border ${
-                          !eventData.endTime && showError ? 'border-red-500' : 'border-gray-300'
+                          !eventData.endTime && showError
+                            ? "border-red-500"
+                            : "border-gray-300"
                         } rounded-md sm:rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all`}
                         required
                       />
                       {!eventData.endTime && showError && (
-                        <p className="mt-1 text-xs sm:text-sm text-red-600">End time is required</p>
+                        <p className="mt-1 text-xs sm:text-sm text-red-600">
+                          End time is required
+                        </p>
                       )}
                     </div>
                   </div>
@@ -313,14 +328,18 @@ const CreateEventForm = () => {
                       value={eventData.location}
                       onChange={handleChange}
                       className={`w-full pl-9 sm:pl-10 p-2 sm:p-3 border ${
-                        !eventData.location && showError ? 'border-red-500' : 'border-gray-300'
+                        !eventData.location && showError
+                          ? "border-red-500"
+                          : "border-gray-300"
                       } rounded-md sm:rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all`}
                       placeholder="Enter location"
                       required
                     />
                   </div>
                   {!eventData.location && showError && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-600">Location is required</p>
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">
+                      Location is required
+                    </p>
                   )}
                 </div>
 
@@ -353,13 +372,17 @@ const CreateEventForm = () => {
                     onChange={handleChange}
                     rows="3"
                     className={`w-full p-2 sm:p-3 border ${
-                      !eventData.eventDescription && showError ? 'border-red-500' : 'border-gray-300'
+                      !eventData.eventDescription && showError
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md sm:rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all`}
                     placeholder="Describe the event and volunteer expectations"
                     required
                   ></textarea>
                   {!eventData.eventDescription && showError && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-600">Description is required</p>
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">
+                      Description is required
+                    </p>
                   )}
                 </div>
 
@@ -407,15 +430,20 @@ const CreateEventForm = () => {
                     type="text"
                     name="role"
                     value={eventRole.role_name}
-                    onChange={(e) => setEventRole({...eventRole, role_name: e.target.value})}
+                    onChange={(e) =>
+                      setEventRole({ ...eventRole, role_name: e.target.value })
+                    }
                     className={`w-full p-2 sm:p-3 border ${
-                      !eventRole.role_name && showError ? 'border-red-500' : 'border-gray-300'
+                      !eventRole.role_name && showError
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md sm:rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all`}
                     placeholder="e.g. Event Coordinator"
-                    required
                   />
                   {!eventRole.role_name && showError && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-600">Role name is required</p>
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">
+                      Role name is required
+                    </p>
                   )}
                 </div>
 
@@ -428,7 +456,7 @@ const CreateEventForm = () => {
                       type="text"
                       value={skill}
                       onChange={(e) => setSkill(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleAddSkill()}
+                      onKeyPress={(e) => e.key === "Enter" && handleAddSkill()}
                       className="flex-1 p-2 sm:p-3 border border-gray-300 rounded-md sm:rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                       placeholder="Add required skills (press Enter to add)"
                     />
@@ -471,16 +499,24 @@ const CreateEventForm = () => {
                   </label>
                   <textarea
                     value={eventRole.description}
-                    onChange={(e) => setEventRole({...eventRole, description: e.target.value})}
+                    onChange={(e) =>
+                      setEventRole({
+                        ...eventRole,
+                        description: e.target.value,
+                      })
+                    }
                     rows="3"
                     className={`w-full p-2 sm:p-3 border ${
-                      !eventRole.description && showError ? 'border-red-500' : 'border-gray-300'
+                      !eventRole.description && showError
+                        ? "border-red-500"
+                        : "border-gray-300"
                     } rounded-md sm:rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all`}
                     placeholder="Describe the role responsibilities"
-                    required
                   ></textarea>
                   {!eventRole.description && showError && (
-                    <p className="mt-1 text-xs sm:text-sm text-red-600">Role description is required</p>
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">
+                      Role description is required
+                    </p>
                   )}
                 </div>
 
@@ -509,7 +545,9 @@ const CreateEventForm = () => {
                           animate={{ opacity: 1, y: 0 }}
                           className="border border-gray-200 rounded-md sm:rounded-lg p-2 sm:p-3 hover:border-indigo-300 transition-colors relative group bg-white shadow-sm"
                         >
-                          <h4 className="font-medium text-indigo-700 text-sm sm:text-base">{role.role_name}</h4>
+                          <h4 className="font-medium text-indigo-700 text-sm sm:text-base">
+                            {role.role_name}
+                          </h4>
                           {role.skills.length > 0 && (
                             <div className="mt-1 flex flex-wrap gap-1">
                               {role.skills.map((skill, i) => (
@@ -533,8 +571,12 @@ const CreateEventForm = () => {
                       ))}
                     </div>
                   </div>
-                ) : showError && (
-                  <p className="text-xs sm:text-sm text-red-600 text-center">Please add at least one role</p>
+                ) : (
+                  showError && (
+                    <p className="text-xs sm:text-sm text-red-600 text-center">
+                      Please add at least one role
+                    </p>
+                  )
                 )}
               </div>
             )}

@@ -7,13 +7,13 @@ class RoleSuggestionController {
   async suggestUsers(req, res) {
     try {
       const { roleId } = req.params;
-
       // Step 1: Fetch role from DB
       const role = await prisma.EventRole.findUnique({
         where: {
           id: roleId,
         },
       });
+      console.log("role is: ", role);
       if (!role)
         return res.status(404).json({
           success: false,
@@ -31,6 +31,7 @@ class RoleSuggestionController {
           skills: {
             hasSome: role.skills, // matches any of the skills
           },
+          role: "Volunteer",
         },
         select: {
           id: true,
@@ -75,6 +76,7 @@ class RoleSuggestionController {
         try {
           if (result) {
             const userScores = JSON.parse(result);
+            console.log("userScores: ", userScores);
             const MIN_SCORE = 0.15;
             // Step 1: Filter by minimum score
             const filteredByScore = userScores.filter(
@@ -100,7 +102,10 @@ class RoleSuggestionController {
                 return null; // skip if no match found
               })
               .filter(Boolean); // remove nulls
-
+            console.log(
+              "topSuggestedUsersWithScores: ",
+              topSuggestedUsersWithScores
+            );
             return res.json({
               success: true,
               suggestedUsers: topSuggestedUsersWithScores,
