@@ -531,5 +531,48 @@ router.delete(
     }
   })
 );
+// search user volunteer
+router.get(
+  "/search-volunteer",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { name } = req.query;
+      if (!name || name.trim() === "") {
+        return next(new ErrorHandler("Name query parameter is required", 400));
+      }
+
+      // Find users with role = 'volunteer' and name contains the search term (case-insensitive)
+      const users = await prisma.User.findMany({
+        where: {
+          role: "Volunteer",
+          name: {
+            contains: name,
+            mode: "insensitive",
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          contactNumber: true,
+          role: true,
+          skills: true,
+          interests: true,
+          experienceYears: true,
+          profileImage: true,
+          description: true,
+        },
+      });
+
+      return res.status(200).json({
+        success: true,
+        users,
+      });
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      return next(new ErrorHandler("Server error", 500));
+    }
+  })
+);
 
 module.exports = router;
