@@ -70,11 +70,12 @@ export const getAllEvents =
       const { data } = await axios.get(
         `${process.env.REACT_APP_SERVER}/api/event/events/?page=${page}`
       );
-      console.log("all Events Are: ", data);
+      console.log("all Events before dispatch Are: ", data);
       dispatch({
         type: "getAlleventsSuccess",
         payload: data,
       });
+      console.log("all Events after dispatch Are: ", data);
     } catch (error) {
       console.log("error during getting all events!", error);
       dispatch({

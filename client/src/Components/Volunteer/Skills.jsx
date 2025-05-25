@@ -1,55 +1,68 @@
 import React, { useState } from 'react';
-import { FaPencilAlt, FaMicrophone, FaHandsHelping, FaPlus, FaChartLine, FaLightbulb } from 'react-icons/fa';
+import { FaPencilAlt, FaMicrophone, FaHandsHelping, FaPlus, FaChartLine, FaLightbulb, FaTimes, FaCheck, FaStar, FaCog, FaCertificate, FaAward } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSelector, useDispatch } from 'react-redux';
+import { updateUserInformation } from '../../redux/actions/user';
+import { toast } from 'react-toastify';
 
 const iconOptions = {
-  pencil: { icon: <FaPencilAlt />, color: 'bg-purple-100 text-purple-600' },
-  mic: { icon: <FaMicrophone />, color: 'bg-blue-100 text-blue-600' },
-  hands: { icon: <FaHandsHelping />, color: 'bg-green-100 text-green-600' },
-  chart: { icon: <FaChartLine />, color: 'bg-yellow-100 text-yellow-600' },
-  bulb: { icon: <FaLightbulb />, color: 'bg-orange-100 text-orange-600' }
+  star: { icon: <FaStar />, color: 'bg-yellow-100 text-yellow-600' },
+  check: { icon: <FaCheck />, color: 'bg-green-100 text-green-600' },
+  lightbulb: { icon: <FaLightbulb />, color: 'bg-blue-100 text-blue-600' },
+  cog: { icon: <FaCog />, color: 'bg-purple-100 text-purple-600' },
+  certificate: { icon: <FaCertificate />, color: 'bg-orange-100 text-orange-600' },
+  award: { icon: <FaAward />, color: 'bg-red-100 text-red-600' }
 };
 
 const Skills = () => {
-  const [skills, setSkills] = useState([
-    { id: 1, name: "Event Planning", iconKey: "pencil", level: 85 },
-    { id: 2, name: "Fundraising", iconKey: "hands", level: 70 },
-    { id: 3, name: "Public Speaking", iconKey: "mic", level: 60 }
-  ]);
-
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.user);
   const [showForm, setShowForm] = useState(false);
-  const [newSkill, setNewSkill] = useState({ name: "", level: "", iconKey: "pencil" });
-  const [activeTab, setActiveTab] = useState('all');
+  const [newSkill, setNewSkill] = useState({ name: "", iconKey: "pencil" });
+  const skills = user?.skills || [];
 
-  const handleAddSkill = (e) => {
+  const handleAddSkill = async (e) => {
     e.preventDefault();
-    if (!newSkill.name || !newSkill.level || isNaN(newSkill.level)) return;
-    
-    const newId = Math.max(...skills.map(s => s.id), 0) + 1;
-    setSkills([
-      ...skills,
-      { 
-        id: newId,
-        name: newSkill.name, 
-        level: parseInt(newSkill.level), 
-        iconKey: newSkill.iconKey 
+    if (!newSkill.name) return;
+
+    try {
+      // Create a new array with the new skill
+      const updatedSkills = [...skills, newSkill.name];
+      
+      // Update user information with new skills
+      const result = await dispatch(updateUserInformation({ skills: updatedSkills }));
+      
+      if (result.success) {
+        toast.success('Skill added successfully!');
+        setNewSkill({ name: "", iconKey: "pencil" });
+        setShowForm(false);
+      } else {
+        toast.error('Failed to add skill');
       }
-    ]);
-    setNewSkill({ name: "", level: "", iconKey: "pencil" });
-    setShowForm(false);
+    } catch (error) {
+      toast.error('Error adding skill');
+      console.error('Error adding skill:', error);
+    }
   };
 
-  const removeSkill = (id) => {
-    setSkills(skills.filter(skill => skill.id !== id));
+  const removeSkill = async (skillToRemove) => {
+    try {
+      // Filter out the skill to remove
+      const updatedSkills = skills.filter(skill => skill !== skillToRemove);
+      
+      // Update user information with filtered skills
+      const result = await dispatch(updateUserInformation({ skills: updatedSkills }));
+      
+      if (result.success) {
+        toast.success('Skill removed successfully!');
+      } else {
+        toast.error('Failed to remove skill');
+      }
+    } catch (error) {
+      toast.error('Error removing skill');
+      console.error('Error removing skill:', error);
+    }
   };
-
-  const filteredSkills = activeTab === 'all' 
-    ? skills 
-    : skills.filter(skill => 
-        activeTab === 'advanced' ? skill.level >= 70 :
-        activeTab === 'intermediate' ? skill.level >= 40 && skill.level < 70 :
-        skill.level < 40
-      );
 
   return (
     <div className="w-full bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -64,8 +77,8 @@ const Skills = () => {
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <h2 className="text-2xl font-bold">Your Skills Portfolio</h2>
-                <p className="text-blue-100">Showcase and manage your volunteer skills</p>
+                <h2 className="text-2xl font-bold">Your Skills</h2>
+                <p className="text-blue-100">Manage your volunteer skills</p>
               </div>
               <motion.button 
                 whileHover={{ scale: 1.05 }}
@@ -75,34 +88,6 @@ const Skills = () => {
               >
                 <FaPlus /> {showForm ? 'Cancel' : 'Add Skill'}
               </motion.button>
-            </div>
-          </div>
-
-          {/* Filter Tabs */}
-          <div className="px-6 pt-4">
-            <div className="flex overflow-x-auto pb-2">
-              {['all', 'advanced', 'intermediate', 'beginner'].map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 mr-2 text-sm font-medium rounded-full whitespace-nowrap transition-colors ${
-                    activeTab === tab 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                  {tab !== 'all' && (
-                    <span className="ml-1 bg-white bg-opacity-50 px-1.5 py-0.5 rounded-full text-xs">
-                      {skills.filter(s => 
-                        tab === 'advanced' ? s.level >= 70 :
-                        tab === 'intermediate' ? s.level >= 40 && s.level < 70 :
-                        tab === 'beginner' ? s.level < 40 : false
-                      ).length}
-                    </span>
-                  )}
-                </button>
-              ))}
             </div>
           </div>
 
@@ -116,55 +101,17 @@ const Skills = () => {
                 transition={{ duration: 0.3 }}
                 className="px-6 overflow-hidden"
               >
-                <form onSubmit={handleAddSkill} className="bg-blue-50 p-4 rounded-lg mb-6">
-                  <h3 className="text-lg font-medium text-gray-800 mb-4">Add New Skill</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Skill Name</label>
-                      <input 
-                        type="text" 
-                        placeholder="e.g. Graphic Design" 
-                        value={newSkill.name}
-                        onChange={(e) => setNewSkill({ ...newSkill, name: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Proficiency Level</label>
-                      <div className="flex items-center gap-2">
-                        <input 
-                          type="range" 
-                          min="0" 
-                          max="100" 
-                          value={newSkill.level}
-                          onChange={(e) => setNewSkill({ ...newSkill, level: e.target.value })}
-                          className="w-full"
-                        />
-                        <span className="text-sm font-medium w-12 text-center">
-                          {newSkill.level || 0}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                <form onSubmit={handleAddSkill} className="bg-blue-50 p-4 rounded-lg my-4">
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Icon</label>
-                    <div className="flex flex-wrap gap-3">
-                      {Object.keys(iconOptions).map((key) => (
-                        <button
-                          type="button"
-                          key={key}
-                          onClick={() => setNewSkill({ ...newSkill, iconKey: key })}
-                          className={`w-12 h-12 flex items-center justify-center rounded-full text-xl transition-all ${
-                            iconOptions[key].color
-                          } ${
-                            newSkill.iconKey === key ? 'ring-2 ring-offset-2 ring-blue-500' : ''
-                          }`}
-                        >
-                          {iconOptions[key].icon}
-                        </button>
-                      ))}
-                    </div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Skill Name</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Event Planning" 
+                      value={newSkill.name}
+                      onChange={(e) => setNewSkill({ ...newSkill, name: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    />
                   </div>
                   <div className="flex justify-end gap-3">
                     <button
@@ -189,20 +136,14 @@ const Skills = () => {
           </AnimatePresence>
 
           {/* Skills List */}
-          <div className="px-6 pb-6">
-            {filteredSkills.length === 0 ? (
+          <div className="p-6">
+            {skills.length === 0 ? (
               <div className="text-center py-12">
                 <div className="mx-auto w-24 h-24 flex items-center justify-center bg-gray-100 rounded-full text-gray-400 mb-4">
                   <FaLightbulb size={32} />
                 </div>
-                <h3 className="text-lg font-medium text-gray-700 mb-1">
-                  {activeTab === 'all' ? 'No skills added yet' : `No ${activeTab} skills`}
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  {activeTab === 'all' 
-                    ? 'Add your first skill to get started!' 
-                    : `You don't have any ${activeTab} level skills yet`}
-                </p>
+                <h3 className="text-lg font-medium text-gray-700 mb-1">No skills added yet</h3>
+                <p className="text-gray-500 mb-4">Add your first skill to get started!</p>
                 <button 
                   onClick={() => setShowForm(true)}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -211,70 +152,43 @@ const Skills = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <AnimatePresence>
-                  {filteredSkills.map((skill) => (
+                  {skills.map((skill, index) => (
                     <motion.div
-                      key={skill.id}
+                      key={index}
                       layout
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
                       transition={{ duration: 0.2 }}
-                      className="group relative bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all"
+                      className="group relative bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all flex items-center justify-between"
                     >
-                      <button 
-                        onClick={() => removeSkill(skill.id)}
-                        className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                      >
-                        ×
-                      </button>
-                      <div className="flex items-start gap-4">
-                        <div className={`w-12 h-12 flex items-center justify-center rounded-xl text-xl ${iconOptions[skill.iconKey].color}`}>
-                          {iconOptions[skill.iconKey].icon}
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 flex items-center justify-center rounded-lg ${
+                          iconOptions[Object.keys(iconOptions)[index % Object.keys(iconOptions).length]].color
+                        }`}>
+                          {iconOptions[Object.keys(iconOptions)[index % Object.keys(iconOptions).length]].icon}
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900">{skill.name}</h3>
-                          <div className="mt-2">
-                            <div className="flex justify-between text-sm text-gray-500 mb-1">
-                              <span>Proficiency</span>
-                              <span>{skill.level}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div 
-                                className={`h-2 rounded-full ${
-                                  skill.level >= 70 ? 'bg-green-500' :
-                                  skill.level >= 40 ? 'bg-yellow-500' :
-                                  'bg-red-500'
-                                }`}
-                                style={{ width: `${skill.level}%` }}
-                              ></div>
-                            </div>
-                          </div>
+                        <div>
+                          <span className="font-medium text-gray-900">{skill}</span>
+                          <div className="text-sm text-gray-500">Added to your profile</div>
                         </div>
+                      </div>
+                      <div className="flex items-center">
+                        <button
+                          onClick={() => removeSkill(skill)}
+                          className="text-gray-400 hover:text-red-500 transition-colors p-1 flex items-center gap-1"
+                        >
+                          <span className="text-sm">Remove</span>
+                          <FaTimes size={16} />
+                        </button>
                       </div>
                     </motion.div>
                   ))}
                 </AnimatePresence>
               </div>
             )}
-          </div>
-
-          {/* Footer CTA */}
-          <div className="border-t border-gray-200 px-6 py-5 bg-gray-50">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div>
-                <h3 className="font-medium text-gray-900">Ready to put your skills to work?</h3>
-                <p className="text-sm text-gray-600">Find volunteer opportunities that match your expertise</p>
-              </div>
-              {/* <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md"
-              >
-                Browse Opportunities
-              </motion.button> */}
-            </div>
           </div>
         </motion.div>
       </div>

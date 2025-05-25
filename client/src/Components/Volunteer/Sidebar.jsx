@@ -1,16 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { FaHome, FaUserAlt, FaCalendarAlt, FaListAlt, FaBell, FaChartLine, FaFedex } from 'react-icons/fa';
-import { Link, useLocation } from 'react-router-dom';
-import userImage from "../../Assessts/subhanImage.png";
+import { FaHome, FaUserAlt, FaCalendarAlt, FaListAlt, FaBell, FaChartLine, FaSignOutAlt } from 'react-icons/fa';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import { logoutUser } from '../../redux/actions/user';
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.user);
   const [activeLink, setActiveLink] = useState('/volunteer/dashboard');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // To manage mobile sidebar toggle
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
     setActiveLink(location.pathname);
   }, [location]);
+
+  const handleLogout = async () => {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_SERVER}/api/user/logout`, {
+        withCredentials: true,
+      });
+      
+      if (response.data.success) {
+        dispatch(logoutUser());
+        toast.success('Logged out successfully!');
+        navigate('/');
+      } else {
+        toast.error('Logout failed!');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Something went wrong during logout');
+    }
+  };
 
   const navItems = [
     { path: '/volunteer/dashboard', icon: <FaHome size={20} />, label: 'Dashboard' },
@@ -39,28 +64,38 @@ const Sidebar = () => {
         </button>
       </div>
       
-      <div className="flex items-center justify-center mb-10">
+      {/* <div className="flex items-center justify-center mb-10">
         <div className="bg-white p-3 rounded-full">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-slate-600" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold ml-3">Volunteer Hub</h2>
-      </div>
+        <h2 className="text-2xl font-bold ml-3">Volunteer</h2>
+      </div> */}
       
       <div className="mt-2 mb-8">
         <div className="flex items-center justify-center mb-4">
           <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center overflow-hidden border-2 border-white">
-            <img src={userImage} alt="Profile" className="w-full h-full object-cover" />
+            {user?.profileImage?.url ? (
+              <img 
+                src={user.profileImage.url} 
+                alt={user.name} 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white text-2xl font-bold">
+                {user?.name ? user.name.charAt(0).toUpperCase() : '?'}
+              </div>
+            )}
           </div>
         </div>
         <div className="text-center">
-          <p className="font-semibold text-lg">Muhammad Subhan</p>
-          <p className="text-blue-100 text-sm">Dedicated Volunteer</p>
+          <p className="font-semibold text-lg">{user?.name || "Guest"}</p>
+          <p className="text-blue-100 text-sm">Volunteer</p>
         </div>
       </div>
       
-      <nav>
+      <nav className="flex flex-col h-[calc(100vh-350px)] justify-between">
         <ul className="space-y-2">
           {navItems.map((item) => (
             <li key={item.path}>
@@ -75,12 +110,25 @@ const Sidebar = () => {
                 <span className="text-center w-6">{item.icon}</span>
                 <span>{item.label}</span>
                 {currentPath === item.path && (
-                  <span className="ml-auto w-1.5 h-6  rounded-full"></span>
+                  <span className="ml-auto w-1.5 h-6 rounded-full"></span>
                 )}
               </Link>
             </li>
           ))}
         </ul>
+
+        {/* Logout Button */}
+        <div className="mt-auto">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 text-white hover:bg-red-500 hover:text-white group"
+          >
+            <span className="text-center w-6">
+              <FaSignOutAlt size={20} />
+            </span>
+            <span>Logout</span>
+          </button>
+        </div>
       </nav>
       
       {/* <div className="mt-auto pt-8">
