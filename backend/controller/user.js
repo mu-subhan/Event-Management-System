@@ -536,13 +536,18 @@ router.get(
   "/search-volunteer",
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const { name } = req.query;
-      if (!name || name.trim() === "") {
-        return next(new ErrorHandler("Name query parameter is required", 400));
+      const { name, event_id } = req.query;
+      console.log("name: ", name, " event_id: ", event_id);
+      if (!name || name.trim() === "" || !event_id || event_id.trim() === "") {
+        throw new Error(
+          name ? "Event ID" : "Name",
+          "query parameter is required",
+          400
+        );
       }
 
       // Find users with role = 'volunteer' and name contains the search term (case-insensitive)
-      const users = await prisma.User.findMany({
+      let users = await prisma.User.findMany({
         where: {
           role: "Volunteer",
           name: {
@@ -561,9 +566,21 @@ router.get(
           experienceYears: true,
           profileImage: true,
           description: true,
+          roles: {
+            select: {
+              id: true,
+              event_id: true,
+              role_name: true,
+              skills: true, // example field; adjust based on your schema
+              description: true,
+              volunteers: true,
+            },
+          }, // list all fields you want to include, but **do not** include password
         },
       });
-
+      users = users.filter(
+        (user) => !user.roles.some((r) => r.event_id === event_id)
+      );
       return res.status(200).json({
         success: true,
         users,

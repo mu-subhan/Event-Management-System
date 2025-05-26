@@ -7,6 +7,7 @@ class RoleSuggestionController {
   async suggestUsers(req, res) {
     try {
       const { roleId } = req.params;
+
       // Step 1: Fetch role from DB
       const role = await prisma.EventRole.findUnique({
         where: {
@@ -24,13 +25,15 @@ class RoleSuggestionController {
       const roleText = `${role.role_name} ${role.skills.join(" ")} ${
         role.description || ""
       }`;
-
+      const normalizedRoleSkills = role.skills.map((skill) =>
+        skill.toLowerCase()
+      );
       // Step 2: Pre-filter users by at least one matching skill
-      const filteredUsers = await prisma.User.findMany({
+      let filteredUsers = await prisma.User.findMany({
         where: {
-          skills: {
-            hasSome: role.skills, // matches any of the skills
-          },
+          // skills: {
+          //   hasSome: normalizedRoleSkills, // matches any of the skills
+          // },
           role: "Volunteer",
         },
         select: {
@@ -44,16 +47,30 @@ class RoleSuggestionController {
           experienceYears: true,
           profileImage: true,
           description: true,
-          // list all fields you want to include, but **do not** include password
+          roles: {
+            select: {
+              id: true,
+              event_id: true,
+              role_name: true,
+              skills: true, // example field; adjust based on your schema
+              description: true,
+              volunteers: true,
+            },
+          }, // list all fields you want to include, but **do not** include password
         },
       });
-
-      if (!filteredUsers.length)
-        return res.json({ success: true, suggestedUsers: [] }); // No relevant users found
+      filteredUsers = filteredUsers.filter(
+        (user) => !user.roles.some((r) => r.event_id === role.event_id)
+      );
+      if (filteredUsers.role)
+        if (!filteredUsers.length)
+          return res.json({ success: true, suggestedUsers: [] }); // No relevant users found
 
       // Step 3: Format data for Python script
+      const normalizeText = (text) =>
+        text.toLowerCase().replace(/[^a-z0-9 ]/g, "");
       const payload = {
-        role_text: roleText,
+        role_text: normalizeText(roleText),
         users: filteredUsers.map((user) => ({
           id: user.id,
           skills: user.skills.join(" "),
@@ -77,7 +94,7 @@ class RoleSuggestionController {
           if (result) {
             const userScores = JSON.parse(result);
             console.log("userScores: ", userScores);
-            const MIN_SCORE = 0.15;
+            const MIN_SCORE = 0.12;
             // Step 1: Filter by minimum score
             const filteredByScore = userScores.filter(
               (item) => item.score >= MIN_SCORE
