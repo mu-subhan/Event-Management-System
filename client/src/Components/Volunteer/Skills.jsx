@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaPencilAlt, FaMicrophone, FaHandsHelping, FaPlus, FaChartLine, FaLightbulb, FaTimes, FaCheck, FaStar, FaCog, FaCertificate, FaAward } from 'react-icons/fa';
+import { FaPencilAlt, FaMicrophone, FaHandsHelping, FaPlus, FaChartLine, FaLightbulb, FaTimes, FaCheck, FaStar, FaCog, FaCertificate, FaAward, FaExclamationCircle } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateUserInformation } from '../../redux/actions/user';
@@ -19,15 +19,77 @@ const Skills = () => {
   const { user } = useSelector((state) => state.user);
   const [showForm, setShowForm] = useState(false);
   const [newSkill, setNewSkill] = useState({ name: "", iconKey: "pencil" });
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const skills = user?.skills || [];
+
+  // Validation rules
+  const validateSkill = (skillName) => {
+    const errors = {};
+
+    // Required field
+    if (!skillName.trim()) {
+      errors.name = "Skill name is required";
+      return errors;
+    }
+
+    // Length validation
+    if (skillName.length < 2) {
+      errors.name = "Skill name must be at least 2 characters long";
+      return errors;
+    }
+
+    if (skillName.length > 30) {
+      errors.name = "Skill name must be less than 30 characters";
+      return errors;
+    }
+
+    // Format validation (letters, numbers, spaces, and hyphens only)
+    if (!/^[a-zA-Z0-9\s-]+$/.test(skillName)) {
+      errors.name = "Skill name can only contain letters, numbers, spaces, and hyphens";
+      return errors;
+    }
+
+    // Duplicate skill validation
+    if (skills.some(skill => skill.toLowerCase() === skillName.toLowerCase())) {
+      errors.name = "This skill already exists in your profile";
+      return errors;
+    }
+
+    // // Maximum skills validation
+    // if (skills.length >= 10) {
+    //   errors.name = "You can add a maximum of 10 skills";
+    //   return errors;
+    // }
+
+    return errors;
+  };
+
+  const handleSkillChange = (e) => {
+    const value = e.target.value;
+    setNewSkill({ ...newSkill, name: value });
+    
+    // Clear errors when user starts typing
+    if (errors.name) {
+      setErrors({});
+    }
+  };
 
   const handleAddSkill = async (e) => {
     e.preventDefault();
-    if (!newSkill.name) return;
+    
+    // Validate before submission
+    const validationErrors = validateSkill(newSkill.name);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
       // Create a new array with the new skill
-      const updatedSkills = [...skills, newSkill.name];
+      const updatedSkills = [...skills, newSkill.name.trim()];
       
       // Update user information with new skills
       const result = await dispatch(updateUserInformation({ skills: updatedSkills }));
@@ -36,12 +98,17 @@ const Skills = () => {
         toast.success('Skill added successfully!');
         setNewSkill({ name: "", iconKey: "pencil" });
         setShowForm(false);
+        setErrors({});
       } else {
         toast.error('Failed to add skill');
+        setErrors({ submit: 'Failed to add skill. Please try again.' });
       }
     } catch (error) {
       toast.error('Error adding skill');
+      setErrors({ submit: 'An error occurred. Please try again.' });
       console.error('Error adding skill:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -64,6 +131,20 @@ const Skills = () => {
     }
   };
 
+  // Error message component
+  const ErrorMessage = ({ error }) => {
+    return error ? (
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center gap-1 text-red-500 text-sm mt-1"
+      >
+        <FaExclamationCircle className="w-4 h-4" />
+        <span>{error}</span>
+      </motion.div>
+    ) : null;
+  };
+
   return (
     <div className="w-full bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-4xl mx-auto">
@@ -83,7 +164,11 @@ const Skills = () => {
               <motion.button 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setShowForm(!showForm)}
+                onClick={() => {
+                  setShowForm(!showForm);
+                  setErrors({});
+                  setNewSkill({ name: "", iconKey: "pencil" });
+                }}
                 className="flex items-center gap-2 px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-full font-medium transition-all"
               >
                 <FaPlus /> {showForm ? 'Cancel' : 'Add Skill'}
@@ -103,21 +188,37 @@ const Skills = () => {
               >
                 <form onSubmit={handleAddSkill} className="bg-blue-50 p-4 rounded-lg my-4">
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Skill Name</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Skill Name
+                      <span className="text-red-500 ml-1">*</span>
+                    </label>
                     <input 
                       type="text" 
                       placeholder="e.g. Event Planning" 
                       value={newSkill.name}
-                      onChange={(e) => setNewSkill({ ...newSkill, name: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      onChange={handleSkillChange}
+                      className={`w-full px-4 py-2 border ${
+                        errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                      } rounded-lg focus:ring-2 focus:border-transparent transition-colors`}
                       required
                     />
+                    <ErrorMessage error={errors.name} />
+                    {!errors.name && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        {newSkill.name.length}/30 characters
+                      </p>
+                    )}
                   </div>
                   <div className="flex justify-end gap-3">
                     <button
                       type="button"
-                      onClick={() => setShowForm(false)}
+                      onClick={() => {
+                        setShowForm(false);
+                        setErrors({});
+                        setNewSkill({ name: "", iconKey: "pencil" });
+                      }}
                       className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                      disabled={isSubmitting}
                     >
                       Cancel
                     </button>
@@ -125,11 +226,24 @@ const Skills = () => {
                       type="submit"
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+                      className={`px-6 py-2 ${
+                        isSubmitting 
+                          ? 'bg-blue-400 cursor-not-allowed' 
+                          : 'bg-blue-600 hover:bg-blue-700'
+                      } text-white rounded-lg transition-colors shadow-md flex items-center gap-2`}
+                      disabled={isSubmitting}
                     >
-                      Add Skill
+                      {isSubmitting ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Adding...</span>
+                        </>
+                      ) : (
+                        'Add Skill'
+                      )}
                     </motion.button>
                   </div>
+                  {errors.submit && <ErrorMessage error={errors.submit} />}
                 </form>
               </motion.div>
             )}
