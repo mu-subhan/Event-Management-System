@@ -9,6 +9,7 @@ const Profile = () => {
   const dispatch = useDispatch();
   
   const [isEditing, setIsEditing] = useState(false);
+  const [errors, setErrors] = useState({});
   const [profile, setProfile] = useState({
     name: "",
     email: "",
@@ -19,6 +20,67 @@ const Profile = () => {
   });
 
   const [editData, setEditData] = useState({ ...profile });
+
+  // Validation functions
+  const validateName = (name) => {
+    if (!name.trim()) return "Name is required";
+    if (name.length < 2) return "Name must be at least 2 characters long";
+    if (name.length > 50) return "Name must be less than 50 characters";
+    if (!/^[a-zA-Z\s]*$/.test(name)) return "Name can only contain letters and spaces";
+    return "";
+  };
+
+  const validateEmail = (email) => {
+    if (!email.trim()) return "Email is required";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Invalid email format";
+    return "";
+  };
+
+  const validatePhone = (phone) => {
+    if (!phone.trim()) return "Phone number is required";
+    if (!/^\+?[\d\s-]{10,}$/.test(phone)) return "Invalid phone number format";
+    return "";
+  };
+
+  const validateExperienceYears = (years) => {
+    const numYears = parseInt(years);
+    if (isNaN(numYears)) return "Experience years must be a number";
+    if (numYears < 0) return "Experience years cannot be negative";
+    if (numYears > 50) return "Experience years seems too high";
+    return "";
+  };
+
+  const validateDescription = (description) => {
+    if (description.length > 500) return "Description must be less than 500 characters";
+    return "";
+  };
+
+  const validateSkills = (skills) => {
+    if (skills.length === 0) return "At least one skill is required";
+    if (skills.some(skill => !skill.trim())) return "Skills cannot be empty";
+    if (skills.some(skill => skill.length > 30)) return "Skill name too long";
+    return "";
+  };
+
+  // Validate all fields
+  const validateForm = () => {
+    const newErrors = {
+      name: validateName(editData.name),
+      email: validateEmail(editData.email),
+      phone: validatePhone(editData.phone),
+      experienceYears: validateExperienceYears(editData.experienceYears),
+      description: validateDescription(editData.description),
+      skills: validateSkills(editData.skills)
+    };
+
+    // Filter out empty error messages
+    const filteredErrors = Object.fromEntries(
+      Object.entries(newErrors).filter(([_, value]) => value !== "")
+    );
+
+    setErrors(filteredErrors);
+    return Object.keys(filteredErrors).length === 0;
+  };
 
   // Load user data when component mounts
   useEffect(() => {
@@ -43,11 +105,18 @@ const Profile = () => {
 
   const handleEdit = () => {
     setEditData({ ...profile });
+    setErrors({});
     setIsEditing(true);
   };
 
   const handleSave = async () => {
     try {
+      // Validate form before saving
+      if (!validateForm()) {
+        toast.error('Please fix the validation errors');
+        return;
+      }
+
       // Transform the data to match the backend schema
       const updateData = {
         name: editData.name,
@@ -71,6 +140,7 @@ const Profile = () => {
       // Update local state
       setProfile({ ...editData });
       setIsEditing(false);
+      setErrors({});
       
       toast.success('Profile updated successfully!');
     } catch (error) {
@@ -81,6 +151,7 @@ const Profile = () => {
 
   const handleCancel = () => {
     setEditData({ ...profile });
+    setErrors({});
     setIsEditing(false);
   };
 
@@ -89,6 +160,14 @@ const Profile = () => {
       ...prev,
       [field]: value
     }));
+
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ""
+      }));
+    }
   };
 
   const handleSkillChange = (index, value) => {
@@ -98,6 +177,14 @@ const Profile = () => {
       ...prev,
       skills: newSkills
     }));
+
+    // Clear skills error when user modifies skills
+    if (errors.skills) {
+      setErrors(prev => ({
+        ...prev,
+        skills: ""
+      }));
+    }
   };
 
   const addSkill = () => {
@@ -112,6 +199,13 @@ const Profile = () => {
       ...prev,
       skills: prev.skills.filter((_, i) => i !== index)
     }));
+  };
+
+  // Error message component
+  const ErrorMessage = ({ error }) => {
+    return error ? (
+      <p className="text-red-500 text-xs mt-1">{error}</p>
+    ) : null;
   };
 
   return (
@@ -156,12 +250,15 @@ const Profile = () => {
             </div>
             <div className="flex-1">
               {isEditing ? (
-                <input
-                  type="text"
-                  value={editData.name}
-                  onChange={(e) => handleChange('name', e.target.value)}
-                  className="font-bold text-xl text-gray-800 w-full p-1 border-b border-gray-300 focus:border-blue-500 focus:outline-none"
-                />
+                <div>
+                  <input
+                    type="text"
+                    value={editData.name}
+                    onChange={(e) => handleChange('name', e.target.value)}
+                    className={`font-bold text-xl text-gray-800 w-full p-1 border-b ${errors.name ? 'border-red-500' : 'border-gray-300'} focus:border-blue-500 focus:outline-none`}
+                  />
+                  <ErrorMessage error={errors.name} />
+                </div>
               ) : (
                 <>
                   <h3 className="font-bold text-xl text-gray-800">{profile.name}</h3>
@@ -178,49 +275,71 @@ const Profile = () => {
           <div className="space-y-4 text-gray-600 mt-6">
             <div className="flex items-center shadow-md p-4 rounded-lg">
               <FaEnvelope className="w-5 h-5 mr-3 text-blue-500" />
-              <span>{profile.email}</span>
+              <div className="flex-1">
+                <span>{profile.email}</span>
+                {isEditing && <ErrorMessage error={errors.email} />}
+              </div>
             </div>
             
             <div className="flex items-center shadow-md p-4 rounded-lg">
               <FaPhone className="w-5 h-5 mr-3 text-blue-500" />
-              {isEditing ? (
-                <input
-                  type="tel"
-                  value={editData.phone}
-                  onChange={(e) => handleChange('phone', e.target.value)}
-                  className="w-full p-1 border-b border-gray-300 focus:border-blue-500 focus:outline-none"
-                />
-              ) : (
-                <span>{profile.phone}</span>
-              )}
+              <div className="flex-1">
+                {isEditing ? (
+                  <>
+                    <input
+                      type="tel"
+                      value={editData.phone}
+                      onChange={(e) => handleChange('phone', e.target.value)}
+                      className={`w-full p-1 border-b ${errors.phone ? 'border-red-500' : 'border-gray-300'} focus:border-blue-500 focus:outline-none`}
+                      placeholder="Enter phone number"
+                    />
+                    <ErrorMessage error={errors.phone} />
+                  </>
+                ) : (
+                  <span>{profile.phone}</span>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center shadow-md p-4 rounded-lg">
               <FaClock className="w-5 h-5 mr-3 text-blue-500" />
-              {isEditing ? (
-                <input
-                  type="number"
-                  min="0"
-                  value={editData.experienceYears}
-                  onChange={(e) => handleChange('experienceYears', e.target.value)}
-                  className="w-full p-1 border-b border-gray-300 focus:border-blue-500 focus:outline-none"
-                  placeholder="Years of experience"
-                />
-              ) : (
-                <span>{profile.experienceYears} {profile.experienceYears === 1 ? 'year' : 'years'} of experience</span>
-              )}
+              <div className="flex-1">
+                {isEditing ? (
+                  <>
+                    <input
+                      type="number"
+                      min="0"
+                      value={editData.experienceYears}
+                      onChange={(e) => handleChange('experienceYears', e.target.value)}
+                      className={`w-full p-1 border-b ${errors.experienceYears ? 'border-red-500' : 'border-gray-300'} focus:border-blue-500 focus:outline-none`}
+                      placeholder="Years of experience"
+                    />
+                    <ErrorMessage error={errors.experienceYears} />
+                  </>
+                ) : (
+                  <span>{profile.experienceYears} {profile.experienceYears === 1 ? 'year' : 'years'} of experience</span>
+                )}
+              </div>
             </div>
 
             <div className="flex shadow-md p-4 rounded-lg">
               <FaFileAlt className="w-5 h-5 mr-3 text-blue-500 mt-1" />
               <div className="flex-1">
                 {isEditing ? (
-                  <textarea
-                    value={editData.description}
-                    onChange={(e) => handleChange('description', e.target.value)}
-                    className="w-full p-2 border rounded-lg focus:border-blue-500 focus:outline-none min-h-[100px]"
-                    placeholder="Tell us about yourself..."
-                  />
+                  <>
+                    <textarea
+                      value={editData.description}
+                      onChange={(e) => handleChange('description', e.target.value)}
+                      className={`w-full p-2 border rounded-lg ${errors.description ? 'border-red-500' : 'border-gray-300'} focus:border-blue-500 focus:outline-none min-h-[100px]`}
+                      placeholder="Tell us about yourself..."
+                    />
+                    <div className="flex justify-between items-center mt-1">
+                      <ErrorMessage error={errors.description} />
+                      <span className="text-xs text-gray-500">
+                        {editData.description.length}/500 characters
+                      </span>
+                    </div>
+                  </>
                 ) : (
                   <p className="whitespace-pre-wrap">{profile.description || "No description provided."}</p>
                 )}
@@ -241,7 +360,7 @@ const Profile = () => {
                       type="text"
                       value={skill}
                       onChange={(e) => handleSkillChange(index, e.target.value)}
-                      className="flex-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm border border-blue-200 focus:outline-none focus:border-blue-500"
+                      className={`flex-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm ${errors.skills ? 'border-red-500' : 'border-blue-200'} border focus:outline-none focus:border-blue-500`}
                       placeholder="Enter a skill..."
                     />
                     <button 
@@ -253,6 +372,7 @@ const Profile = () => {
                     </button>
                   </div>
                 ))}
+                <ErrorMessage error={errors.skills} />
                 <button 
                   onClick={addSkill}
                   className="mt-2 px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm font-medium hover:bg-blue-200 transition-colors flex items-center gap-1"

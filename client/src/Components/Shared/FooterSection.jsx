@@ -1,12 +1,12 @@
-// components/FooterSection.jsx
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const FooterSection = () => {
   const socialIcons = [
     {
       name: "Facebook",
       icon: (
-        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" />
         </svg>
       ),
@@ -14,135 +14,76 @@ const FooterSection = () => {
     {
       name: "Twitter",
       icon: (
-        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z" />
-        </svg>
-      ),
-    },
-    {
-      name: "Instagram",
-      icon: (
-        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z" />
-          <rect x="2" y="9" width="4" height="12" />
-          <circle cx="4" cy="4" r="2" />
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M23 3a10.9 10.9 0 01-3.14 1.53A4.48 4.48 0 0016.5 3c-2.5 0-4.5 2.04-4.5 4.56 0 .36.04.72.11 1.06A12.94 12.94 0 013 4.15a4.65 4.65 0 001.41 6.1 4.41 4.41 0 01-2.05-.57v.06c0 2.22 1.54 4.07 3.58 4.5a4.4 4.4 0 01-2.04.08c.58 1.87 2.26 3.23 4.25 3.26A9 9 0 012 19.54 12.75 12.75 0 008.29 21c7.55 0 11.68-6.46 11.68-12.06 0-.18-.01-.35-.02-.53A8.18 8.18 0 0023 3z" />
         </svg>
       ),
     },
     {
       name: "LinkedIn",
       icon: (
-        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17h-2v-6h2v6zm-1-7a1 1 0 110-2 1 1 0 010 2zm8 7h-2v-4c0-.5-.5-1-1-1s-1 .5-1 1v4h-2v-6h2v1c.4-.6 1.2-1 2-1 1.7 0 3 1.3 3 3v3z" />
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M20.45 20.45h-3.554v-5.568c0-1.328-.472-2.236-1.65-2.236-.899 0-1.433.604-1.668 1.188-.086.209-.108.499-.108.791v5.825H9.909s.047-9.454 0-10.437h3.554v1.479c.472-.728 1.317-1.763 3.203-1.763 2.338 0 4.079 1.532 4.079 4.826v5.895zM5.337 7.433c-1.145 0-1.891.755-1.891 1.747 0 .972.724 1.746 1.847 1.746h.022c1.169 0 1.891-.774 1.891-1.746-.022-.992-.722-1.747-1.869-1.747zm-1.777 13.017h3.554V10.99H3.56v9.46zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.226.792 24 1.771 24h20.451C23.2 24 24 23.226 24 22.271V1.729C24 .774 23.2 0 22.225 0z" />
         </svg>
       ),
-    },
+    }
   ];
 
-  const footerLinks = [
-    {
-      title: "Platform",
-      links: ["Home", "Features", "How It Works", "Pricing", "FAQ"],
-    },
-    {
-      title: "Resources",
-      links: ["Blog", "Guides", "Success Stories", "Community", "Events"],
-    },
-    {
-      title: "Company",
-      links: ["About Us", "Team", "Careers", "Contact Us", "Press"],
-    },
-    {
-      title: "Legal",
-      links: ["Terms of Service", "Privacy Policy", "Cookie Policy", "GDPR", "Accessibility"],
-    },
-  ];
+  const links = ["Home", "About", "Contact", "Privacy", "Terms"];
 
   return (
-    <footer id="contact" className="bg-gray-900 text-white pt-16 pb-8">
-      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Grid Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8 mb-12">
-          {/* Logo + Description + Social */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center mb-6">
-              <svg className="h-8 w-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span className="ml-2 text-xl font-bold">EventPro</span>
-            </div>
+    <footer className="bg-gray-900 text-white py-10">
+      <div className="mx-auto px-36 flex flex-col md:flex-row justify-between items-start gap-8">
+        
+        {/* Logo and description */}
+        <div className="flex items-start gap-3">
+          <Link to="/" className="flex-shrink-0">
+            <svg
+              className="h-8 w-8 text-purple-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+          </Link>
+          <p className="text-sm text-gray-400 max-w-xs">
+            Create, manage, and join events that matter.
+          </p>
+        </div>
 
-            <p className="text-gray-400 mb-6 text-sm md:text-base text-justify max-w-md">
-              Your all-in-one platform to create, manage, and join events that matter. Connect with like-minded individuals and make an impact together.
-            </p>
-
-            <div className="flex space-x-4">
-              {socialIcons.map((social, index) => (
-                <a 
-                  key={index}
-                  href="#"
-                  className="text-gray-400 hover:text-white transition-colors duration-300"
-                  aria-label={social.name}
-                >
-                  {social.icon}
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Footer Link Sections */}
-          {footerLinks.map((column, index) => (
-            <div key={index}>
-              <h3 className="text-lg font-semibold mb-4">{column.title}</h3>
-              <ul className="space-y-2 text-sm">
-                {column.links.map((link, linkIndex) => (
-                  <li key={linkIndex}>
-                    <a 
-                      href="#" 
-                      className="text-gray-400 hover:text-white transition-colors duration-300"
-                    >
-                      {link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
+        {/* Links row-wise */}
+        <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm">
+          {links.map((link, i) => (
+            <a key={i} href="#" className="text-gray-400 hover:text-white transition">
+              {link}
+            </a>
           ))}
         </div>
 
-        {/* Bottom Section */}
-        <div className="border-t border-gray-800 pt-8 mt-8">
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
-            <p className="text-gray-500 text-sm text-center lg:text-left">
-              © {new Date().getFullYear()} EventPro. All rights reserved.
-            </p>
-
-            {/* Subscribe + Links */}
-            <div className="w-full lg:w-auto flex flex-col md:flex-row items-center gap-4">
-              {/* Email Form */}
-              <form className="flex w-full max-w-sm">
-                <input 
-                  type="email" 
-                  placeholder="Your email address" 
-                  className="px-4 py-2 rounded-l-md text-gray-900 w-full focus:outline-none"
-                />
-                <button 
-                  type="submit" 
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-r-md transition-colors duration-300"
-                >
-                  Subscribe
-                </button>
-              </form>
-
-              {/* Footer Links (Terms, Privacy, Cookies) */}
-              <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm">
-                <a href="#" className="text-gray-400 hover:text-white transition">Terms</a>
-                <a href="#" className="text-gray-400 hover:text-white transition">Privacy</a>
-                <a href="#" className="text-gray-400 hover:text-white transition">Cookies</a>
-              </div>
-            </div>
-          </div>
+        {/* Social Icons */}
+        <div className="flex gap-4">
+          {socialIcons.map((social, index) => (
+            <a
+              key={index}
+              href="#"
+              className="text-gray-400 hover:text-white transition"
+              aria-label={social.name}
+            >
+              {social.icon}
+            </a>
+          ))}
         </div>
+      </div>
+
+      {/* Bottom text */}
+      <div className="mt-6 text-center text-xs text-gray-500">
+        © {new Date().getFullYear()} EventPro. All rights reserved.
       </div>
     </footer>
   );
