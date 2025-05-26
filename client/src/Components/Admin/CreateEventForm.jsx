@@ -31,6 +31,7 @@ const CreateEventForm = () => {
     role_name: "",
     skills: [],
     description: "",
+    maxVolunteers: 0,
   });
   const [skill, setSkill] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
@@ -81,7 +82,12 @@ const CreateEventForm = () => {
   const handleAddRole = (e) => {
     e.preventDefault();
     try {
-      if (!eventRole || !eventRole.role_name || !eventRole.description) {
+      if (
+        !eventRole ||
+        !eventRole.role_name ||
+        !eventRole.description ||
+        !eventRole.maxVolunteers
+      ) {
         toast.error("Please fill all required fields to add role");
         setShowError(true);
         return;
@@ -106,6 +112,7 @@ const CreateEventForm = () => {
         role_name: "",
         skills: [],
         description: "",
+        maxVolunteers: 0,
       });
       setSkill("");
     } catch (error) {
@@ -142,7 +149,7 @@ const CreateEventForm = () => {
       location: eventData.location,
       role: eventData?.roles,
     };
-
+    console.log("payload is: ", payload);
     try {
       const { data } = await axios.post(
         `${process.env.REACT_APP_SERVER}/api/event/create-event`,
@@ -345,25 +352,6 @@ const CreateEventForm = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                    Maximum Volunteers
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                      <FaUserFriends className="text-sm sm:text-base" />
-                    </div>
-                    <input
-                      type="number"
-                      name="maxVolunteers"
-                      value={eventData.maxVolunteers}
-                      onChange={handleChange}
-                      className="w-full pl-9 sm:pl-10 p-2 sm:p-3 border border-gray-300 rounded-md sm:rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                      placeholder="Leave blank for unlimited"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                     Description<span className="text-red-500">*</span>
                   </label>
                   <textarea
@@ -446,7 +434,33 @@ const CreateEventForm = () => {
                     </p>
                   )}
                 </div>
-
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                    Max Volunteers<span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    name="role"
+                    value={eventRole.maxVolunteers}
+                    onChange={(e) =>
+                      setEventRole({
+                        ...eventRole,
+                        maxVolunteers: Number(e.target.value),
+                      })
+                    }
+                    className={`w-full p-2 sm:p-3 border ${
+                      !eventRole.maxVolunteers && showError
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    } rounded-md sm:rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all`}
+                    placeholder="e.g. Event Coordinator"
+                  />
+                  {!eventRole.maxVolunteers && showError && (
+                    <p className="mt-1 text-xs sm:text-sm text-red-600">
+                      Max Volunteer
+                    </p>
+                  )}
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                     Required Skills

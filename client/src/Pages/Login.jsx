@@ -2,8 +2,12 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import axios from "axios";
-
+import { useDispatch } from "react-redux";
+import { loaduser } from "../redux/actions/user";
 const Login = () => {
+  const dispatch = useDispatch();
+
+  // states
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -22,6 +26,7 @@ const Login = () => {
         { withCredentials: true }
       );
       if (data.success === true) {
+        await dispatch(loaduser());
         if (data?.user?.role === "Admin") {
           navigate("/admin/dashboard");
         } else if (data?.user?.role === "Volunteer") {

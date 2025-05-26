@@ -11,7 +11,7 @@ const CreateEventPage = () => {
     startTime: "",
     endTime: "",
     description: "",
-    location: ""
+    location: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -23,18 +23,20 @@ const CreateEventPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      console.log("event Data is: ", eventData);
+      return;
       const res = await axios.post(
         `${process.env.REACT_APP_SERVER}/create-event`,
         eventData
       );
       if (res.data.success) {
         toast.success("🎉 Event created successfully!");
-        setEventData({ 
-          title: "", 
-          startTime: "", 
+        setEventData({
+          title: "",
+          startTime: "",
           endTime: "",
           description: "",
-          location: ""
+          location: "",
         });
       } else {
         toast.error("Failed to create event.");
