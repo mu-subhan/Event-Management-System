@@ -15,7 +15,11 @@ import event from "../../Assessts/event.jpg";
 import VolunteerAssignment from "./VolunteerAssignment";
 import AssignVolunteer from "../Shared/AssignVolunteer";
 import { Buttoen } from "../ui/Button";
-import { createRole } from "../../redux/actions/role";
+import {
+  createRole,
+  deleteRole,
+  assignVolunteerToRole,
+} from "../../redux/actions/role";
 import { useDispatch } from "react-redux";
 const EditEventCard = ({ event: initialEvent, onUpdate }) => {
   const dispatch = useDispatch();
@@ -29,7 +33,7 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
     description: "",
     skills: [],
     newSkill: "",
-    slots_available: 1,
+    maxVolunteers: 1,
   });
   const [isOpenVolunteerPopup, setIsOpenVolunteerPopup] = useState(false);
   const [editRoleId, setEditRoleId] = useState(null);
@@ -104,7 +108,9 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
           description: newRole.description,
           skills: newRole.skills,
           event_id: event?.id,
+          maxVolunteers: newRole?.maxVolunteers,
         };
+        return;
         const response = await dispatch(createRole(data));
         if (!response || response?.success === false)
           throw new Error("Failed In Creation of New Role!");
@@ -129,12 +135,44 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
     }
   };
 
-  const handleRemoveRole = (roleId) => {
-    setEvent((prev) => ({
-      ...prev,
-      role: prev.role.filter((role) => role.id !== roleId),
-    }));
+  const handleRemoveRole = async (roleId) => {
+    try {
+      const data = await dispatch(deleteRole(roleId));
+      setEvent((prev) => ({
+        ...prev,
+        role: prev.role.filter((role) => role.id !== roleId),
+      }));
+    } catch (error) {
+      console.log("error is: ", error);
+    }
   };
+  const handleAssignVolunteer = async (roleId, userId) => {
+    try {
+      const eventId = event.id;
+      if (!eventId || !roleId || !userId) {
+        toast.error("Assign Volunteer Failed Due to Invalid Input!");
+        return;
+      }
+      const data = await dispatch(
+        assignVolunteerToRole(roleId, eventId, userId)
+      );
+      // Optionally update local state if needed
+      setEvent((prev) => ({
+        ...prev,
+        role: prev.role.map((role) =>
+          role.id === roleId
+            ? {
+                ...role,
+                volunteers: [...(role.volunteers || []), { id: userId }],
+              }
+            : role
+        ),
+      }));
+    } catch (error) {
+      console.log("Assignment Error: ", error);
+    }
+  };
+
   const addVolunteerToRole = (roleId, volunteer) => {
     setRoles((prevRoles) =>
       prevRoles.map((role) => {
@@ -192,7 +230,6 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
       if (response.status === 200) {
         toast.success("Event updated successfully!");
         setIsEditing(false);
-        onUpdate();
       } else {
         throw new Error(response.data.message || "Failed to update event");
       }
@@ -289,7 +326,7 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 overflow-x-auto">
           {isEditing ? (
             <textarea
               name="description"
@@ -325,13 +362,13 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
               </div>
             </div>
 
-            <div className="flex items-start space-x-3">
+            {/* <div className="flex items-start space-x-3">
               <div className="p-2 bg-purple-50 rounded-full">
                 <FiCalendar className="text-purple-600 text-xl" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-gray-500">Date</h3>
-                {isEditing ? (
+              </div> */}
+            {/* <div className="flex-1">
+                <h3 className="text-sm font-medium text-gray-500">Date</h3> */}
+            {/* {isEditing ? (
                   <input
                     type="date"
                     name="startTime"
@@ -348,13 +385,13 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                     }
                     className="w-full p-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   />
-                ) : (
-                  <p className="text-gray-900 font-medium">
-                    {new Date(event.startTime).toLocaleDateString()}
-                  </p>
-                )}
-              </div>
-            </div>
+                ) : ( */}
+            {/* <p className="text-gray-900 font-medium">
+                  {new Date(event.startTime).toLocaleDateString()}
+                </p>
+                {/* )} */}
+            {/* </div> */}
+            {/* </div> */}
 
             <div className="flex items-start space-x-3">
               <div className="p-2 bg-green-50 rounded-full">
@@ -365,28 +402,32 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                 {isEditing ? (
                   <div className="flex space-x-2">
                     <input
-                      type="time"
-                      value={new Date(event.startTime)
-                        .toISOString()
-                        .substr(11, 5)}
+                      type="datetime-local"
+                      // value={new Date(event.startTime)
+                      //   .toISOString()
+                      //   .slice(0, 16)} // format as 'YYYY-MM-DDTHH:mm'
+                      value={(() => {
+                        const d = new Date(event.startTime);
+                        const year = d.getFullYear();
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const hours = String(d.getHours()).padStart(2, "0");
+                        const minutes = String(d.getMinutes()).padStart(2, "0");
+                        return `${year}-${month}-${day}T${hours}:${minutes}`;
+                      })()}
                       onChange={(e) =>
                         handleInputChange({
                           target: {
                             name: "startTime",
-                            value: new Date(
-                              new Date(event.startTime)
-                                .toISOString()
-                                .split("T")[0] +
-                                "T" +
-                                e.target.value
-                            ).toISOString(),
+                            value: new Date(e.target.value).toISOString(), // convert back to full ISO format
                           },
                         })
                       }
                       className="w-full p-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
+
                     <span className="self-center">to</span>
-                    <input
+                    {/* <input
                       type="time"
                       value={new Date(event.endTime)
                         .toISOString()
@@ -405,6 +446,27 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                           },
                         })
                       }
+                      className="w-full p-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    /> */}
+                    <input
+                      type="datetime-local"
+                      onChange={(e) =>
+                        handleInputChange({
+                          target: {
+                            name: "endTime",
+                            value: new Date(e.target.value).toISOString(), // convert back to full ISO format
+                          },
+                        })
+                      }
+                      value={(() => {
+                        const d = new Date(event.endTime);
+                        const year = d.getFullYear();
+                        const month = String(d.getMonth() + 1).padStart(2, "0");
+                        const day = String(d.getDate()).padStart(2, "0");
+                        const hours = String(d.getHours()).padStart(2, "0");
+                        const minutes = String(d.getMinutes()).padStart(2, "0");
+                        return `${year}-${month}-${day}T${hours}:${minutes}`;
+                      })()}
                       className="w-full p-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                   </div>
@@ -481,11 +543,11 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                 <input
                   type="number"
                   min="1"
-                  value={newRole.slots_available}
+                  value={newRole.maxVolunteers}
                   onChange={(e) =>
                     setNewRole({
                       ...newRole,
-                      slots_available: parseInt(e.target.value) || 1,
+                      maxVolunteers: parseInt(e.target.value) || 1,
                     })
                   }
                   className="w-full p-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -566,7 +628,7 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
               whileHover={{ y: isEditing ? 0 : -5 }}
               className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden"
             >
-              <div className="p-6">
+              <div className="p-6 overflow-x-auto">
                 <div className="flex items-start justify-between">
                   {isEditing ? (
                     <input
@@ -587,18 +649,18 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                       <input
                         type="number"
                         min="1"
-                        value={role.slots_available}
-                        onChange={(e) =>
+                        value={role.maxVolunteers}
+                        onChange={(e) => {
                           handleRoleChange(
                             role.id,
-                            "slots_available",
+                            "maxVolunteers",
                             parseInt(e.target.value) || 1
-                          )
-                        }
+                          );
+                        }}
                         className="w-12 p-1 border border-gray-300 rounded text-center"
                       />
                     ) : (
-                      `${role.slots_available} slots`
+                      `${role.maxVolunteers} slots`
                     )}
                   </span>
                 </div>
@@ -710,13 +772,19 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
               </div>
             </motion.div>
           ))}
-          {/* testing start */}
-          <AssignVolunteer
-            isOpen={isOpenVolunteerPopup}
-            setIsOpen={setIsOpenVolunteerPopup}
-            roleId={editRoleId}
-          />
-          {/* testing end */}
+          {isOpenVolunteerPopup && (
+            <AssignVolunteer
+              isOpen={isOpenVolunteerPopup}
+              setIsOpen={setIsOpenVolunteerPopup}
+              roleId={editRoleId}
+              eventId={event.id}
+              volunteers={
+                event.role.find((value) => value.id === editRoleId)
+                  ?.volunteers || []
+              }
+              handleAssignVolunteer={handleAssignVolunteer}
+            />
+          )}
         </div>
       </motion.div>
     </>
