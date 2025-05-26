@@ -2,7 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Spinner from "./Spinner";
 
-export default function VolunteerAssignPopup({ isOpen, setIsOpen, roleId }) {
+export default function VolunteerAssignPopup({
+  isOpen,
+  setIsOpen,
+  roleId,
+  eventId,
+  volunteers,
+  handleAssignVolunteer,
+}) {
   // Search input state
   const [search, setSearch] = useState("");
   // Search results list (from search API)
@@ -30,14 +37,19 @@ export default function VolunteerAssignPopup({ isOpen, setIsOpen, roleId }) {
         console.log("data response of suggested volunteer !", data);
         if (data.success && Array.isArray(data.suggestedUsers)) {
           setSuggestedVolunteers(
-            data.suggestedUsers.map((user) => ({
-              id: user.id,
-              name: user.name,
-              description: user.description,
-              skills: user.skills || [],
-              interests: user.interests || [],
-              picture: user.profileImage || "https://via.placeholder.com/64",
-            }))
+            data.suggestedUsers
+              ?.filter(
+                (user) =>
+                  !volunteers.some((volunteer) => volunteer.id === user.id)
+              )
+              .map((user) => ({
+                id: user.id,
+                name: user.name,
+                description: user.description,
+                skills: user.skills || [],
+                interests: user.interests || [],
+                picture: user.profileImage || "https://via.placeholder.com/64",
+              }))
           );
         } else {
           setSuggestedVolunteers([]);
@@ -63,23 +75,32 @@ export default function VolunteerAssignPopup({ isOpen, setIsOpen, roleId }) {
     const delayDebounce = setTimeout(() => {
       const fetchSearchResults = async () => {
         try {
+          console.log("eventId: ", eventId);
           setSearchVolunteersLoading(true);
           const { data } = await axios.get(
             `${
               process.env.REACT_APP_SERVER
-            }/api/user/search-volunteer?name=${encodeURIComponent(search)}`
+            }/api/user/search-volunteer?name=${encodeURIComponent(
+              search
+            )}&event_id=${eventId}`
           );
-          console.log("volunteer search are: ", data);
+
           if (Array.isArray(data?.users)) {
             setSearchResults(
-              data?.users?.map((user) => ({
-                id: user.id,
-                name: user.name,
-                description: user.description || "",
-                skills: user.skills || [],
-                interests: user.interests || [],
-                picture: user.profileImage || "https://via.placeholder.com/64",
-              }))
+              data?.users
+                ?.filter(
+                  (user) =>
+                    !volunteers.some((volunteer) => volunteer.id === user.id)
+                )
+                .map((user) => ({
+                  id: user.id,
+                  name: user.name,
+                  description: user.description || "",
+                  skills: user.skills || [],
+                  interests: user.interests || [],
+                  picture:
+                    user.profileImage || "https://via.placeholder.com/64",
+                }))
             );
           } else {
             setSearchResults([]);
@@ -99,10 +120,8 @@ export default function VolunteerAssignPopup({ isOpen, setIsOpen, roleId }) {
   }, [search]);
 
   const handleAssign = (volunteer) => {
-    if (!assigned.includes(volunteer.id)) {
-      setAssigned([...assigned, volunteer.id]);
-      alert(`Assigned ${volunteer.name}`);
-    }
+    const userId = volunteer.id;
+    handleAssignVolunteer(roleId, userId);
   };
 
   return (
