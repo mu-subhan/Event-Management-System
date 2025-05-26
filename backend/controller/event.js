@@ -14,6 +14,7 @@ router.post(
   eventValidator.createEventValidation,
   async (req, res) => {
     try {
+      console.log("req.body: ", req.body);
       const now = new Date();
       if (now > new Date(req.body.startTime)) {
         return res
@@ -172,47 +173,61 @@ router.get("/:id", async (req, res) => {
 });
 
 // Update an event by ID
-router.put(
-  "/events/:id",
-  eventValidator.createEventValidation,
-  async (req, res) => {
-    try {
-      const now = new Date();
-      if (
-        (req.body.startTime && now < new Date(req.body.startTime)) ||
-        new Date(req.body.endTime) < new Date(req.body.startTime)
-      ) {
-        return res
-          .status(400)
-          .send({ success: false, message: "Invalid Time" });
-      }
-
-      let status = "UPCOMING";
-      if (
-        req.body.startTime &&
-        req.body.endTime &&
-        now >= new Date(req.body.startTime) &&
-        now < new Date(req.body.endTime)
-      ) {
-        status = "ONGOING";
-      } else if (req.body.endTime && now >= new Date(req.body.endTime)) {
-        status = "COMPLETED";
-      }
-
-      const event = await prisma.Event.update({
-        where: { id: req.params.id },
-        data: { ...req.body, role: { create: [...req.body.role] } },
-      });
-      // await updateEventStatus(event);
-      res.status(200).json({ success: true, event });
-    } catch (error) {
-      console.log("error is: ", error);
-      res
-        .status(500)
-        .json({ error: "Failed to update event", details: error.message });
+router.put("/:id", eventValidator.updateEventValidation, async (req, res) => {
+  try {
+    const now = new Date();
+    if (
+      (req.body.startTime && now < new Date(req.body.startTime)) ||
+      new Date(req.body.endTime) < new Date(req.body.startTime)
+    ) {
+      return res.status(400).send({ success: false, message: "Invalid Time" });
     }
+
+    let status = "UPCOMING";
+    if (
+      req.body.startTime &&
+      req.body.endTime &&
+      now >= new Date(req.body.startTime) &&
+      now < new Date(req.body.endTime)
+    ) {
+      status = "ONGOING";
+    } else if (req.body.endTime && now >= new Date(req.body.endTime)) {
+      status = "COMPLETED";
+    }
+
+    // const event = await prisma.Event.update({
+    //   where: { id: req.params.id },
+    //   data: { ...req.body, role: { create: [...req.body.role] } },
+    // });
+    const { role: roleUpdates, ...eventData } = req.body;
+
+    const event = await prisma.Event.update({
+      where: { id: req.params.id },
+      data: {
+        ...eventData,
+        // Update each role individually
+        role: {
+          update: roleUpdates.map((r) => ({
+            where: { id: r.id }, // must include id of existing role
+            data: {
+              role_name: r.role_name,
+              skills: r.skills,
+              description: r.description,
+            },
+          })),
+        },
+      },
+    });
+
+    // await updateEventStatus(event);
+    res.status(200).json({ success: true, event });
+  } catch (error) {
+    console.log("error is: ", error);
+    res
+      .status(500)
+      .json({ error: "Failed to update event", details: error.message });
   }
-);
+});
 
 // Delete an event by ID
 router.delete(

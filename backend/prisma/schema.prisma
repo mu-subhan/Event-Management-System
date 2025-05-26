@@ -68,6 +68,7 @@ enum Status {
     role_name          String  
     skills             String[]
     description        String? 
+    maxVolunteers      Int? @default(0)
     volunteers         User[]
     event              Event @relation(fields: [event_id], references: [id], onDelete: Cascade)
     createdAt   DateTime  @default(now())
