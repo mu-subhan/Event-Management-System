@@ -38,7 +38,8 @@ const Profile = () => {
 
   const validatePhone = (phone) => {
     if (!phone.trim()) return "Phone number is required";
-    if (!/^\+?[\d\s-]{10,}$/.test(phone)) return "Invalid phone number format";
+    const phoneRegex = /^(\+92[-\s]?|0)3\d{2}[-\s]?\d{7}$/;
+    if (!phoneRegex.test(phone)) return "Invalid phone number format. Accepted formats: 03001234567, 0300 1234567, 0300-1234567, +92 3001234567, +92-3001234567, +923001234567";
     return "";
   };
 
