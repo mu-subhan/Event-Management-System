@@ -21,22 +21,23 @@ export const createRole = (roleData) => async (dispatch) => {
   }
 };
 // Delete role action creator
-export const deleteRole = (roleId, eventId) => async (dispatch) => {
+export const deleteRole = (roleId) => async (dispatch) => {
   try {
     dispatch({ type: "deleteRole" });
 
     const { data } = await axios.delete(
-      `${process.env.REACT_APP_SERVER}/api/role/delete-role`,
+      `${process.env.REACT_APP_SERVER}/api/role/${roleId}`,
       {
-        params: { roleId, eventId },
         withCredentials: true,
       }
     );
-
-    console.log("role delete api response:", data);
-    dispatch({ type: "deleteRoleSuccessfull", payload: data });
+    if (data.success)
+      dispatch({ type: "deleteRoleSuccessfull", payload: data });
+    else throw new Error("Event Deletion Failed!");
+    toast.success("Deletion SuccessFull!");
     return data;
   } catch (error) {
+    toast.error(error?.message || "Deeltion Failed!");
     console.log("error during role deletion!", error);
     dispatch({
       type: "deleteRoleFailed",
@@ -44,3 +45,36 @@ export const deleteRole = (roleId, eventId) => async (dispatch) => {
     });
   }
 };
+// Assign volunteer to a role
+export const assignVolunteerToRole =
+  (roleId, eventId, userId) => async (dispatch) => {
+    try {
+      if (!roleId || !userId || !eventId) {
+        toast.error(roleId ? "UserId" : "RoleId", "Not Found!");
+        return;
+      }
+      dispatch({ type: "assignVolunteerToRole" });
+
+      const { data } = await axios.post(
+        `${process.env.REACT_APP_SERVER}/api/role/assign-volunteer`,
+        { volunteerId: userId, roleId, eventId },
+        { withCredentials: true }
+      );
+      console.log("data is:: ", data);
+      if (data.success) {
+        dispatch({ type: "assignVolunteerToRoleSuccess", payload: data });
+        toast.success("Volunteer assigned successfully!");
+      } else {
+        throw new Error("Assignment failed!");
+      }
+
+      return data;
+    } catch (error) {
+      console.log("error is :", error);
+      toast.error(error?.message || "Assignment failed!");
+      dispatch({
+        type: "assignVolunteerToRoleFailed",
+        payload: error.response?.data?.message || error.message,
+      });
+    }
+  };
