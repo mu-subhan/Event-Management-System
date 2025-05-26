@@ -575,4 +575,44 @@ router.get(
   })
 );
 
+// update user profile (without password verification)
+router.put(
+  "/update-profile",
+  isAuthenticated,
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const {
+        email,
+        contactNumber,
+        skills,
+        interests,
+        experienceYears,
+        description,
+        name,
+      } = req.body;
+
+      // Since user is already authenticated, we can use req.user.id
+      const updatedUser = await prisma.User.update({
+        where: { id: req.user.id },
+        data: {
+          name,
+          contactNumber,
+          skills,
+          interests,
+          experienceYears,
+          description,
+        },
+      });
+
+      res.status(200).json({
+        success: true,
+        user: updatedUser,
+      });
+    } catch (error) {
+      console.log("error is: ", error);
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
 module.exports = router;

@@ -8,6 +8,9 @@
     "studio": "prisma studio",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -24,6 +27,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.16",
+    "nodemon": "^3.1.10",
     "pg": "^8.13.1"
   },
   "devDependencies": {
