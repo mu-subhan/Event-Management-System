@@ -1,5 +1,5 @@
 const Joi = require("joi");
-const { eventSchema } = require("../Schema/event");
+const { eventSchema, updateEventSchema } = require("../Schema/event");
 class eventValidation {
   async createEventValidation(req, res, next) {
     try {
@@ -13,6 +13,20 @@ class eventValidation {
         const validationfailed = new Error(error.message);
         validationfailed.statusCode = 400;
         throw validationfailed;
+      }
+      next();
+    } catch (error) {
+      next(error);
+    }
+  }
+  async updateEventValidation(req, res, next) {
+    try {
+      const { value, error } = updateEventSchema.validate(req.body);
+      console.log("error is: ", error);
+      if (error) {
+        const validationError = new Error(error.message);
+        validationError.statusCode = 400;
+        throw validationError;
       }
       next();
     } catch (error) {
