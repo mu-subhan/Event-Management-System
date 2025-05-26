@@ -32,6 +32,7 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
       updatedAt: true,
     },
   });
+  console.log("req.body.adminId: ", req.body.adminId);
   if (req.user.role === "Admin") req.body.adminId = req?.user?.id;
   console.log("req.user: ", req.user);
   // req.user.role = "Admin";

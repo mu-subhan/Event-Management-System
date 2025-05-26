@@ -10,4 +10,19 @@ const eventSchema = Joi.object({
   role: Joi.array().items(Joi.any()).required(),
 });
 
-module.exports = { eventSchema };
+const updateEventSchema = Joi.object({
+  id: Joi.string().uuid().required(), // assuming event id is UUID
+  adminId: Joi.number().integer(), // optional
+  title: Joi.string().min(3).max(100),
+  description: Joi.string().min(10),
+  startTime: Joi.date().iso().required(),
+  endTime: Joi.date().iso().required(),
+  isPass: Joi.boolean().required(),
+  location: Joi.string().required(),
+  status: Joi.string().required(),
+  role: Joi.array().items(Joi.any()),
+  createdAt: Joi.date().iso().required(),
+  updatedAt: Joi.date().iso().required(),
+});
+
+module.exports = { eventSchema, updateEventSchema };

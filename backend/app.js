@@ -39,11 +39,7 @@ app.use("/api/user", user);
 // Event
 app.use("/api/event", event);
 // Event Roles
-app.use(
-  "/api/role",
-  // isAuthenticated, isAdmin("Admin"),
-  role
-);
+app.use("/api/role", role);
 // Event Roles
 app.use("/api/role-suggest", roleSuggest);
 
