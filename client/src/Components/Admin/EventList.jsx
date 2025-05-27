@@ -59,30 +59,30 @@ const EventList = () => {
   // functions
   const pageChange = async (operator) => {
     setLoading(true);
-    setCount((prev) => prev + 1);
+
+    // Checking if we should go to the next page
     if (operator === "+") {
-      if (parseInt(totalPages) <= parseInt(page)) {
+      if (page >= totalPages) {
         toast.error("No More Pages");
+        setLoading(false);
         return;
-      } else if (allEvents.length / pagelength <= page * pagelength) {
-        const nextPage = page + 1;
-        dispatch(getAllEvents(nextPage));
-        setPage((prev) => {
-          console.log("SetPage Run!!!", prev);
-          return nextPage;
-        });
       }
-      // setPage(2);
-      // setPage((prev) => {
-      //   const valuetoreturn = prev + 1;
-      //   console.log("valuetoreturn: ", valuetoreturn);
-      //   return valuetoreturn;
-      // });
-    } else if (operator === "-" && page > 1) {
-      setPage((prev) => prev - 1);
+
+      const nextPage = page + 1;
+      dispatch(getAllEvents(nextPage)); // Fetch events for the next page
+      setPage(nextPage);
     }
+
+    // Going to the previous page
+    else if (operator === "-" && page > 1) {
+      const prevPage = page - 1;
+      dispatch(getAllEvents(prevPage)); // Fetch events for the previous page
+      setPage(prevPage);
+    }
+
     setLoading(false);
   };
+
   const deleteEventFunc = async (id) => {
     try {
       const response = await dispatch(deleteEvent(id));

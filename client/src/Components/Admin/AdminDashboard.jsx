@@ -86,7 +86,7 @@ const AdminDashboard = () => {
               <div className="flex items-center space-x-3">
                 <Link to="/profile" className="flex items-center space-x-3">
                   <img
-                    src={userImage}
+                    src={user?.profileImage?.url}
                     className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-blue-500"
                     alt="Admin"
                   />
