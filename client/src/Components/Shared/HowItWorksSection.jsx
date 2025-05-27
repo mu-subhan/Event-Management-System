@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 
 // StepCard Component for individual step
 const StepCard = ({ number, title, description, icon, isLast }) => {
@@ -156,7 +157,7 @@ const HowItWorksSection = () => {
 
         <div className="text-center mt-16">
           <button className="px-8 py-3 md:px-10 md:py-4 text-base md:text-lg font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-            Get Started Now
+          <Link to="/signup">Get Started Now</Link>
             <svg className="w-5 h-5 ml-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
             </svg>

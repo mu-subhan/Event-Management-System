@@ -39,31 +39,53 @@ const HeroSection = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 md:px-6 z-10 py-20">
+      <div className="container mx-auto px-4 md:px-2 z-10 py-20">
         <div className="flex flex-col lg:flex-row items-center">
-          <div className="w-full lg:w-1/2 text-center lg:text-left">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight animate-on-load opacity-0 translate-y-8 transition-all duration-700">
-              Organize & Discover <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-                Meaningful Events
-              </span>
-            </h1>
+        <div className="w-full lg:w-1/2 text-center lg:text-left">
+  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 animate-fadeInUp opacity-0 translate-y-8">
+    Transform Moments Into <br />
+    <span className="relative inline-block">
+      <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 animate-gradient-shift bg-300%">
+        Unforgettable Experiences
+      </span>
+      <span className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-purple-400 to-indigo-400 rounded-full animate-underline-expand origin-left"></span>
+    </span>
+  </h1>
 
-            <p className="mt-6 text-lg md:text-xl text-gray-300 max-w-lg mx-auto lg:mx-0 animate-on-load opacity-0 translate-y-8 transition-all duration-700 delay-300">
-              Your all-in-one platform to create, manage, and join community
-              events that matter. Connect with like-minded individuals and make
-              an impact together.
-            </p>
+  <p className="mt-6 text-lg md:text-xl text-gray-200 max-w-lg mx-auto lg:mx-0 leading-relaxed animate-fadeInUp opacity-0 translate-y-8 delay-150">
+    Where passion meets purpose. Our platform empowers you to create, discover, 
+    and participate in events that inspire change and build lasting connections.
+  </p>
 
-            <div className="mt-8 flex flex-col sm:flex-row justify-center lg:justify-start space-y-4 sm:space-y-0 sm:space-x-4 animate-on-load opacity-0 translate-y-8 transition-all duration-700 delay-500">
-              <button className="px-8 py-3 text-base font-medium text-white bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full hover:from-purple-600 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                <Link to="/events">Explore Events</Link>
-              </button>
-              <button className="px-8 py-3 text-base font-medium text-gray-100 bg-transparent border-2 border-gray-300 rounded-full hover:bg-white hover:bg-opacity-10 transition-all duration-300 transform hover:scale-105">
-                <Link to="/signup">Join Now</Link>
-              </button>
-            </div>
-          </div>
+  <div className="mt-10 flex flex-col sm:flex-row justify-center lg:justify-start gap-4 animate-fadeInUp opacity-0 translate-y-8 delay-300">
+    <button className="relative group px-8 py-3.5 text-lg font-semibold text-white rounded-full overflow-hidden transition-all duration-500 shadow-2xl hover:shadow-purple-500/30">
+      <span className="absolute inset-0 bg-gradient-to-r from-purple-500 to-indigo-600 group-hover:from-purple-600 group-hover:to-indigo-700 transition-all duration-500"></span>
+      <span className="absolute inset-0.5 rounded-full bg-gradient-to-r from-purple-600 to-indigo-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+      <span className="relative z-10 flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <Link to="/events">Discover Events</Link>
+      </span>
+    </button>
+    
+    <button className="relative group px-8 py-3.5 text-lg font-semibold text-white rounded-full border-2 border-gray-300 hover:border-transparent transition-all duration-300 hover:shadow-lg">
+      <span className="absolute inset-0 bg-white/5 backdrop-blur-sm group-hover:bg-white/10 rounded-full transition-all duration-500"></span>
+      <span className="relative z-10 flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="8.5" cy="7" r="4"></circle>
+          <line x1="20" y1="8" x2="20" y2="14"></line>
+          <line x1="23" y1="11" x2="17" y2="11"></line>
+        </svg>
+        <Link to="/signup">Start Your Journey</Link>
+      </span>
+    </button>
+  </div>
+
+
+</div>
 
           <div className="w-full lg:w-1/2 mt-16 lg:mt-0 animate-on-load opacity-0 translate-y-8 transition-all duration-700 delay-700">
             <div className="relative mx-auto w-full max-w-md lg:max-w-full">
