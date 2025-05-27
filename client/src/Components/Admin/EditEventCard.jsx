@@ -50,8 +50,27 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
   }, [initialEvent]);
 
   const handleInputChange = (e) => {
+    console.log("Input Change: ", e.target.name, e.target.value);
     const { name, value } = e.target;
-    setEvent((prev) => ({ ...prev, [name]: value }));
+
+    setEvent((prev) => {
+      const updatedEvent = { ...prev, [name]: value };
+
+      // Ensure both startTime and endTime are available
+      if (name === "startTime" || name === "endTime") {
+        const start = new Date(updatedEvent.startTime);
+        const end = new Date(updatedEvent.endTime);
+
+        if (start && end && start > end) {
+          toast.error("End time must be after start time.");
+          return prev; // prevent update
+        }
+      }
+
+      return updatedEvent;
+    });
+
+    // setEvent((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleRoleChange = (roleId, field, value) => {
@@ -97,6 +116,42 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
 
   const handleAddRole = async () => {
     try {
+      const { role_name, description, maxVolunteers, skills } = newRole;
+      console.log("Adding Role: ", newRole);
+      if (
+        !role_name.trim() ||
+        !description.trim() ||
+        !maxVolunteers ||
+        isNaN(maxVolunteers) ||
+        maxVolunteers <= 0 ||
+        event.role.some((r) => r.role_name === role_name.trim()) ||
+        skills.length === 0
+      ) {
+        // Specific field-level error messages
+        if (!role_name.trim()) {
+          return toast.error("Please enter a valid role name.");
+        }
+
+        if (event.role.some((r) => r.role_name === role_name.trim())) {
+          return toast.error("Role name already exists.");
+        }
+
+        if (!description.trim()) {
+          return toast.error("Please enter a description.");
+        }
+
+        if (!maxVolunteers || isNaN(maxVolunteers) || maxVolunteers <= 0) {
+          return toast.error("Please enter a valid number of volunteers.");
+        }
+
+        // Optional skill check
+        if (skills.length === 0) {
+          return toast.error("Please add at least one skill.");
+        }
+
+        return;
+      }
+
       console.log("newRole: ", newRole);
       console.log("event: ", event);
       if (
@@ -110,7 +165,6 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
           event_id: event?.id,
           maxVolunteers: newRole?.maxVolunteers,
         };
-        return;
         const response = await dispatch(createRole(data));
         if (!response || response?.success === false)
           throw new Error("Failed In Creation of New Role!");

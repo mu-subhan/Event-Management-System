@@ -31,24 +31,73 @@ const CreateEventForm = () => {
     role_name: "",
     skills: [],
     description: "",
-    maxVolunteers: 0,
+    maxVolunteers: 1,
   });
   const [skill, setSkill] = useState("");
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
   const [showError, setShowError] = useState(false);
 
+  // const handleChange = (e) => {
+  //   const { name, value, type, files } = e.target;
+  //   if (type === "file") {
+  //     setEventData({ ...eventData, [name]: files[0] });
+  //   } else {
+  //     setEventData({ ...eventData, [name]: value });
+  //   }
+  // };
+  // ...existing code...
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
+
+    if (name === "startTime" || name === "endTime") {
+      const currentTime = new Date();
+      const newTime = new Date(value);
+
+      // Prepare what the new start and end times would be after this change
+      const updatedStart =
+        name === "startTime" ? newTime : new Date(eventData.startTime);
+      const updatedEnd =
+        name === "endTime" ? newTime : new Date(eventData.endTime);
+
+      // Only validate if both are set and valid
+      if (
+        updatedStart instanceof Date &&
+        !isNaN(updatedStart) &&
+        updatedEnd instanceof Date &&
+        !isNaN(updatedEnd)
+      ) {
+        // Both times must be in the future
+        if (updatedStart <= currentTime) {
+          toast.error("Start time must be greater than the current time.");
+          return;
+        }
+        if (updatedEnd <= currentTime) {
+          toast.error("End time must be greater than the current time.");
+          return;
+        }
+        // End time must be after start time
+        if (updatedEnd <= updatedStart) {
+          toast.error("End time must be after start time.");
+          return;
+        }
+        // Difference must be at least 1 hour (3600000 ms)
+        if (updatedEnd - updatedStart < 3600000) {
+          toast.error("End time must be at least 1 hour after start time.");
+          return;
+        }
+      }
+    }
+
+    // Handling file input separately
     if (type === "file") {
       setEventData({ ...eventData, [name]: files[0] });
     } else {
       setEventData({ ...eventData, [name]: value });
     }
   };
-
+  // ...existing code...
   const validateStep = () => {
-    setShowError(true);
     console.log("current step: ", currentStep);
     if (currentStep === 1) {
       return eventData.eventName && eventData.startTime && eventData.endTime;
@@ -72,9 +121,8 @@ const CreateEventForm = () => {
       setTimeout(() => {
         nextStep();
       }, 0);
-
-      // nextStep();
     } else {
+      setShowError(true);
       toast.error("Please fill all required fields");
     }
   };
@@ -112,9 +160,12 @@ const CreateEventForm = () => {
         role_name: "",
         skills: [],
         description: "",
-        maxVolunteers: 0,
+        maxVolunteers: 1,
       });
       setSkill("");
+
+      setShowError(false);
+      toast.success("Role added successfully!");
     } catch (error) {
       toast.error("Error adding role");
       console.error("Error:", error);
@@ -137,6 +188,7 @@ const CreateEventForm = () => {
     e.preventDefault();
     console.log("handle Submit Run !");
     if (!validateStep()) {
+      setShowError(true);
       toast.error("Please fill all required fields");
       return;
     }
@@ -159,6 +211,19 @@ const CreateEventForm = () => {
       console.log("data of craete event is: ", data);
       if (data.success) {
         toast.success("Event created successfully!");
+        setEventData({
+          eventName: "",
+          eventDate: "",
+          startTime: "",
+          endTime: "",
+          location: "",
+          maxVolunteers: "",
+          eventDescription: "",
+          eventImage: null,
+          eventType: "community",
+          roles: null,
+          testval: null,
+        });
       } else {
         toast.error("Error creating event");
       }
@@ -374,7 +439,7 @@ const CreateEventForm = () => {
                   )}
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                     Event Image
                   </label>
@@ -403,7 +468,7 @@ const CreateEventForm = () => {
                       )}
                     </div>
                   </div>
-                </div>
+                </div> */}
               </div>
             )}
 
@@ -436,12 +501,14 @@ const CreateEventForm = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-                    Max Volunteers<span className="text-red-500">*</span>
+                    Max Volunteers
+                    <span className="text-red-500">* (Minimum 1)</span>
                   </label>
                   <input
                     type="number"
                     name="role"
                     value={eventRole.maxVolunteers}
+                    min={1}
                     onChange={(e) =>
                       setEventRole({
                         ...eventRole,
