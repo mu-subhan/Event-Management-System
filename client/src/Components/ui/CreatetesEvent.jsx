@@ -24,7 +24,6 @@ const CreateEventPage = () => {
     setIsSubmitting(true);
     try {
       console.log("event Data is: ", eventData);
-      return;
       const res = await axios.post(
         `${process.env.REACT_APP_SERVER}/create-event`,
         eventData

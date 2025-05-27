@@ -65,12 +65,23 @@ class RoleSuggestionController {
       if (filteredUsers.role)
         if (!filteredUsers.length)
           return res.json({ success: true, suggestedUsers: [] }); // No relevant users found
-
       // Step 3: Format data for Python script
       const normalizeText = (text) =>
         text.toLowerCase().replace(/[^a-z0-9 ]/g, "");
+      // const payload = {
+      //   role: normalizeText(roleText),
+      //   users: filteredUsers.map((user) => ({
+      //     id: user.id,
+      //     skills: user.skills.join(" "),
+      //     interests: user.interests.join(" "),
+      //     description: user.description || "",
+      //   })),
+      // };
       const payload = {
-        role_text: normalizeText(roleText),
+        role: {
+          skills: role.skills.join(" "), // convert array to string
+          description: role.description || "", // description string
+        },
         users: filteredUsers.map((user) => ({
           id: user.id,
           skills: user.skills.join(" "),
@@ -78,6 +89,7 @@ class RoleSuggestionController {
           description: user.description || "",
         })),
       };
+
       const python = spawn("python", [scriptPath]);
       let result = "";
 
