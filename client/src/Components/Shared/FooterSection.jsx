@@ -32,11 +32,11 @@ const FooterSection = () => {
   const links = ["Home", "About", "Contact", "Privacy", "Terms"];
 
   return (
-    <footer className="bg-gray-900 text-white py-10">
-      <div className="mx-auto px-36 flex flex-col md:flex-row justify-between items-start gap-8">
+    <footer className="bg-gray-900 text-white py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-8">
         
-        {/* Logo and description */}
-        <div className="flex items-start gap-3">
+        {/* Logo and description - full width on mobile */}
+        <div className="w-full md:w-auto flex flex-col md:flex-row items-center md:items-start gap-4 text-center md:text-left">
           <Link to="/" className="flex-shrink-0">
             <svg
               className="h-8 w-8 text-purple-600"
@@ -57,32 +57,36 @@ const FooterSection = () => {
           </p>
         </div>
 
-        {/* Links row-wise */}
-        <div className="flex flex-wrap justify-center md:justify-start gap-4 text-sm">
+        {/* Links - centered on mobile, left-aligned on desktop */}
+        <div className="w-full md:w-auto grid grid-cols-2 sm:flex flex-wrap justify-center md:justify-start gap-4 text-sm">
           {links.map((link, i) => (
-            <a key={i} href="#" className="text-gray-400 hover:text-white transition">
+            <Link 
+              key={i} 
+              to="#" 
+              className="text-gray-400 hover:text-white transition whitespace-nowrap"
+            >
               {link}
-            </a>
+            </Link>
           ))}
         </div>
 
-        {/* Social Icons */}
-        <div className="flex gap-4">
+        {/* Social Icons - centered on mobile, right-aligned on desktop */}
+        <div className="w-full md:w-auto flex justify-center md:justify-start gap-4">
           {socialIcons.map((social, index) => (
-            <a
+            <Link
               key={index}
-              href="#"
+              to="#"
               className="text-gray-400 hover:text-white transition"
               aria-label={social.name}
             >
               {social.icon}
-            </a>
+            </Link>
           ))}
         </div>
       </div>
 
-      {/* Bottom text */}
-      <div className="mt-6 text-center text-xs text-gray-500">
+      {/* Bottom text - always centered */}
+      <div className="mt-8 text-center text-xs text-gray-500">
         © {new Date().getFullYear()} EventPro. All rights reserved.
       </div>
     </footer>
