@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from "react-toastify";
 export const loaduser = () => async (dispatch) => {
   try {
     dispatch({
@@ -115,19 +116,24 @@ export const updatUserAddress =
       });
     }
   };
-export const deleteUserAddress = (id) => async (dispatch) => {
+export const deleteUser = (id) => async (dispatch) => {
   try {
-    dispatch({ type: "deleteUserAddressRequest" });
+    dispatch({ type: "deleteUserRequest" });
     const { data } = await axios.delete(
-      `${process.env.REACT_APP_SERVER}user/delete-user-address/${id}`,
+      `${process.env.REACT_APP_SERVER}/api/user/delete-user/${id}`,
       { withCredentials: true }
     );
-    dispatch({ type: "deleteUserAddressSuccess", payload: data.user });
+    dispatch({ type: "deleteUserSuccess", payload: data.message });
+    return { success: true, message: data.message };
   } catch (error) {
     dispatch({
-      type: "deleteUserAddressFailed",
-      payload: error.response.data.message,
+      type: "deleteUserFailed",
+      payload: error.response?.data?.message || error.message,
     });
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message,
+    };
   }
 };
 

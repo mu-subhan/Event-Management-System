@@ -455,6 +455,9 @@ router.get(
 
       // Get paginated users
       const users = await prisma.User.findMany({
+        where: {
+          role: "Volunteer", // adjust this based on your actual field name and value
+        },
         skip,
         take: limit,
         orderBy: {
@@ -512,9 +515,10 @@ router.delete(
         );
       }
 
-      const imageId = user.avatar.public_id;
-
-      await cloudinary.v2.uploader.destroy(imageId);
+      const imageId = user?.avatar?.public_id;
+      if (imageId) {
+        await cloudinary.v2.uploader.destroy(imageId);
+      }
 
       // await User.findByIdAndDelete(req.params.id);
       await prisma.User.delete({

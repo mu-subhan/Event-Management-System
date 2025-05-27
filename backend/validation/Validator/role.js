@@ -9,6 +9,7 @@ class EventRoleValidator {
       skills: Joi.array().items(Joi.string()).required(),
       description: Joi.string().optional(),
       volunteers: Joi.array().items(Joi.number()).optional(),
+      maxVolunteers: Joi.number(),
     });
     // console.log("req is: ", req);
     EventRoleValidator.#validateRequest(req.body, res, next, schema);
@@ -21,6 +22,7 @@ class EventRoleValidator {
       skills: Joi.array().items(Joi.string()).optional(),
       description: Joi.string().optional(),
       volunteers: Joi.array().items(Joi.number()).optional(),
+      maxVolunteers: Joi.number(),
     });
 
     EventRoleValidator.#validateRequest(req, res, next, schema);

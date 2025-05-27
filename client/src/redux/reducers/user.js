@@ -82,6 +82,17 @@ export const userReducer = createReducer(initialState, (builder) => {
       state.isLoading = false;
       state.user = null;
     })
+    .addCase("deleteUserRequest", (state) => {
+      // state.isLoading = true;
+    })
+    .addCase("deleteUserSuccess", (state, action) => {
+      // state.isLoading = false;
+      state.success = true; // "User deleted successfully" etc.
+    })
+    .addCase("deleteUserFailed", (state, action) => {
+      // state.isLoading = false;
+      state.error = action.payload;
+    })
     .addCase("CLEAR_ERRORS", (state) => {
       state.error = null;
     });

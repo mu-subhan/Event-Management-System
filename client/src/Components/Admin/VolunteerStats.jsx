@@ -1,17 +1,26 @@
-import React, { useState } from 'react';
-import { Plus, UserCheck, UserPlus, Clock, Award, ChevronRight, ChevronLeft, Pencil, Trash2 } from 'lucide-react';
-import VolunteerForm from './VolunteerForm';
-import VolunteerAssignment from './VolunteerAssignment';
-import { toast } from 'react-toastify';
-
+import React, { useEffect, useState } from "react";
+import {
+  Plus,
+  UserCheck,
+  UserPlus,
+  Clock,
+  Award,
+  ChevronRight,
+  ChevronLeft,
+  Pencil,
+  Trash2,
+} from "lucide-react";
+import VolunteerForm from "./VolunteerForm";
+import VolunteerAssignment from "./VolunteerAssignment";
+import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteUser } from "../../redux/actions/user";
 const VolunteerStats = () => {
-  const [volunteers, setVolunteers] = useState([
-    { id: 1, name: 'Sarah Johnson', role: 'Event Organizer', hours: 24, events: 5, status: 'Active' },
-    { id: 2, name: 'Michael Chen', role: 'Cleanup Crew', hours: 18, events: 4, status: 'Active' },
-    { id: 3, name: 'Jessica Williams', role: 'Food Distribution', hours: 12, events: 3, status: 'Active' },
-    { id: 4, name: 'David Rodriguez', role: 'Event Organizer', hours: 8, events: 2, status: 'Inactive' },
-    { id: 5, name: 'Emma Thompson', role: 'Cleanup Crew', hours: 16, events: 3, status: 'Active' },
-  ]);
+  const dispatch = useDispatch();
+  const { users } = useSelector((state) => state.user);
+  const { eventsCount } = useSelector((state) => state.events);
+  //states
+  const [volunteers, setVolunteers] = useState([]);
 
   const [availableVolunteers] = useState([
     {
@@ -47,7 +56,10 @@ const VolunteerStats = () => {
   // Calculate pagination
   const indexOfLastVolunteer = currentPage * volunteersPerPage;
   const indexOfFirstVolunteer = indexOfLastVolunteer - volunteersPerPage;
-  const currentVolunteers = volunteers.slice(indexOfFirstVolunteer, indexOfLastVolunteer);
+  const currentVolunteers = volunteers.slice(
+    indexOfFirstVolunteer,
+    indexOfLastVolunteer
+  );
   const totalPages = Math.ceil(volunteers.length / volunteersPerPage);
 
   // Handle page change
@@ -64,30 +76,41 @@ const VolunteerStats = () => {
     setShowForm(true);
   };
 
-  const handleDeleteVolunteer = (id) => {
-    if (window.confirm('Are you sure you want to delete this volunteer?')) {
-      setVolunteers(volunteers.filter(volunteer => volunteer.id !== id));
-      toast.success('Volunteer deleted successfully!');
-    }
+  const handleDeleteVolunteer = async (id) => {
+    try {
+      if (window.confirm("Are you sure you want to delete this volunteer?")) {
+        const response = await dispatch(deleteUser(id));
+        if (response.success) {
+          toast.success("Volunteer deleted successfully!");
+          const filterUsers = volunteers.filter(
+            (volunteer) => volunteer.id !== id
+          );
+          setVolunteers(filterUsers);
+        } else {
+          toast.error("Failed to delete volunteer.");
+        }
+      }
+    } catch (error) {}
   };
-  
 
   const handleSaveVolunteer = (volunteerData) => {
     if (editingVolunteer) {
-      setVolunteers(volunteers.map(v => 
-        v.id === editingVolunteer.id ? { ...v, ...volunteerData } : v
-      ));
+      setVolunteers(
+        volunteers.map((v) =>
+          v.id === editingVolunteer.id ? { ...v, ...volunteerData } : v
+        )
+      );
     } else {
-      const newId = Math.max(...volunteers.map(v => v.id)) + 1;
+      const newId = Math.max(...volunteers.map((v) => v.id)) + 1;
       setVolunteers([...volunteers, { ...volunteerData, id: newId }]);
     }
     setShowForm(false);
   };
 
   const handleAssignVolunteer = (roleId, volunteerId) => {
-    setAssignedVolunteers(prev => ({
+    setAssignedVolunteers((prev) => ({
       ...prev,
-      [roleId]: volunteerId
+      [roleId]: volunteerId,
     }));
   };
 
@@ -97,7 +120,22 @@ const VolunteerStats = () => {
     setShowAssignmentModal(false);
     // You might want to update your volunteers state here
   };
-
+  // useEffect
+  useEffect(() => {
+    if (users && users.length > 0) {
+      const formattedVolunteers = users.map((user, index) => ({
+        id: user.id,
+        name: user.name || "Unknown Volunteer",
+        role: user.role || "Volunteer",
+        hours: user.hours || 0,
+        events: user.events || 0,
+        status: user.status || "Active",
+        createdAt: user.createdAt || new Date().toISOString(),
+        updatedAt: user.updatedAt || new Date().toISOString(),
+      }));
+      setVolunteers(formattedVolunteers);
+    }
+  }, [users]);
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-7xl">
@@ -110,9 +148,11 @@ const VolunteerStats = () => {
                 <UserCheck size={20} className="text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Active Volunteers</p>
+                <p className="text-sm font-medium text-gray-500">
+                  Active Volunteers
+                </p>
                 <p className="text-2xl font-semibold text-gray-800 mt-1">
-                  {volunteers.filter(v => v.status === 'Active').length}
+                  {volunteers.filter((v) => v.status === "Active").length}
                 </p>
                 <p className="text-xs text-green-600 mt-1 flex items-center">
                   <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span>
@@ -129,8 +169,26 @@ const VolunteerStats = () => {
                 <UserPlus size={20} className="text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">New This Month</p>
-                <p className="text-2xl font-semibold text-gray-800 mt-1">15</p>
+                <p className="text-sm font-medium text-gray-500">
+                  New This Month
+                </p>
+                <p className="text-2xl font-semibold text-gray-800 mt-1">
+                  {" "}
+                  {volunteers?.length > 0 &&
+                    volunteers.filter((vol) => {
+                      console.log("vol: ", vol);
+                      console.log("vol.createdAt: ", vol.createdAt);
+                      const createdAt = new Date(vol.createdAt);
+                      console.log("createdAt: ", createdAt);
+                      const now = new Date();
+                      console.log("now: ", now);
+                      return (
+                        vol.role === "Volunteer" &&
+                        createdAt.getMonth() === now.getMonth() &&
+                        createdAt.getFullYear() === now.getFullYear()
+                      );
+                    }).length}
+                </p>
                 <p className="text-xs text-blue-600 mt-1 flex items-center">
                   <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-1"></span>
                   +3 from last month
@@ -148,7 +206,10 @@ const VolunteerStats = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Total Hours</p>
                 <p className="text-2xl font-semibold text-gray-800 mt-1">
-                  {volunteers.reduce((sum, volunteer) => sum + volunteer.hours, 0)}
+                  {volunteers.reduce(
+                    (sum, volunteer) => sum + volunteer.hours,
+                    0
+                  )}
                 </p>
                 <p className="text-xs text-purple-600 mt-1 flex items-center">
                   <span className="inline-block w-2 h-2 bg-purple-500 rounded-full mr-1"></span>
@@ -165,13 +226,16 @@ const VolunteerStats = () => {
                 <Award size={20} className="text-amber-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">Avg. Events</p>
+                <p className="text-sm font-medium text-gray-500">
+                  {" "}
+                  Total Events:{" "}
+                </p>
                 <p className="text-2xl font-semibold text-gray-800 mt-1">
-                  {(volunteers.reduce((sum, volunteer) => sum + volunteer.events, 0) / volunteers.length).toFixed(1)}
+                  {eventsCount?.length > 0 &&
+                    eventsCount.reduce((sum, event) => sum + event.count, 0)}
                 </p>
                 <p className="text-xs text-amber-600 mt-1 flex items-center">
                   <span className="inline-block w-2 h-2 bg-amber-500 rounded-full mr-1"></span>
-                  Consistent participation
                 </p>
               </div>
             </div>
@@ -180,16 +244,13 @@ const VolunteerStats = () => {
 
         {/* Assign Volunteers Button */}
         <div className="mt-4 flex flex-col sm:flex-row gap-3">
-          <button 
+          <button
             onClick={() => setShowAssignmentModal(true)}
             className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition"
           >
             <Plus size={16} className="mr-2" />
             Assign Volunteers
-          </button>
-          {/* <button className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-100 bg-black hover:bg-gray-50 transition">
-            Details ???
-          </button> */}
+          </button>{" "}
         </div>
 
         {/* Volunteers Table */}
@@ -197,8 +258,12 @@ const VolunteerStats = () => {
           {/* Table Header */}
           <div className="px-6 py-5 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Volunteers</h2>
-              <p className="text-sm text-gray-500 mt-1">List of all volunteers</p>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Volunteers
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                List of all volunteers
+              </p>
             </div>
             {/* <button 
               onClick={handleAddVolunteer}
@@ -214,31 +279,54 @@ const VolunteerStats = () => {
               {/* Table Headers */}
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Volunteer
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Role
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Hours
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Events
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Status
                   </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {currentVolunteers.map((volunteer) => (
-                  <tr key={volunteer.id} className="hover:bg-gray-50 transition-colors">
+                {volunteers.map((volunteer) => (
+                  <tr
+                    key={volunteer.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">{volunteer.name}</div>
+                      <div className="font-medium text-gray-900">
+                        {volunteer.name}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-gray-500">{volunteer.role}</div>
@@ -252,9 +340,9 @@ const VolunteerStats = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          volunteer.status === 'Active'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
+                          volunteer.status === "Active"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
                         }`}
                       >
                         {volunteer.status}
@@ -267,7 +355,7 @@ const VolunteerStats = () => {
                       >
                         <Pencil size={16} className="mr-1" /> Edit
                       </button> */}
-                      <button 
+                      <button
                         onClick={() => handleDeleteVolunteer(volunteer.id)}
                         className="text-red-600 hover:text-red-900 inline-flex items-center"
                       >
@@ -283,36 +371,41 @@ const VolunteerStats = () => {
           {/* Pagination */}
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="text-sm text-gray-500">
-              Showing <span className="font-medium">{indexOfFirstVolunteer + 1}</span> to{' '}
+              Showing{" "}
+              <span className="font-medium">{indexOfFirstVolunteer + 1}</span>{" "}
+              to{" "}
               <span className="font-medium">
                 {Math.min(indexOfLastVolunteer, volunteers.length)}
-              </span>{' '}
-              of <span className="font-medium">{volunteers.length}</span> volunteers
+              </span>{" "}
+              of <span className="font-medium">{volunteers.length}</span>{" "}
+              volunteers
             </div>
             <div className="flex items-center space-x-2">
-              <button 
+              <button
                 onClick={() => paginate(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
                 className="p-2 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={16} />
               </button>
-              
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
-                <button
-                  key={number}
-                  onClick={() => paginate(number)}
-                  className={`px-3.5 py-2 rounded-md border ${
-                    currentPage === number
-                      ? 'border-indigo-600 bg-indigo-600 text-white'
-                      : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {number}
-                </button>
-              ))}
-              
-              <button 
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (number) => (
+                  <button
+                    key={number}
+                    onClick={() => paginate(number)}
+                    className={`px-3.5 py-2 rounded-md border ${
+                      currentPage === number
+                        ? "border-indigo-600 bg-indigo-600 text-white"
+                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {number}
+                  </button>
+                )
+              )}
+
+              <button
                 onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
                 className="p-2 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -329,19 +422,29 @@ const VolunteerStats = () => {
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
               <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                 <h3 className="text-lg font-medium text-gray-900">
-                  {editingVolunteer ? 'Edit Volunteer' : 'Add New Volunteer'}
+                  {editingVolunteer ? "Edit Volunteer" : "Add New Volunteer"}
                 </h3>
-                <button 
+                <button
                   onClick={() => setShowForm(false)}
                   className="text-gray-400 hover:text-gray-500"
                 >
                   <span className="sr-only">Close</span>
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   </svg>
                 </button>
               </div>
-              <VolunteerForm 
+              <VolunteerForm
                 volunteer={editingVolunteer}
                 onSave={handleSaveVolunteer}
                 onCancel={() => setShowForm(false)}
@@ -358,13 +461,25 @@ const VolunteerStats = () => {
                 <h3 className="text-lg font-medium text-gray-900 mb-6">
                   Assign Volunteers to Roles
                 </h3>
-                
+
                 {/* Sample roles for demonstration */}
                 {[
-                  { id: "role1", name: "Event Organizer", skills: ["Event Organizer"] },
-                  { id: "role2", name: "Cleanup Crew", skills: ["Cleanup Crew"] },
-                  { id: "role3", name: "Food Distribution", skills: ["Food Distribution"] }
-                ].map(role => (
+                  {
+                    id: "role1",
+                    name: "Event Organizer",
+                    skills: ["Event Organizer"],
+                  },
+                  {
+                    id: "role2",
+                    name: "Cleanup Crew",
+                    skills: ["Cleanup Crew"],
+                  },
+                  {
+                    id: "role3",
+                    name: "Food Distribution",
+                    skills: ["Food Distribution"],
+                  },
+                ].map((role) => (
                   <div key={role.id} className="mb-6">
                     <h4 className="font-medium text-gray-800 mb-2">
                       {role.name} (Requires: {role.skills.join(", ")})
@@ -373,7 +488,9 @@ const VolunteerStats = () => {
                       role={role}
                       volunteers={availableVolunteers}
                       assignedVolunteer={assignedVolunteers[role.id]}
-                      onAssign={(volunteerId) => handleAssignVolunteer(role.id, volunteerId)}
+                      onAssign={(volunteerId) =>
+                        handleAssignVolunteer(role.id, volunteerId)
+                      }
                     />
                   </div>
                 ))}
