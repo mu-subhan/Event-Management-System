@@ -5,6 +5,7 @@ const { scheduleStatusUpdate } = require("../helper/updateEventStatus");
 const prisma = require("../db/db.server");
 const eventValidator = require("../validation/Validator/event");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
+const sendMail = require("../utils/sendMail");
 
 // Create an event
 router.post(
@@ -250,5 +251,90 @@ router.delete(
     }
   }
 );
+router.post("/request-join", isAuthenticated, async (req, res) => {
+  try {
+    console.log("Request to join event received:", req.body);
+    const { eventId, userId } = req.body;
+    if (!eventId || !userId) {
+      return res.status(400).json({ error: "Event ID and User ID required" });
+    }
+
+    // Fetch event details
+    const event = await prisma.Event.findUnique({
+      where: { id: eventId },
+    });
+    if (!event) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    // Fetch user details
+    const user = await prisma.User.findUnique({
+      where: { id: userId },
+    });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const userTimezone = user.timezone || "UTC"; // get user timezone from DB or fallback
+
+    const startDateFormatted = new Date(event.startTime).toLocaleString(
+      "en-US",
+      {
+        timeZone: userTimezone,
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }
+    );
+
+    const endDateFormatted = new Date(event.endTime).toLocaleString("en-US", {
+      timeZone: userTimezone,
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    // Compose email content
+    const subject = `Request to Join Event: ${event.title}`;
+    const html = `
+        <p>Hello Admin,</p>
+        <p>User <strong>${user.name}</strong> (${
+      user.email
+    }) has requested to join the event <strong>${event.title}</strong>.</p>
+        <p>Event Details:</p>
+        <ul>
+          <li><strong>Name:</strong> ${event.title}</li>
+          <li><strong>Start Date:</strong> ${startDateFormatted}</li>
+          <li><strong>End Date:</strong> ${endDateFormatted}</li>
+          <li><strong>Description:</strong> ${event.description || "N/A"}</li>
+        </ul>
+        <p>Please review this request and take necessary action.</p>
+        <p>Regards,<br/>Your Team</p>
+      `;
+    const adminEmail = process.env.Admin_EMAIL; // Ensure you have an environment variable for admin email
+    if (!adminEmail) {
+      return res.status(500).json({ error: "Admin email not configured" });
+    }
+    // Send email to admin
+    await sendMail({
+      email: adminEmail,
+      subject,
+      html,
+    });
+
+    return res.json({
+      success: true,
+      message: "Request to join event sent to admin successfully.",
+    });
+  } catch (error) {
+    console.error("Error in request join event:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 module.exports = router;

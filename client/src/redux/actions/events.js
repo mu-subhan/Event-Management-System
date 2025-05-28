@@ -106,3 +106,30 @@ export const getEventsCount = () => async (dispatch) => {
     });
   }
 };
+
+export const requestJoinEvent = (eventId, userId) => async (dispatch) => {
+  try {
+    dispatch({ type: "requestJoinEvent" });
+
+    const { data } = await axios.post(
+      `${process.env.REACT_APP_SERVER}/api/event/request-join`,
+      { eventId, userId },
+      { withCredentials: true }
+    );
+
+    dispatch({ type: "requestJoinEventSuccess", payload: data });
+    toast.success("Join request sent successfully!");
+    return { success: true, message: "Join request sent successfully!" };
+  } catch (error) {
+    console.error("Error sending join request!", error);
+    dispatch({
+      type: "requestJoinEventFailed",
+      payload: error.response?.data?.error || error.message,
+    });
+    toast.error("Error sending join request!");
+    return {
+      success: false,
+      message: error.response?.data?.error || error.message,
+    };
+  }
+};
