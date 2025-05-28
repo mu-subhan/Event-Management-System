@@ -7,11 +7,11 @@ async function main() {
   console.log('🌱 Starting seed...');
 
   // Clear existing data (optional - uncomment if you want to reset)
-  await prisma.notification.deleteMany();
-  await prisma.eventRole.deleteMany();
-  await prisma.event.deleteMany();
-  await prisma.eventTest.deleteMany();
-  await prisma.user.deleteMany();
+  // await prisma.notification.deleteMany();
+  // await prisma.eventRole.deleteMany();
+  // await prisma.event.deleteMany();
+  // await prisma.eventTest.deleteMany();
+  // await prisma.user.deleteMany();
 
   // Hash passwords for users
   const hashedPassword = await bcrypt.hash('password123', 10);
@@ -135,6 +135,36 @@ async function main() {
         experienceYears: 2,
         description: 'Software engineer volunteering for digital literacy programs'
       }
+    }),
+    prisma.user.create({
+      data: {
+        name: 'Sara Hussain',
+        email: 'sara.volunteer@example.com',
+        password: hashedPassword,
+        contactNumber: '+92-307-6666666',
+        role: 'volunteer',
+        skills: ['Nursing', 'Health Education', 'Emergency Response'],
+        interests: ['Healthcare', 'Emergency Services', 'Public Health'],
+        experienceYears: 3,
+        description: 'Registered nurse volunteering for health awareness programs',
+        profileImage: {
+          url: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150',
+          alt: 'Volunteer profile picture'
+        }
+      }
+    }),
+    prisma.user.create({
+      data: {
+        name: 'Bilal Ahmed',
+        email: 'bilal.volunteer@example.com',
+        password: hashedPassword,
+        contactNumber: '+92-308-7777777',
+        role: 'volunteer',
+        skills: ['Construction', 'Project Management', 'Team Leadership'],
+        interests: ['Community Development', 'Infrastructure', 'Housing'],
+        experienceYears: 5,
+        description: 'Civil engineer helping with community development projects'
+      }
     })
   ]);
 
@@ -206,12 +236,24 @@ async function main() {
         status: 'ONGOING',
         isPass: false
       }
+    }),
+    prisma.event.create({
+      data: {
+        adminId: admin2.id,
+        title: 'Blood Donation Camp',
+        description: 'Community blood donation drive to help local hospitals maintain blood bank supplies. All healthy adults welcome to donate.',
+        startTime: new Date(currentDate.getTime() + 21 * 24 * 60 * 60 * 1000), // 3 weeks from now
+        endTime: new Date(currentDate.getTime() + 21 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000), // 4 hours later
+        location: 'Shaukat Khanum Hospital, Lahore',
+        status: 'PENDING',
+        isPass: false
+      }
     })
   ]);
 
   console.log(`✅ Created ${events.length} events`);
 
-  // Create Event Roles
+  // Create Event Roles with maxVolunteers
   const eventRoles = await Promise.all([
     // Roles for Community Health Camp
     prisma.eventRole.create({
@@ -220,8 +262,9 @@ async function main() {
         role_name: 'Medical Assistant',
         skills: ['First Aid', 'Basic Medical Knowledge', 'Patient Care'],
         description: 'Assist medical professionals in conducting health checkups and managing patient flow',
+        maxVolunteers: 3,
         volunteers: {
-          connect: [{ id: volunteers[0].id }, { id: volunteers[3].id }]
+          connect: [{ id: volunteers[0].id }, { id: volunteers[3].id }, { id: volunteers[5].id }]
         }
       }
     }),
@@ -231,6 +274,7 @@ async function main() {
         role_name: 'Registration Coordinator',
         skills: ['Organization', 'Communication', 'Data Entry'],
         description: 'Handle patient registration and maintain attendance records',
+        maxVolunteers: 2,
         volunteers: {
           connect: [{ id: volunteers[4].id }]
         }
@@ -244,6 +288,7 @@ async function main() {
         role_name: 'Teaching Assistant',
         skills: ['Teaching', 'Patience', 'Child Psychology'],
         description: 'Support main instructors and help children with individual learning needs',
+        maxVolunteers: 4,
         volunteers: {
           connect: [{ id: volunteers[1].id }]
         }
@@ -255,6 +300,7 @@ async function main() {
         role_name: 'Activity Coordinator',
         skills: ['Creativity', 'Event Management', 'Leadership'],
         description: 'Organize interactive activities and games to make learning fun',
+        maxVolunteers: 2,
         volunteers: {
           connect: [{ id: volunteers[2].id }]
         }
@@ -268,8 +314,9 @@ async function main() {
         role_name: 'Team Leader',
         skills: ['Leadership', 'Organization', 'Environmental Awareness'],
         description: 'Lead cleanup teams and coordinate activities across different areas',
+        maxVolunteers: 3,
         volunteers: {
-          connect: [{ id: volunteers[0].id }]
+          connect: [{ id: volunteers[0].id }, { id: volunteers[6].id }]
         }
       }
     }),
@@ -279,6 +326,7 @@ async function main() {
         role_name: 'Documentation Specialist',
         skills: ['Photography', 'Social Media', 'Report Writing'],
         description: 'Document the cleanup process and create content for social media awareness',
+        maxVolunteers: 2,
         volunteers: {
           connect: [{ id: volunteers[2].id }]
         }
@@ -292,8 +340,9 @@ async function main() {
         role_name: 'Distribution Coordinator',
         skills: ['Organization', 'Crowd Management', 'Empathy'],
         description: 'Manage food distribution queue and ensure fair distribution',
+        maxVolunteers: 5,
         volunteers: {
-          connect: [{ id: volunteers[1].id }, { id: volunteers[3].id }]
+          connect: [{ id: volunteers[1].id }, { id: volunteers[3].id }, { id: volunteers[6].id }]
         }
       }
     }),
@@ -305,6 +354,7 @@ async function main() {
         role_name: 'IT Instructor',
         skills: ['Computer Skills', 'Teaching', 'Patience'],
         description: 'Provide hands-on computer training and troubleshoot technical issues',
+        maxVolunteers: 3,
         volunteers: {
           connect: [{ id: volunteers[4].id }]
         }
@@ -316,8 +366,47 @@ async function main() {
         role_name: 'Learning Support',
         skills: ['Communication', 'Patience', 'Problem Solving'],
         description: 'Provide one-on-one support to learners who need extra help',
+        maxVolunteers: 4,
         volunteers: {
           connect: [{ id: volunteers[1].id }]
+        }
+      }
+    }),
+
+    // Roles for Blood Donation Camp
+    prisma.eventRole.create({
+      data: {
+        event_id: events[5].id,
+        role_name: 'Medical Support',
+        skills: ['Nursing', 'Health Screening', 'Emergency Response'],
+        description: 'Assist with donor screening and provide medical support during donation',
+        maxVolunteers: 4,
+        volunteers: {
+          connect: [{ id: volunteers[5].id }]
+        }
+      }
+    }),
+    prisma.eventRole.create({
+      data: {
+        event_id: events[5].id,
+        role_name: 'Volunteer Coordinator',
+        skills: ['Organization', 'Communication', 'Event Management'],
+        description: 'Coordinate volunteer activities and manage donor flow',
+        maxVolunteers: 2,
+        volunteers: {
+          connect: [{ id: volunteers[0].id }]
+        }
+      }
+    }),
+    prisma.eventRole.create({
+      data: {
+        event_id: events[5].id,
+        role_name: 'Registration & Reception',
+        skills: ['Customer Service', 'Data Entry', 'Communication'],
+        description: 'Handle donor registration and provide information about the donation process',
+        maxVolunteers: 3,
+        volunteers: {
+          connect: [{ id: volunteers[4].id }]
         }
       }
     })
@@ -344,6 +433,14 @@ async function main() {
         status: 'Read'
       }
     }),
+    prisma.notification.create({
+      data: {
+        userId: admin1.id,
+        title: 'Role Capacity Alert',
+        message: 'Medical Assistant role for Community Health Camp is now full (3/3 volunteers assigned).',
+        status: 'Unread'
+      }
+    }),
 
     // Notifications for Admin 2
     prisma.notification.create({
@@ -360,6 +457,14 @@ async function main() {
         title: 'Volunteer Update',
         message: 'Omar Sheikh has updated his availability for the Environmental Cleanup Drive.',
         status: 'Unread'
+      }
+    }),
+    prisma.notification.create({
+      data: {
+        userId: admin2.id,
+        title: 'New Event Approved',
+        message: 'Your Blood Donation Camp event has been approved and is now visible to volunteers.',
+        status: 'Read'
       }
     }),
 
@@ -404,6 +509,22 @@ async function main() {
         status: 'Unread'
       }
     }),
+    prisma.notification.create({
+      data: {
+        userId: volunteers[5].id,
+        title: 'Medical Volunteer Needed',
+        message: 'Your nursing skills are needed for the upcoming Blood Donation Camp. You have been pre-selected for the Medical Support role.',
+        status: 'Unread'
+      }
+    }),
+    prisma.notification.create({
+      data: {
+        userId: volunteers[6].id,
+        title: 'Leadership Role Offer',
+        message: 'Based on your experience, you have been offered a Team Leader role for the Environmental Cleanup Drive.',
+        status: 'Read'
+      }
+    }),
 
     // General/System Notifications
     prisma.notification.create({
@@ -418,7 +539,15 @@ async function main() {
       data: {
         userId: null,
         title: 'New Feature Available',
-        message: 'We have added a new messaging feature to help volunteers and admins communicate better.',
+        message: 'We have added volunteer capacity limits for event roles to help better manage volunteer assignments.',
+        status: 'Unread'
+      }
+    }),
+    prisma.notification.create({
+      data: {
+        userId: null,
+        title: 'Community Achievement',
+        message: 'Our volunteer community has reached 1000+ registered volunteers! Thank you for being part of this journey.',
         status: 'Unread'
       }
     })
@@ -454,6 +583,15 @@ async function main() {
         status: 'PENDING',
         isPass: false
       }
+    }),
+    prisma.eventTest.create({
+      data: {
+        title: 'Test Event 4 - Emergency Response Training',
+        startTime: new Date(currentDate.getTime() + 2 * 60 * 60 * 1000), // 2 hours from now
+        endTime: new Date(currentDate.getTime() + 7 * 60 * 60 * 1000), // 5 hours duration
+        status: 'ONGOING',
+        isPass: false
+      }
     })
   ]);
 
@@ -463,14 +601,22 @@ async function main() {
   console.log('\n📊 Summary:');
   console.log(`- Users: ${volunteers.length + 2} (2 admins, ${volunteers.length} volunteers)`);
   console.log(`- Events: ${events.length}`);
-  console.log(`- Event Roles: ${eventRoles.length}`);
+  console.log(`- Event Roles: ${eventRoles.length} (with maxVolunteers specified)`);
   console.log(`- Notifications: ${notifications.length}`);
   console.log(`- Test Events: ${eventTests.length}`);
-  // console.log('\n🔐 Login Credentials:');
-  // console.log('Admin: admin@example.com / password123');
-  // console.log('Admin: fatima.admin@example.com / password123');
-  // console.log('Volunteer: hassan.volunteer@example.com / password123');
-  // console.log('(All users have the same password: password123)');
+  console.log('\n🔐 Login Credentials:');
+  console.log('Admin: admin@example.com / password123');
+  console.log('Admin: fatima.admin@example.com / password123');
+  console.log('Volunteer: hassan.volunteer@example.com / password123');
+  console.log('(All users have the same password: password123)');
+  console.log('\n📋 Event Roles Capacity Overview:');
+  console.log('- Medical Assistant: 3/3 volunteers (FULL)');
+  console.log('- Registration Coordinator: 1/2 volunteers');
+  console.log('- Teaching Assistant: 1/4 volunteers');
+  console.log('- Activity Coordinator: 1/2 volunteers');
+  console.log('- Team Leader: 2/3 volunteers');
+  console.log('- Documentation Specialist: 1/2 volunteers');
+  console.log('- And more roles with varying capacities...');
 }
 
 main()
