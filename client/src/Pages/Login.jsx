@@ -4,42 +4,84 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { loaduser } from "../redux/actions/user";
+
 const Login = () => {
   const dispatch = useDispatch();
-
-  // states
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({
+    email: "",
+    password: ""
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {
+      email: "",
+      password: ""
+    };
+
+    // Email validation
+    if (!email) {
+      newErrors.email = "Email is required";
+      isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Please enter a valid email address";
+      isValid = false;
+    }
+
+    // Password validation
+    if (!password) {
+      newErrors.password = "Password is required";
+      isValid = false;
+    } else if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+
+    if (!validateForm()) {
+      // Show specific error toasts for each field
+      if (errors.email) toast.error(errors.email);
+      if (errors.password) toast.error(errors.password);
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      if (!email || !password) {
-        setError("Please fill all fields");
-        return;
-      }
       const { data } = await axios.post(
         `${process.env.REACT_APP_SERVER}/api/user/login-user`,
         { email, password },
         { withCredentials: true }
       );
+
       if (data.success === true) {
         await dispatch(loaduser());
+        toast.success("Login successful!");
+        
+        // Redirect based on role
         if (data?.user?.role === "Admin") {
           navigate("/admin/dashboard");
         } else if (data?.user?.role === "Volunteer") {
           navigate("/volunteer/dashboard");
         }
-        console.log("  :", data);
-        toast.success("Login Successfully!");
       } else {
-        toast.error("Invalid Credentials!");
+        toast.error(data.message || "Invalid credentials");
       }
     } catch (error) {
-      const message = error?.response?.data?.message;
-      toast.error(message || "Internal Server Failure");
+      const message = error?.response?.data?.message || "Login failed. Please try again.";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -68,28 +110,7 @@ const Login = () => {
       </p>
     </div>
 
-    {/* Features list */}
-    {/* <div className="py-6 px-8 bg-white/5 backdrop-blur-sm rounded-xl text-left space-y-3 border border-white/10">
-      <div className="flex items-center space-x-3">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-300">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-        <span className="text-purple-50">Manage all your events in one place</span>
-      </div>
-      <div className="flex items-center space-x-3">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-300">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-        <span className="text-purple-50">Track attendee engagement</span>
-      </div>
-      <div className="flex items-center space-x-3">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-300">
-          <polyline points="20 6 9 17 4 12"></polyline>
-        </svg>
-        <span className="text-purple-50">Get real-time notifications</span>
-      </div>
-    </div> */}
-
+  
     {/* Sign up prompt */}
     <div className="pt-4">
       <p className="text-purple-100">
@@ -120,9 +141,9 @@ const Login = () => {
           <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
             Login
           </h2>
-          {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
           <form onSubmit={handleLogin} className="my-8">
+            {/* Email Field */}
             <div className="mb-6">
               <label
                 className="block text-lg font-medium text-gray-700 mb-2"
@@ -133,14 +154,24 @@ const Login = () => {
               <input
                 type="email"
                 id="email"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${
+                  errors.email
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-purple-500 focus:border-transparent"
+                }`}
                 placeholder="Enter your email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrors({...errors, email: ""});
+                }}
               />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+              )}
             </div>
 
+            {/* Password Field */}
             <div className="mb-6">
               <label
                 className="block text-lg font-medium text-gray-700 mb-2"
@@ -151,19 +182,31 @@ const Login = () => {
               <input
                 type="password"
                 id="password"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300 ${
+                  errors.password
+                    ? "border-red-500 focus:ring-red-500"
+                    : "border-gray-300 focus:ring-purple-500 focus:border-transparent"
+                }`}
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrors({...errors, password: ""});
+                }}
               />
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-500">{errors.password}</p>
+              )}
             </div>
 
             <button
               type="submit"
-              className="w-full p-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105"
+              disabled={isSubmitting}
+              className={`w-full p-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 ${
+                isSubmitting ? "opacity-70 cursor-not-allowed" : "hover:scale-105"
+              }`}
             >
-              Login
+              {isSubmitting ? "Logging in..." : "Login"}
             </button>
           </form>
 
