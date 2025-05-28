@@ -19,7 +19,7 @@ model User {
   email           String    @unique
   password        String
   contactNumber   String?   // Optional for both roles
-  role            String      @default("volunteer") // Set the default role to VOLUNTEER
+  role            String      @default("Volunteer") // Set the default role to VOLUNTEER
   skills          String[]    @default([]) // For volunteers, null for admins
   interests       String[]    @default([]) // For volunteers, null for admins
   experienceYears Int?      @default(0) // Default 0, for volunteers
