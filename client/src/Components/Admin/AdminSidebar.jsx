@@ -2,7 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
-const AdminSidebar = ({ menuItems, isOpen, toggleSidebar=()=>{}, collapsed }) => {
+const AdminSidebar = ({
+  menuItems,
+  isOpen,
+  toggleSidebar = () => {},
+  collapsed,
+}) => {
   const location = useLocation();
   const [activeLink, setActiveLink] = useState("/admin/dashboard");
   const sidebarRef = useRef();
@@ -14,7 +19,11 @@ const AdminSidebar = ({ menuItems, isOpen, toggleSidebar=()=>{}, collapsed }) =>
   // Close sidebar on outside click (for mobile)
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (isOpen && sidebarRef.current && !sidebarRef.current.contains(e.target)) {
+      if (
+        isOpen &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(e.target)
+      ) {
         toggleSidebar(false);
       }
     };
