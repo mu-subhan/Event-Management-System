@@ -24,19 +24,19 @@ const Signup = () => {
     "Graphic Design",
     "SEO",
     "Project Management",
-    "other"
+    "other",
   ];
-  
+
   const interestOptions = [
-    "Development", 
-    "cricket", 
-    "Outdoor", 
+    "Development",
+    "cricket",
+    "Outdoor",
     "Management",
     "Design",
     "Music",
     "Art",
     "Sports",
-    "other"
+    "other",
   ];
 
   // Get user data from Redux store
@@ -54,7 +54,7 @@ const Signup = () => {
     acceptTerms: false,
     skills: [],
     interest: [],
-    avatar: null
+    avatar: null,
   });
 
   const [file, setFile] = useState(null);
@@ -69,7 +69,9 @@ const Signup = () => {
   const validateFullName = (name) => {
     const nameRegex = /^[a-zA-Z\s]{2,50}$/;
     if (!name || !nameRegex.test(name)) {
-      toast.error("Full Name should be 2-50 letters with no special characters.");
+      toast.error(
+        "Full Name should be 2-50 letters with no special characters."
+      );
       return false;
     }
     return true;
@@ -104,15 +106,14 @@ const Signup = () => {
     // Pakistani mobile number pattern:
     // Accepts formats: +92XXXXXXXXXX, 92XXXXXXXXXX, 03XXXXXXXXX
     const numberRegex = /^(?:\+92|92|0)3[0-9]{9}$/;
-  
+
     if (!numberRegex.test(number)) {
       toast.error("format of number 03XXXXXXXXX or +923XXXXXXXXX)");
       return false;
     }
-  
+
     return true;
   };
-  
 
   const validateExperienceYears = (years) => {
     const yearsNum = parseInt(years);
@@ -155,7 +156,7 @@ const Signup = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-  
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -184,23 +185,23 @@ const Signup = () => {
 
   const handleFileInputChange = (e) => {
     const file = e.target.files[0];
-    
+
     if (!file) return;
-    
+
     // Basic file validation (optional)
     const validTypes = ["image/jpeg", "image/png", "image/jpg"];
     if (!validTypes.includes(file.type)) {
       toast.error("Only JPG, JPEG, or PNG files are allowed.");
       return;
     }
-    
+
     if (file.size > 2 * 1024 * 1024) {
       toast.error("File size must be less than 2MB.");
       return;
     }
-    
-    setFormData(prev => ({ ...prev, avatar: file }));
-    
+
+    setFormData((prev) => ({ ...prev, avatar: file }));
+
     const reader = new FileReader();
     reader.onload = () => {
       if (reader.readyState === 2) {
@@ -211,16 +212,16 @@ const Signup = () => {
   };
 
   const handleRemoveSkill = (skillToRemove) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      skills: prev.skills.filter(skill => skill !== skillToRemove)
+      skills: prev.skills.filter((skill) => skill !== skillToRemove),
     }));
   };
 
   const handleRemoveInterest = (interestToRemove) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      interest: prev.interest.filter(item => item !== interestToRemove)
+      interest: prev.interest.filter((item) => item !== interestToRemove),
     }));
   };
 
@@ -230,59 +231,59 @@ const Signup = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setError("");
-  
+
     // Validate all fields
     if (!validateFullName(formData.fullName)) {
       setIsSubmitting(false);
       return;
     }
-    
+
     if (!validateEmail(formData.email)) {
       setIsSubmitting(false);
       return;
     }
-    
+
     if (!validatePassword(formData.password)) {
       setIsSubmitting(false);
       return;
     }
-    
+
     if (!validatePasswordMatch(formData.password, formData.confirmPassword)) {
       setIsSubmitting(false);
       return;
     }
-    
+
     if (!validateContactNumber(formData.contactNumber)) {
       setIsSubmitting(false);
       return;
     }
-    
+
     if (!validateExperienceYears(formData.experienceYears)) {
       setIsSubmitting(false);
       return;
     }
-    
+
     if (!validateDescription(formData.description)) {
       setIsSubmitting(false);
       return;
     }
-    
+
     if (!validateSkills(formData.skills)) {
       setIsSubmitting(false);
       return;
     }
-    
+
     if (!validateInterests(formData.interest)) {
       setIsSubmitting(false);
       return;
     }
-    
+
     if (!formData.acceptTerms) {
       toast.error("Please accept the terms and conditions.");
       setIsSubmitting(false);
       return;
     }
-  
+
     // Proceed with form submission
     try {
       const formDataToSend = new FormData();
@@ -294,12 +295,12 @@ const Signup = () => {
       formDataToSend.append("interests", JSON.stringify(formData.interest));
       formDataToSend.append("experienceYears", formData.experienceYears);
       formDataToSend.append("description", formData.description);
-      
+
       // Only append avatar if it exists
       if (formData.avatar) {
         formDataToSend.append("avatar", formData.avatar);
       }
-  
+
       const { data } = await axios.post(
         `${process.env.REACT_APP_SERVER}/api/user/create-user`,
         formDataToSend,
@@ -307,7 +308,7 @@ const Signup = () => {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
-  
+
       if (data.success) {
         toast.success("Check your email to verify your account!");
         // Reset form
@@ -325,11 +326,12 @@ const Signup = () => {
           avatar: null,
         });
         setFile(null);
-        navigate('/login'); // Redirect to login after successful signup
+        navigate("/"); // Redirect to login after successful signup
       }
     } catch (error) {
       const errorMessage =
-        error.response?.data?.message || "Registration failed. Please try again.";
+        error.response?.data?.message ||
+        "Registration failed. Please try again.";
       toast.error(errorMessage);
       console.error("Registration error:", error);
     } finally {
@@ -341,71 +343,90 @@ const Signup = () => {
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
-    
       {/* Left Panel (Visible on lg+) */}
-<div className="hidden lg:flex lg:flex-col lg:justify-between lg:items-center lg:w-1/3 lg:fixed top-0 left-0 h-screen bg-gradient-to-br from-purple-700 to-indigo-800 text-white p-10 z-10 overflow-hidden">
-  {/* Background pattern */}
-  <div className="absolute inset-0 opacity-10">
-    <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
-  </div>
+      <div className="hidden lg:flex lg:flex-col lg:justify-between lg:items-center lg:w-1/3 lg:fixed top-0 left-0 h-screen bg-gradient-to-br from-purple-700 to-indigo-800 text-white p-10 z-10 overflow-hidden">
+        {/* Background pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+        </div>
 
-  {/* Content */}
-  <div className="relative z-10 w-full text-center">
-    <div className="mb-8">
-      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-          <circle cx="9" cy="7" r="4"></circle>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-        </svg>
+        {/* Content */}
+        <div className="relative z-10 w-full text-center">
+          <div className="mb-8">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="40"
+                height="40"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-white"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <h2 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-200 to-white">
+              Be the Change!
+            </h2>
+            <p className="text-lg text-purple-100 max-w-md mx-auto leading-relaxed">
+              Join our growing community of passionate volunteers creating real
+              impact.
+            </p>
+          </div>
+
+          {/* Testimonials carousel */}
+          <div className="my-8 px-6 py-4 bg-white/10 backdrop-blur-sm rounded-xl max-w-md mx-auto">
+            <blockquote className="italic text-purple-50 text-sm">
+              "Volunteering here changed my perspective on life. The community
+              support is incredible!"
+            </blockquote>
+            <div className="flex justify-center mt-3">
+              {[1, 2, 3].map((dot) => (
+                <div
+                  key={dot}
+                  className={`w-2 h-2 mx-1 rounded-full ${
+                    dot === 1 ? "bg-white" : "bg-white/30"
+                  }`}
+                ></div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Image with overlay */}
+        <div className="relative z-10 w-full max-w-md mx-auto mt-8 rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+          <div className="absolute inset-0 bg-gradient-to-t from-purple-900/70 to-transparent"></div>
+          <img
+            src="https://images.unsplash.com/photo-1524179091875-bf99a9a6af57?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
+            className="w-full h-auto object-cover"
+            alt="Volunteers working together"
+          />
+          <div className="absolute bottom-0 left-0 p-6 text-white">
+            <p className="text-sm font-medium">Together we can</p>
+            <h3 className="text-xl font-bold">Make a difference</h3>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="relative z-10 mt-8 text-center">
+          <p className="text-xs text-purple-200">
+            Already part of our community?{" "}
+            <a
+              href="/login"
+              className="font-semibold text-white hover:underline"
+            >
+              Sign in here
+            </a>
+          </p>
+        </div>
       </div>
-      <h2 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-200 to-white">
-        Be the Change!
-      </h2>
-      <p className="text-lg text-purple-100 max-w-md mx-auto leading-relaxed">
-        Join our growing community of passionate volunteers creating real impact.
-      </p>
-    </div>
-
-    {/* Testimonials carousel */}
-    <div className="my-8 px-6 py-4 bg-white/10 backdrop-blur-sm rounded-xl max-w-md mx-auto">
-      
-      <blockquote className="italic text-purple-50 text-sm">
-        "Volunteering here changed my perspective on life. The community support is incredible!"
-      </blockquote>
-      <div className="flex justify-center mt-3">
-        {[1, 2, 3].map((dot) => (
-          <div key={dot} className={`w-2 h-2 mx-1 rounded-full ${dot === 1 ? 'bg-white' : 'bg-white/30'}`}></div>
-        ))}
-      </div>
-    </div>
-  </div>
-
-  {/* Image with overlay */}
-  <div className="relative z-10 w-full max-w-md mx-auto mt-8 rounded-2xl overflow-hidden shadow-2xl border border-white/10">
-    <div className="absolute inset-0 bg-gradient-to-t from-purple-900/70 to-transparent"></div>
-    <img
-      src="https://images.unsplash.com/photo-1524179091875-bf99a9a6af57?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-      className="w-full h-auto object-cover"
-      alt="Volunteers working together"
-    />
-    <div className="absolute bottom-0 left-0 p-6 text-white">
-      <p className="text-sm font-medium">Together we can</p>
-      <h3 className="text-xl font-bold">Make a difference</h3>
-    </div>
-  </div>
-
-  {/* Footer */}
-  <div className="relative z-10 mt-8 text-center">
-    <p className="text-xs text-purple-200">
-      Already part of our community?{' '}
-      <a href="/login" className="font-semibold text-white hover:underline">
-        Sign in here
-      </a>
-    </p>
-  </div>
-</div>
 
       {/* Right Panel */}
       <div className="w-full lg:ml-[33.3333%] flex justify-center items-center min-h-screen bg-gray-50 px-4 py-12">
@@ -570,7 +591,7 @@ const Signup = () => {
               </label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {formData.skills.map((skill, index) => (
-                  <div 
+                  <div
                     key={index}
                     className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm flex items-center"
                   >
@@ -590,7 +611,9 @@ const Signup = () => {
                 className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 defaultValue=""
               >
-                <option value="" disabled>-- Add a skill --</option>
+                <option value="" disabled>
+                  -- Add a skill --
+                </option>
                 {skillOptions.map((skill) => (
                   <option key={skill} value={skill}>
                     {skill}
@@ -606,7 +629,7 @@ const Signup = () => {
               </label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {formData.interest.map((item, index) => (
-                  <div 
+                  <div
                     key={index}
                     className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm flex items-center"
                   >
@@ -626,7 +649,9 @@ const Signup = () => {
                 className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                 defaultValue=""
               >
-                <option value="" disabled>-- Add an interest --</option>
+                <option value="" disabled>
+                  -- Add an interest --
+                </option>
                 {interestOptions.map((interest) => (
                   <option key={interest} value={interest}>
                     {interest}
@@ -702,7 +727,9 @@ const Signup = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className={`w-full p-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 ${isSubmitting ? "opacity-70 cursor-not-allowed" : ""}`}
+              className={`w-full p-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 ${
+                isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+              }`}
               disabled={isSubmitting}
             >
               {isSubmitting ? "Creating Account..." : "Sign Up"}
