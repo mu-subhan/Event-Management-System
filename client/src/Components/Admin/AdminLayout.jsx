@@ -39,6 +39,7 @@ const AdminLayout = () => {
       name: "Edit Profile",
       icon: <Pencil size={20} />,
     },
+    {},
   ];
 
   useEffect(() => {
@@ -63,9 +64,9 @@ const AdminLayout = () => {
 
             <AdminSidebar
               className="fixed h-full"
-              menuItems={menuItems}
-              isOpen={isSidebarOpen}
               toggleSidebar={setIsSidebarOpen}
+              isOpen={isSidebarOpen}
+              menuItems={menuItems}
               collapsed={collapsed}
             />
 

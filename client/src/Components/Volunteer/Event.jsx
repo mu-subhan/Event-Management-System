@@ -161,6 +161,14 @@ const Events = ({ user }) => {
                       }`}
                       disabled={event.status == "UPCOMING" ? false : true}
                       onClick={async () => {
+                        if (!event?.id && !user?.id) {
+                          console.log(
+                            event?.id
+                              ? "Event id is not Provided"
+                              : "User id is not provided"
+                          );
+                          return;
+                        }
                         setLoading(true);
                         await dispatch(requestJoinEvent(event.id, user.id));
                         setLoading(false);
