@@ -34,6 +34,7 @@ import EventDetailsPage from "./Pages/EventDetailsPage.jsx";
 import EventPage from "./Pages/EventPage.jsx";
 import EditEvent from "./Components/Admin/EditEvent.jsx";
 import { useDispatch } from "react-redux";
+import AdminProfile from "./Components/Admin/AdminProfile.jsx";
 const App = () => {
   const dispatch = useDispatch();
 
@@ -71,6 +72,7 @@ const App = () => {
             {/* <Route path="role-suggestion" element={<RoleSuggestionPanel />} /> */}
             <Route path="sidebar" element={<AdminSidebar />} />
             <Route path="vol-stats" element={<VolunteerStats />} />
+            <Route path="edit-profile" element={<AdminProfile />} />
             <Route path="event/:id" element={<EventPage />} />
             <Route path="event/:id/edit" element={<EditEvent />} />
           </Route>

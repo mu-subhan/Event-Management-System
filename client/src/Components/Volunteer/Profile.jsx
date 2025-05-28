@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 const Profile = () => {
   const { user, isLoading } = useSelector((state) => state.user);
   const dispatch = useDispatch();
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [errors, setErrors] = useState({});
   const [profile, setProfile] = useState({
@@ -16,7 +16,7 @@ const Profile = () => {
     phone: "",
     experienceYears: 0,
     description: "",
-    skills: []
+    skills: [],
   });
 
   const [editData, setEditData] = useState({ ...profile });
@@ -26,20 +26,23 @@ const Profile = () => {
     if (!name.trim()) return "Name is required";
     if (name.length < 2) return "Name must be at least 2 characters long";
     if (name.length > 50) return "Name must be less than 50 characters";
-    if (!/^[a-zA-Z\s]*$/.test(name)) return "Name can only contain letters and spaces";
+    if (!/^[a-zA-Z\s]*$/.test(name))
+      return "Name can only contain letters and spaces";
     return "";
   };
 
   const validateEmail = (email) => {
     if (!email.trim()) return "Email is required";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Invalid email format";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      return "Invalid email format";
     return "";
   };
 
   const validatePhone = (phone) => {
     if (!phone.trim()) return "Phone number is required";
     const phoneRegex = /^(\+92[-\s]?|0)3\d{2}[-\s]?\d{7}$/;
-    if (!phoneRegex.test(phone)) return "Invalid phone number format. Accepted formats: 03001234567, 0300 1234567, 0300-1234567, +92 3001234567, +92-3001234567, +923001234567";
+    if (!phoneRegex.test(phone))
+      return "Invalid phone number format. Accepted formats: 03001234567, 0300 1234567, 0300-1234567, +92 3001234567, +92-3001234567, +923001234567";
     return "";
   };
 
@@ -52,14 +55,15 @@ const Profile = () => {
   };
 
   const validateDescription = (description) => {
-    if (description.length > 500) return "Description must be less than 500 characters";
+    if (description.length > 500)
+      return "Description must be less than 500 characters";
     return "";
   };
 
   const validateSkills = (skills) => {
     if (skills.length === 0) return "At least one skill is required";
-    if (skills.some(skill => !skill.trim())) return "Skills cannot be empty";
-    if (skills.some(skill => skill.length > 30)) return "Skill name too long";
+    if (skills.some((skill) => !skill.trim())) return "Skills cannot be empty";
+    if (skills.some((skill) => skill.length > 30)) return "Skill name too long";
     return "";
   };
 
@@ -71,7 +75,7 @@ const Profile = () => {
       phone: validatePhone(editData.phone),
       experienceYears: validateExperienceYears(editData.experienceYears),
       description: validateDescription(editData.description),
-      skills: validateSkills(editData.skills)
+      skills: validateSkills(editData.skills),
     };
 
     // Filter out empty error messages
@@ -85,7 +89,7 @@ const Profile = () => {
 
   // Update profile state when user data changes
   useEffect(() => {
-    if (user) {
+    if (user && profile.name !== user.name) {
       const newProfile = {
         name: user.name || "",
         email: user.email || "",
@@ -109,7 +113,7 @@ const Profile = () => {
     try {
       // Validate form before saving
       if (!validateForm()) {
-        toast.error('Please fix the validation errors');
+        toast.error("Please fix the validation errors");
         return;
       }
 
@@ -118,30 +122,30 @@ const Profile = () => {
         name: editData.name,
         email: editData.email,
         contactNumber: editData.phone,
-        skills: editData.skills.filter(skill => skill.trim() !== ""),
+        skills: editData.skills.filter((skill) => skill.trim() !== ""),
         experienceYears: parseInt(editData.experienceYears) || 0,
         description: editData.description || "",
-        interests: user?.interests || []
+        interests: user?.interests || [],
       };
 
       console.log("Sending update data:", updateData);
-      
+
       // Dispatch the update action
       const result = await dispatch(updateUserInformation(updateData));
-      
+
       if (result?.error) {
         throw new Error(result.error);
       }
-      
+
       // Update local state
       setProfile({ ...editData });
       setIsEditing(false);
       setErrors({});
-      
-      toast.success('Profile updated successfully!');
+
+      toast.success("Profile updated successfully!");
     } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error(error?.message || 'Failed to update profile');
+      console.error("Error updating profile:", error);
+      toast.error(error?.message || "Failed to update profile");
     }
   };
 
@@ -152,16 +156,16 @@ const Profile = () => {
   };
 
   const handleChange = (field, value) => {
-    setEditData(prev => ({
+    setEditData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
 
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [field]: ""
+        [field]: "",
       }));
     }
   };
@@ -169,39 +173,37 @@ const Profile = () => {
   const handleSkillChange = (index, value) => {
     const newSkills = [...editData.skills];
     newSkills[index] = value;
-    setEditData(prev => ({
+    setEditData((prev) => ({
       ...prev,
-      skills: newSkills
+      skills: newSkills,
     }));
 
     // Clear skills error when user modifies skills
     if (errors.skills) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        skills: ""
+        skills: "",
       }));
     }
   };
 
   const addSkill = () => {
-    setEditData(prev => ({
+    setEditData((prev) => ({
       ...prev,
-      skills: [...prev.skills, ""]
+      skills: [...prev.skills, ""],
     }));
   };
 
   const removeSkill = (index) => {
-    setEditData(prev => ({
+    setEditData((prev) => ({
       ...prev,
-      skills: prev.skills.filter((_, i) => i !== index)
+      skills: prev.skills.filter((_, i) => i !== index),
     }));
   };
 
   // Error message component
   const ErrorMessage = ({ error }) => {
-    return error ? (
-      <p className="text-red-500 text-xs mt-1">{error}</p>
-    ) : null;
+    return error ? <p className="text-red-500 text-xs mt-1">{error}</p> : null;
   };
 
   return (
@@ -214,9 +216,11 @@ const Profile = () => {
       ) : (
         <div className="bg-white shadow-2xl rounded-xl p-10 w-full max-w-2xl transition-all duration-300 hover:shadow-2xl">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-800">Your Profile</h2>
+            <h2 className="text-xl font-semibold text-gray-800">
+              Your Profile
+            </h2>
             {!isEditing ? (
-              <button 
+              <button
                 onClick={handleEdit}
                 className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm font-medium hover:bg-blue-200 transition-colors"
               >
@@ -224,13 +228,13 @@ const Profile = () => {
               </button>
             ) : (
               <div className="flex space-x-2">
-                <button 
+                <button
                   onClick={handleSave}
                   className="px-3 py-1 bg-green-100 text-green-600 rounded-full text-sm font-medium hover:bg-green-200 transition-colors flex items-center"
                 >
                   <FaSave className="mr-1" /> Save
                 </button>
-                <button 
+                <button
                   onClick={handleCancel}
                   className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-sm font-medium hover:bg-red-200 transition-colors flex items-center"
                 >
@@ -239,10 +243,13 @@ const Profile = () => {
               </div>
             )}
           </div>
-          
+
           <div className="flex items-center space-x-6 mb-6 shadow-xl p-4 rounded-lg">
             <div className="w-32 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-4xl font-bold overflow-hidden border-4 border-white shadow-md">
-              {profile.name.split(' ').map(n => n[0]).join('')}
+              {profile.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")}
             </div>
             <div className="flex-1">
               {isEditing ? (
@@ -250,24 +257,34 @@ const Profile = () => {
                   <input
                     type="text"
                     value={editData.name}
-                    onChange={(e) => handleChange('name', e.target.value)}
-                    className={`font-bold text-xl text-gray-800 w-full p-1 border-b ${errors.name ? 'border-red-500' : 'border-gray-300'} focus:border-blue-500 focus:outline-none`}
+                    onChange={(e) => handleChange("name", e.target.value)}
+                    className={`font-bold text-xl text-gray-800 w-full p-1 border-b ${
+                      errors.name ? "border-red-500" : "border-gray-300"
+                    } focus:border-blue-500 focus:outline-none`}
                   />
                   <ErrorMessage error={errors.name} />
                 </div>
               ) : (
                 <>
-                  <h3 className="font-bold text-xl text-gray-800">{profile.name}</h3>
-                  <p className="text-blue-600 font-medium">Volunteer since {new Date(user?.createdAt).getFullYear()}</p>
+                  <h3 className="font-bold text-xl text-gray-800">
+                    {profile.name}
+                  </h3>
+                  <p className="text-blue-600 font-medium">
+                    Volunteer since {new Date(user?.createdAt).getFullYear()}
+                  </p>
                   <div className="mt-2 flex items-center">
-                    <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-1 rounded-full">Available</span>
-                    <span className="ml-2 bg-blue-100 text-blue-700 text-xs font-medium px-2 py-1 rounded-full">5★ Rating</span>
+                    <span className="bg-green-100 text-green-700 text-xs font-medium px-2 py-1 rounded-full">
+                      Available
+                    </span>
+                    <span className="ml-2 bg-blue-100 text-blue-700 text-xs font-medium px-2 py-1 rounded-full">
+                      5★ Rating
+                    </span>
                   </div>
                 </>
               )}
             </div>
           </div>
-          
+
           <div className="space-y-4 text-gray-600 mt-6">
             <div className="flex items-center shadow-md p-4 rounded-lg">
               <FaEnvelope className="w-5 h-5 mr-3 text-blue-500" />
@@ -276,7 +293,7 @@ const Profile = () => {
                 {isEditing && <ErrorMessage error={errors.email} />}
               </div>
             </div>
-            
+
             <div className="flex items-center shadow-md p-4 rounded-lg">
               <FaPhone className="w-5 h-5 mr-3 text-blue-500" />
               <div className="flex-1">
@@ -285,8 +302,10 @@ const Profile = () => {
                     <input
                       type="tel"
                       value={editData.phone}
-                      onChange={(e) => handleChange('phone', e.target.value)}
-                      className={`w-full p-1 border-b ${errors.phone ? 'border-red-500' : 'border-gray-300'} focus:border-blue-500 focus:outline-none`}
+                      onChange={(e) => handleChange("phone", e.target.value)}
+                      className={`w-full p-1 border-b ${
+                        errors.phone ? "border-red-500" : "border-gray-300"
+                      } focus:border-blue-500 focus:outline-none`}
                       placeholder="Enter phone number"
                     />
                     <ErrorMessage error={errors.phone} />
@@ -306,14 +325,24 @@ const Profile = () => {
                       type="number"
                       min="0"
                       value={editData.experienceYears}
-                      onChange={(e) => handleChange('experienceYears', e.target.value)}
-                      className={`w-full p-1 border-b ${errors.experienceYears ? 'border-red-500' : 'border-gray-300'} focus:border-blue-500 focus:outline-none`}
+                      onChange={(e) =>
+                        handleChange("experienceYears", e.target.value)
+                      }
+                      className={`w-full p-1 border-b ${
+                        errors.experienceYears
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } focus:border-blue-500 focus:outline-none`}
                       placeholder="Years of experience"
                     />
                     <ErrorMessage error={errors.experienceYears} />
                   </>
                 ) : (
-                  <span>{profile.experienceYears} {profile.experienceYears === 1 ? 'year' : 'years'} of experience</span>
+                  <span>
+                    {profile.experienceYears}{" "}
+                    {profile.experienceYears === 1 ? "year" : "years"} of
+                    experience
+                  </span>
                 )}
               </div>
             </div>
@@ -325,8 +354,14 @@ const Profile = () => {
                   <>
                     <textarea
                       value={editData.description}
-                      onChange={(e) => handleChange('description', e.target.value)}
-                      className={`w-full p-2 border rounded-lg ${errors.description ? 'border-red-500' : 'border-gray-300'} focus:border-blue-500 focus:outline-none min-h-[100px]`}
+                      onChange={(e) =>
+                        handleChange("description", e.target.value)
+                      }
+                      className={`w-full p-2 border rounded-lg ${
+                        errors.description
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } focus:border-blue-500 focus:outline-none min-h-[100px]`}
                       placeholder="Tell us about yourself..."
                     />
                     <div className="flex justify-between items-center mt-1">
@@ -337,12 +372,14 @@ const Profile = () => {
                     </div>
                   </>
                 ) : (
-                  <p className="whitespace-pre-wrap">{profile.description || "No description provided."}</p>
+                  <p className="whitespace-pre-wrap">
+                    {profile.description || "No description provided."}
+                  </p>
                 )}
               </div>
             </div>
           </div>
-          
+
           <div className="mt-6 pt-6 border-t border-gray-100">
             <div className="flex items-center mb-4">
               <FaTools className="w-5 h-5 mr-2 text-blue-500" />
@@ -356,10 +393,12 @@ const Profile = () => {
                       type="text"
                       value={skill}
                       onChange={(e) => handleSkillChange(index, e.target.value)}
-                      className={`flex-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm ${errors.skills ? 'border-red-500' : 'border-blue-200'} border focus:outline-none focus:border-blue-500`}
+                      className={`flex-1 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm ${
+                        errors.skills ? "border-red-500" : "border-blue-200"
+                      } border focus:outline-none focus:border-blue-500`}
                       placeholder="Enter a skill..."
                     />
-                    <button 
+                    <button
                       onClick={() => removeSkill(index)}
                       className="text-red-500 hover:text-red-700 transition-colors"
                       title="Remove skill"
@@ -369,7 +408,7 @@ const Profile = () => {
                   </div>
                 ))}
                 <ErrorMessage error={errors.skills} />
-                <button 
+                <button
                   onClick={addSkill}
                   className="mt-2 px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm font-medium hover:bg-blue-200 transition-colors flex items-center gap-1"
                 >
@@ -379,8 +418,8 @@ const Profile = () => {
             ) : (
               <div className="flex flex-wrap gap-2">
                 {profile.skills.map((skill, index) => (
-                  <span 
-                    key={index} 
+                  <span
+                    key={index}
                     className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm flex items-center gap-1"
                   >
                     {skill}

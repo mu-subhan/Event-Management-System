@@ -15,8 +15,13 @@ const sendMail = async (options) => {
     from: process.env.SMPT_MAIL,
     to: options.email,
     subject: options.subject,
-    text: options.message,
+    // text: options.message,
   };
+  if (options.html) {
+    mailOptions.html = options.html;
+  } else {
+    mailOptions.text = options.message;
+  }
 
   await transporter.sendMail(mailOptions);
 };
