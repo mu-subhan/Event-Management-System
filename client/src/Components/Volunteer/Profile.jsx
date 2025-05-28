@@ -1,16 +1,8 @@
-import React, { useState, useEffect } from "react";
-import {
-  FaEnvelope,
-  FaPhone,
-  FaClock,
-  FaFileAlt,
-  FaSave,
-  FaTimes,
-  FaTools,
-} from "react-icons/fa";
-import { useSelector, useDispatch } from "react-redux";
-import { updateUserInformation, loaduser } from "../../redux/actions/user";
-import { toast } from "react-toastify";
+import React, { useState, useEffect } from 'react';
+import { FaEnvelope, FaPhone, FaClock, FaFileAlt, FaSave, FaTimes, FaTools } from 'react-icons/fa';
+import { useSelector, useDispatch } from 'react-redux';
+import { updateUserInformation } from '../../redux/actions/user';
+import { toast } from 'react-toastify';
 
 const Profile = () => {
   const { user, isLoading } = useSelector((state) => state.user);
@@ -95,13 +87,6 @@ const Profile = () => {
     return Object.keys(filteredErrors).length === 0;
   };
 
-  // Load user data when component mounts
-  // useEffect(() => {
-  //   if (user.name !== profile.name) dispatch(loaduser());
-  // }, [dispatch]);
-  useEffect(() => {
-    if (!user || !user.name) dispatch(loaduser());
-  }, [dispatch, user]);
   // Update profile state when user data changes
   useEffect(() => {
     if (user && profile.name !== user.name) {
@@ -111,11 +96,7 @@ const Profile = () => {
         phone: user.contactNumber || "",
         experienceYears: user.experienceYears || 0,
         description: user.description || "",
-        skills: user.skills || [
-          "Web Development",
-          "Project Management",
-          "Communication",
-        ],
+        skills: user.skills || []
       };
       setProfile(newProfile);
       setEditData(newProfile);

@@ -124,7 +124,7 @@ const Navbar = ({ scroll = true }) => {
                   scrolled ? "text-gray-800" : "text-white"
                 }`}
               >
-                <Link to={"/"}>EventPro</Link>
+                <Link to={"/"}>MatchVolunteers</Link>
               </span>
             </Link>
           </div>
@@ -174,13 +174,7 @@ const Navbar = ({ scroll = true }) => {
               {isLoading ? (
                 "Loading..."
               ) : user ? (
-                <Link
-                  to={
-                    user.role == "Admin"
-                      ? "/admin/dashboard"
-                      : "/volunteer/dashboard"
-                  }
-                >
+                <Link to={user.role === "Volunteer" ? "/volunteer/dashboard" : "/admin/dashboard"}>
                   <img
                     src={user?.profileImage?.url}
                     className="ml-8 rounded-full transition-all duration-300 transform hover:scale-105 h-10 w-10 cursor-pointer"
@@ -195,7 +189,6 @@ const Navbar = ({ scroll = true }) => {
                   onClick={() => handleRedirect("volunteer")}
                 >
                   Sign Up / Login
-                  {/* Sign Up / Login */}
                 </button>
               )}
             </div>
