@@ -207,9 +207,7 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
         toast.error("Assign Volunteer Failed Due to Invalid Input!");
         return;
       }
-      const data = await dispatch(
-        assignVolunteerToRole(roleId, eventId, userId)
-      );
+      await dispatch(assignVolunteerToRole(roleId, eventId, userId));
       // Optionally update local state if needed
       setEvent((prev) => ({
         ...prev,
@@ -222,8 +220,10 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
             : role
         ),
       }));
+      return { success: true };
     } catch (error) {
       console.log("Assignment Error: ", error);
+      return { success: false };
     }
   };
 
