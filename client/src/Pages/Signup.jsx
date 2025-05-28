@@ -8,23 +8,12 @@ import { useSelector } from "react-redux";
 const Signup = () => {
   // Static options for dropdowns
   const skillOptions = [
-    "Frontend",
-    "Backend",
     "DevOps",
+    "Fullstack",
     "UI/UX",
     "Cloud",
     "AI/ML",
-    "Data Science",
-    "Mobile Development",
-    "Cybersecurity",
-    "Blockchain",
-    "Game Development",
-    "Content Writing",
-    "Digital Marketing",
-    "Graphic Design",
-    "SEO",
-    "Project Management",
-    "other",
+    "other"
   ];
 
   const interestOptions = [
@@ -32,15 +21,20 @@ const Signup = () => {
     "cricket",
     "Outdoor",
     "Management",
-    "Design",
-    "Music",
-    "Art",
-    "Sports",
+    // "Design",
+    // "Music",
+    // "Art",
+    // "Sports",
     "other",
   ];
 
   // Get user data from Redux store
   const { user } = useSelector((state) => state.user);
+
+  const [showOtherInput, setShowOtherInput] = useState(false);
+  const [otherInterest, setOtherInterest] = useState("");
+  const [showOtherSkillInput, setShowOtherSkillInput] = useState(false);
+const [otherSkill, setOtherSkill] = useState("");
 
   // Form state management
   const [formData, setFormData] = useState({
@@ -165,6 +159,12 @@ const Signup = () => {
 
   const handleAddSkill = (e) => {
     const selectedSkill = e.target.value;
+    
+    if (selectedSkill === "other") {
+      setShowOtherSkillInput(true);
+      return;
+    }
+  
     if (selectedSkill && !formData.skills.includes(selectedSkill)) {
       setFormData((prev) => ({
         ...prev,
@@ -173,13 +173,46 @@ const Signup = () => {
     }
   };
 
+
   const handleAddInterest = (e) => {
     const selectedInterest = e.target.value;
+    
+    if (selectedInterest === "other") {
+      setShowOtherInput(true);
+      return;
+    }
+  
     if (selectedInterest && !formData.interest.includes(selectedInterest)) {
       setFormData((prev) => ({
         ...prev,
         interest: [...prev.interest, selectedInterest],
       }));
+    }
+  };
+
+  const handleAddCustomSkill = (e) => {
+    if (e.key === "Enter" && otherSkill.trim()) {
+      if (!formData.skills.includes(otherSkill)) {
+        setFormData((prev) => ({
+          ...prev,
+          skills: [...prev.skills, otherSkill],
+        }));
+      }
+      setOtherSkill("");
+      setShowOtherSkillInput(false);
+    }
+  };
+
+  const handleAddCustomInterest = (e) => {
+    if (e.key === "Enter" && otherInterest.trim()) {
+      if (!formData.interest.includes(otherInterest)) {
+        setFormData((prev) => ({
+          ...prev,
+          interest: [...prev.interest, otherInterest],
+        }));
+      }
+      setOtherInterest("");
+      setShowOtherInput(false);
     }
   };
 
@@ -404,7 +437,7 @@ const Signup = () => {
         <div className="relative z-10 w-full max-w-md mx-auto mt-8 rounded-2xl overflow-hidden shadow-2xl border border-white/10">
           <div className="absolute inset-0 bg-gradient-to-t from-purple-900/70 to-transparent"></div>
           <img
-            src="https://images.unsplash.com/photo-1524179091875-bf99a9a6af57?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
+            src="https://media.istockphoto.com/id/2175581534/photo/supporting-our-friends-in-esports-video-games.jpg?s=612x612&w=0&k=20&c=MFBg2Nq7bnshDGmsIjVwwWDXx6EUKKPAz-QOf5sXhcM="
             className="w-full h-auto object-cover"
             alt="Volunteers working together"
           />
@@ -586,79 +619,105 @@ const Signup = () => {
 
             {/* Skills */}
             <div className="mb-6">
-              <label className="block text-lg font-medium text-gray-700 mb-2">
-                Skills <span className="text-red-500">*</span>
-              </label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {formData.skills.map((skill, index) => (
-                  <div
-                    key={index}
-                    className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm flex items-center"
-                  >
-                    {skill}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSkill(skill)}
-                      className="ml-2 text-xs"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <select
-                onChange={handleAddSkill}
-                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                defaultValue=""
-              >
-                <option value="" disabled>
-                  -- Add a skill --
-                </option>
-                {skillOptions.map((skill) => (
-                  <option key={skill} value={skill}>
-                    {skill}
-                  </option>
-                ))}
-              </select>
-            </div>
+  <label className="block text-lg font-medium text-gray-700 mb-2">
+    Skills <span className="text-red-500">*</span>
+  </label>
+  <div className="flex flex-wrap gap-2 mb-2">
+    {formData.skills.map((skill, index) => (
+      <div
+        key={index}
+        className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm flex items-center"
+      >
+        {skill}
+        <button
+          type="button"
+          onClick={() => handleRemoveSkill(skill)}
+          className="ml-2 text-xs"
+        >
+          ×
+        </button>
+      </div>
+    ))}
+  </div>
+  
+  {showOtherSkillInput ? (
+    <input
+      type="text"
+      value={otherSkill}
+      onChange={(e) => setOtherSkill(e.target.value)}
+      onKeyDown={handleAddCustomSkill}
+      placeholder="Type your skill and press Enter"
+      className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      autoFocus
+    />
+  ) : (
+    <select
+      onChange={handleAddSkill}
+      className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      defaultValue=""
+    >
+      <option value="" disabled>
+        -- Add a skill --
+      </option>
+      {skillOptions.map((skill) => (
+        <option key={skill} value={skill}>
+          {skill}
+        </option>
+      ))}
+    </select>
+  )}
+</div>
 
             {/* Interests */}
             <div className="mb-6">
-              <label className="block text-lg font-medium text-gray-700 mb-2">
-                Interests <span className="text-red-500">*</span>
-              </label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {formData.interest.map((item, index) => (
-                  <div
-                    key={index}
-                    className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm flex items-center"
-                  >
-                    {item}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveInterest(item)}
-                      className="ml-2 text-xs"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <select
-                onChange={handleAddInterest}
-                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                defaultValue=""
-              >
-                <option value="" disabled>
-                  -- Add an interest --
-                </option>
-                {interestOptions.map((interest) => (
-                  <option key={interest} value={interest}>
-                    {interest}
-                  </option>
-                ))}
-              </select>
-            </div>
+  <label className="block text-lg font-medium text-gray-700 mb-2">
+    Interests <span className="text-red-500">*</span>
+  </label>
+  <div className="flex flex-wrap gap-2 mb-2">
+    {formData.interest.map((item, index) => (
+      <div
+        key={index}
+        className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm flex items-center"
+      >
+        {item}
+        <button
+          type="button"
+          onClick={() => handleRemoveInterest(item)}
+          className="ml-2 text-xs"
+        >
+          ×
+        </button>
+      </div>
+    ))}
+  </div>
+  
+  {showOtherInput ? (
+    <input
+      type="text"
+      value={otherInterest}
+      onChange={(e) => setOtherInterest(e.target.value)}
+      onKeyDown={handleAddCustomInterest}
+      placeholder="Type your interest and press Enter"
+      className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+      autoFocus
+    />
+  ) : (
+    <select
+      onChange={handleAddInterest}
+      className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+      defaultValue=""
+    >
+      <option value="" disabled>
+        -- Add an interest --
+      </option>
+      {interestOptions.map((interest) => (
+        <option key={interest} value={interest}>
+          {interest}
+        </option>
+      ))}
+    </select>
+  )}
+</div>
 
             {/* Avatar Upload - Now Optional */}
             <div className="mb-6">
