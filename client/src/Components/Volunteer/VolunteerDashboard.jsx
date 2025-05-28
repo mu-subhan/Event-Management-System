@@ -11,22 +11,26 @@ const VolunteerDashboard = () => {
   const dispatch = useDispatch();
 
   // Get first part of the name (before space)
-  const firstName = user?.name?.split(' ')[0] || 'Volunteer';
+  const firstName = user?.name?.split(" ")[0] || "Volunteer";
   // Get skills count
   const skillsCount = user?.skills?.length || 0;
-  
+
   const stats = [
     { title: "Total Hours", value: "50", color: "from-blue-500 to-blue-600" },
     { title: "Events", value: "10", color: "from-green-500 to-green-600" },
-    { title: "Skills", value: skillsCount.toString(), color: "from-purple-500 to-purple-600" },
-    { title: "Impact", value: "High", color: "from-orange-500 to-orange-600" }
+    {
+      title: "Skills",
+      value: skillsCount.toString(),
+      color: "from-purple-500 to-purple-600",
+    },
+    { title: "Impact", value: "High", color: "from-orange-500 to-orange-600" },
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <div className=" px-4 sm:px-6  py-8">
         {/* Header Section */}
-        <motion.header 
+        <motion.header
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -35,7 +39,10 @@ const VolunteerDashboard = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-                Welcome Back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">{firstName}!</span>
+                Welcome Back,{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                  {firstName}!
+                </span>
               </h1>
               <p className="text-lg text-gray-600 mt-2">
                 Your volunteering journey continues
@@ -56,8 +63,8 @@ const VolunteerDashboard = () => {
                 <h3 className="text-lg font-semibold mb-2">{stat.title}</h3>
                 <p className="text-3xl font-bold">{stat.value}</p>
                 <div className="mt-3 h-1 w-full bg-white bg-opacity-30 rounded-full">
-                  <div 
-                    className="h-1 bg-white rounded-full" 
+                  <div
+                    className="h-1 bg-white rounded-full"
                     style={{ width: `${Math.min(100, index * 30 + 40)}%` }}
                   ></div>
                 </div>
@@ -69,7 +76,7 @@ const VolunteerDashboard = () => {
         {/* Main Content */}
         <div className="space-y-12">
           <VolunteerImpact />
-          
+
           <div className="space-y-8">
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -79,14 +86,14 @@ const VolunteerDashboard = () => {
             >
               <Skills />
             </motion.div>
-            
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
               className="w-full"
             >
-              <Events />
+              {user && <Events user={user} />}
             </motion.div>
           </div>
         </div>
