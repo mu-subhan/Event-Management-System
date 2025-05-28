@@ -90,6 +90,14 @@ export const eventReducer = createReducer(initialstate, (builder) => {
       state.isLoading = false;
       state.error = action.payload;
     })
+    .addCase("requestJoinEvent", (state) => {})
+    .addCase("requestJoinEventSuccess", (state, action) => {
+      state.success = true;
+    })
+    .addCase("requestJoinEventFailed", (state, action) => {
+      state.success = false;
+      state.error = action.payload;
+    })
     .addCase("clearErrors", (state, action) => {
       state.error = action.payload;
       state.success = false;

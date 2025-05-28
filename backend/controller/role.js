@@ -2,6 +2,7 @@ const express = require("express");
 const { PrismaClient } = require("@prisma/client");
 const eventRoleValidator = require("../validation/Validator/role");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
+const sendMail = require("../utils/sendMail");
 const prisma = new PrismaClient();
 const router = express.Router();
 // ✅ 1. Create an Event Role
@@ -195,15 +196,6 @@ router.post(
         where: { id: roleId },
         include: { volunteers: true }, // get current volunteer count
       });
-      console.log(
-        "targetRole.volunteers.length >= targetRole?.maxVolunteers: ",
-        targetRole.volunteers.length >= targetRole?.maxVolunteers
-      );
-      console.log(
-        "targetRole.volunteers.length : ",
-        targetRole.volunteers.length
-      );
-      console.log("targetRole?.maxVolunteers: ", targetRole?.maxVolunteers);
       if (targetRole.volunteers.length >= targetRole?.maxVolunteers) {
         return res.status(400).json({
           success: false,
@@ -224,11 +216,59 @@ router.post(
           volunteers: true,
         },
       });
+      let emailSent = true;
+      let emailErrorMessage = "";
+      try {
+        // Fetch detailed info to send email
+        const user = await prisma.user.findUnique({
+          where: { id: volunteerId },
+        });
+        const role = await prisma.eventRole.findUnique({
+          where: { id: roleId },
+          include: { event: true },
+        });
 
+        // Prepare email content
+        const emailOptions = {
+          email: user.email,
+          subject: `You're Assigned to an Event: ${role.event.title}`,
+          message: `
+Hello ${user.name},
+
+Great news! You have been assigned to the role of "${
+            role.role_name
+          }" for the event **${role.event.title}**.
+
+📋 **Event Description**: ${role.event.description}
+📍 **Location**: ${role.event.location}
+🕒 **Start Time**: ${new Date(role.event.startTime).toLocaleString()}
+🕓 **End Time**: ${new Date(role.event.endTime).toLocaleString()}
+
+🔧 **Your Role Details**:
+- **Role Name**: ${role.role_name}
+- **Required Skills**: ${role.skills.join(", ")}
+- **Role Description**: ${role.description || "No additional description"}
+
+Please be on time and reach out to the event admin if you have any questions.
+
+Thank you for your contribution!
+
+Warm regards,  
+Team Coordination
+      `,
+        };
+        await sendMail(emailOptions);
+      } catch (error) {
+        emailErrorMessage = error.message;
+        emailSent = false;
+      }
       res.status(200).json({
         success: true,
         message: "Volunteer assigned successfully",
         role: updatedRole,
+        email: emailSent
+          ? "Confirmation email sent successfully."
+          : `Assignment successful, but failed to send email: ${emailErrorMessage}`,
       });
     } catch (error) {
       console.error("Error assigning volunteer:", error);

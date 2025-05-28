@@ -136,7 +136,6 @@
 # result.sort(key=lambda x: x["score"], reverse=True)
 
 # print(json.dumps(result))
-
 import sys
 import json
 import re
@@ -144,32 +143,26 @@ from rapidfuzz import fuzz
 from sentence_transformers import SentenceTransformer, util
 
 def clean_text(text):
-    if not text:
-        return ""
-    text = text.lower()
-    text = re.sub(r'[^a-z0-9 ]+', ' ', text)
-    return text.strip()
+    return re.sub(r'[^a-z0-9 ]+', ' ', text.lower().strip()) if text else ""
 
-def weighted_text(user):
-    # More weight to skills, then description, then interests
-    return f"{' '.join(user['skills'])} {' '.join(user['skills'])} {user.get('description','')} {user.get('interests','')}"
+def tokenize(text):
+    return clean_text(text).split()
 
-def compute_fuzzy_score(text1, text2):
-    return fuzz.token_set_ratio(text1, text2) / 100.0
-
-def fuzzy_skill_match(role_skills, user_skills, threshold=70):
-    role_skills = [s.lower() for s in role_skills]
-    user_skills = [s.lower() for s in user_skills]
-    match_count = 0
-    for r_skill in role_skills:
-        for u_skill in user_skills:
-            score = fuzz.ratio(r_skill, u_skill)
-            if score >= threshold:
-                match_count += 1
+def fuzzy_list_match(list1, list2):
+    if not list1 or not list2:
+        return 0
+    match = 0
+    for item1 in list1:
+        for item2 in list2:
+            if fuzz.ratio(item1, item2) > 75:
+                match += 1
                 break
-    if not role_skills:
-        return 0.0
-    return match_count / len(role_skills)
+    return match / len(list1)
+
+def semantic_similarity(text1, text2, model):
+    emb1 = model.encode(clean_text(text1), convert_to_tensor=True)
+    emb2 = model.encode(clean_text(text2), convert_to_tensor=True)
+    return float(util.pytorch_cos_sim(emb1, emb2)[0][0])
 
 def main():
     input_data = sys.stdin.read()
@@ -178,42 +171,34 @@ def main():
     role = data["role"]
     users = data["users"]
 
-    role_skills = role.get("skills", [])
-    role_description = role.get("description", "")
-    role_text = " ".join(role_skills) + " " + role_description
-    role_text_clean = clean_text(role_text)
+    model = SentenceTransformer("all-MiniLM-L6-v2")
 
-    # Prepare user texts for embeddings and fuzzy
-    user_texts = [clean_text(weighted_text(u)) for u in users]
-    user_skills_list = [u.get("skills", []) for u in users]
+    role_skills = tokenize(role.get("skills", ""))
+    role_description = clean_text(role.get("description", ""))
 
-    # Load sentence transformer model once
-    model = SentenceTransformer('all-MiniLM-L6-v2')
+    results = []
+    for user in users:
+        user_skills = tokenize(user.get("skills", ""))
+        user_description = clean_text(user.get("description", ""))
+        user_interests = clean_text(user.get("interests", ""))
 
-    # Encode role and users
-    role_embedding = model.encode(role_text_clean, convert_to_tensor=True)
-    user_embeddings = model.encode(user_texts, convert_to_tensor=True)
+        # Fuzzy skill matching
+        skill_score = fuzzy_list_match(role_skills, user_skills)
 
-    # Semantic cosine similarity
-    cosine_scores = util.pytorch_cos_sim(role_embedding, user_embeddings)[0].cpu().tolist()
+        # Semantic matching
+        desc_score = semantic_similarity(role_description, user_description, model)
+        interest_score = semantic_similarity(role_description, user_interests, model)
 
-    # Fuzzy skill matching
-    skill_fuzzy_scores = [fuzzy_skill_match(role_skills, u_skills) for u_skills in user_skills_list]
+        # Final weighted score
+        final_score = round(0.5 * skill_score + 0.3 * desc_score + 0.2 * interest_score, 4)
 
-    # Fuzzy text matching
-    fuzzy_text_scores = [compute_fuzzy_score(role_text_clean, ut) for ut in user_texts]
+        results.append({
+            "userId": user["id"],
+            "score": final_score
+        })
 
-    # Combine scores with weights (tune as needed)
-    combined_scores = []
-    for i in range(len(users)):
-        score = 0.5 * skill_fuzzy_scores[i] + 0.4 * cosine_scores[i] + 0.1 * fuzzy_text_scores[i]
-        combined_scores.append(score)
-
-    # Prepare and sort results
-    result = [{"userId": users[i]["id"], "score": float(combined_scores[i])} for i in range(len(users))]
-    result.sort(key=lambda x: x["score"], reverse=True)
-
-    print(json.dumps(result))
+    results.sort(key=lambda x: x["score"], reverse=True)
+    print(json.dumps(results))
 
 if __name__ == "__main__":
     main()

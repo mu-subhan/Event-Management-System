@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import AdminSidebar from "./AdminSidebar";
-import { Calendar, Home, Menu } from "lucide-react";
+import { Calendar, Home, Menu, Pencil } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { getEventsCount } from "../../redux/actions/events";
 import { getAllUsers } from "../../redux/actions/user";
@@ -33,6 +33,11 @@ const AdminLayout = () => {
       path: "/admin/vol-stats",
       name: "Volunteer Stats",
       icon: <Calendar size={20} />,
+    },
+    {
+      path: "/admin/edit-profile",
+      name: "Edit Profile",
+      icon: <Pencil size={20} />,
     },
   ];
 
