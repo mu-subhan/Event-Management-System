@@ -4,6 +4,7 @@ import HowItWorksSection from '../Components/Shared/HowItWorksSection';
 import TestimonialsSection from '../Components/Shared/TestimonialsSection';
 import FooterSection from '../Components/Shared/FooterSection';
 import Navbar from '../Components/Shared/Navbar';
+import ContactSection from '../Components/Shared/ContactSection';
 import FeaturesSection from '../Components/Shared/FeaturesSection';
 
 const LandingPage = () => {
@@ -15,6 +16,7 @@ const LandingPage = () => {
       <FeaturesSection/>
       <HowItWorksSection/>
       <TestimonialsSection/>
+      <ContactSection/>
       <FooterSection/>
 </>    
   );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaEnvelope, FaPhone, FaClock, FaFileAlt, FaSave, FaTimes, FaTools } from 'react-icons/fa';
 import { useSelector, useDispatch } from 'react-redux';
-import { updateUserInformation, loaduser } from '../../redux/actions/user';
+import { updateUserInformation } from '../../redux/actions/user';
 import { toast } from 'react-toastify';
 
 const Profile = () => {
@@ -83,11 +83,6 @@ const Profile = () => {
     return Object.keys(filteredErrors).length === 0;
   };
 
-  // Load user data when component mounts
-  useEffect(() => {
-    dispatch(loaduser());
-  }, [dispatch]);
-
   // Update profile state when user data changes
   useEffect(() => {
     if (user) {
@@ -97,7 +92,7 @@ const Profile = () => {
         phone: user.contactNumber || "",
         experienceYears: user.experienceYears || 0,
         description: user.description || "",
-        skills: user.skills || ["Web Development", "Project Management", "Communication"]
+        skills: user.skills || []
       };
       setProfile(newProfile);
       setEditData(newProfile);

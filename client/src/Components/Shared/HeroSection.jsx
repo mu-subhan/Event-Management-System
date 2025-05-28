@@ -43,10 +43,10 @@ const HeroSection = () => {
         <div className="flex flex-col lg:flex-row items-center">
         <div className="w-full lg:w-1/2 text-center lg:text-left">
   <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 animate-fadeInUp opacity-0 translate-y-8">
-    Transform Moments Into <br />
+    Volunteer Role Matching <br />
     <span className="relative inline-block">
       <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 animate-gradient-shift bg-300%">
-        Unforgettable Experiences
+        for Events Using Machine Learning
       </span>
       <span className="absolute -bottom-2 left-0 w-full h-1 bg-gradient-to-r from-purple-400 to-indigo-400 rounded-full animate-underline-expand origin-left"></span>
     </span>
