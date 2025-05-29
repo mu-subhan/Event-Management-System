@@ -1,7 +1,18 @@
 import React from 'react';
+import { FaRegHandshake } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 const FooterSection = () => {
+
+  // Function to get icon color based on scroll state
+  const getIconColors = () => {
+    return {
+      primary: scrolled ? "text-purple-600" : "text-purple-400",
+      secondary: scrolled ? "text-indigo-500" : "text-purple-300",
+      highlight: scrolled ? "text-purple-700" : "text-white"
+    };
+  };
+  
   return (
     <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto text-center space-y-8">
@@ -10,20 +21,10 @@ const FooterSection = () => {
           {/* Logo and Title Column */}
           <div className="lg:w-1/4">
             <div className="flex items-center justify-center lg:justify-start space-x-3">
-              <Link to="/" className="inline-block">
-                <svg
-                  className="h-10 w-10 text-purple-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
+              <Link to="/" className="inline-block group">
+                <FaRegHandshake 
+                  className="h-9 w-9 text-purple-500 transition-all duration-300 transform group-hover:rotate-12"
+                />
               </Link>
               <h2 className="text-2xl font-semibold text-purple-500">MatchVolunteers</h2>
             </div>

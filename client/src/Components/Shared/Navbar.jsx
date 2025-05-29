@@ -2,7 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 // custom packages
-import { FaUserShield, FaHandsHelping } from "react-icons/fa";
+import { 
+  FaUserShield, 
+  FaHandsHelping, 
+  FaPeopleCarry, 
+  FaHandHoldingHeart,
+  FaUsers,
+  FaRegHandshake
+} from "react-icons/fa";
 import { toast } from "react-toastify";
 
 // redux
@@ -95,6 +102,16 @@ const Navbar = ({ scroll = true }) => {
         console.log("Something Went Wrong", error);
       });
   };
+
+  // Function to get icon color based on scroll state
+  const getIconColors = () => {
+    return {
+      primary: scrolled ? "text-purple-600" : "text-purple-400",
+      secondary: scrolled ? "text-indigo-500" : "text-purple-300",
+      highlight: scrolled ? "text-purple-700" : "text-white"
+    };
+  };
+
   return (
     <nav
       className={`fixed w-full z-50 transition-all duration-300 ${
@@ -105,26 +122,36 @@ const Navbar = ({ scroll = true }) => {
         <div className="flex justify-between items-center">
           {/* Logo */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center">
-              <svg
-                className="h-8 w-8 text-purple-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            <Link to="/" className="flex items-center group">
+              {/* Option 1: Dual Icon Design */}
+              {/* <div className="relative flex items-center">
+                <FaHandsHelping 
+                  className={`h-8 w-8 ${getIconColors().primary} transition-all duration-300 transform group-hover:scale-110`} 
                 />
-              </svg>
+                <FaUsers 
+                  className={`h-5 w-5 ${getIconColors().secondary} absolute -bottom-1 -right-1 transition-all duration-300`} 
+                />
+              </div> */}
+
+              {/* Option 2: Single Elegant Icon */}
+              <FaRegHandshake 
+                className={`h-9 w-9 ${getIconColors().primary} transition-all duration-300 transform group-hover:rotate-12`} 
+              />
+
+              {/* Option 3: Community Focus Icon */}
+              {/* <div className="relative">
+                <FaPeopleCarry 
+                  className={`h-8 w-8 ${getIconColors().primary} transition-all duration-300 transform group-hover:translate-x-1`}
+                />
+                <div className={`absolute -bottom-1 -right-1 h-3 w-3 rounded-full ${scrolled ? 'bg-purple-500' : 'bg-purple-300'} transition-all duration-300`}></div>
+              </div> */}
+
               <span
-                className={`ml-2 text-xl font-bold ${
+                className={`ml-3 text-xl font-bold transition-all duration-300 ${
                   scrolled ? "text-gray-800" : "text-white"
-                }`}
+                } group-hover:text-purple-600`}
               >
-                <Link to={"/"}>MatchVolunteers</Link>
+                MatchVolunteers
               </span>
             </Link>
           </div>
