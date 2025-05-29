@@ -59,10 +59,17 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
   };
 
   // Add this helper function at the top level of the component
+  // const formatDateForInput = (dateString) => {
+  //   if (!dateString) return "";
+  //   const date = new Date(dateString);
+  //   return date.toISOString().slice(0, 16); // Format: "YYYY-MM-DDThh:mm"
+  // };
   const formatDateForInput = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toISOString().slice(0, 16); // Format: "YYYY-MM-DDThh:mm"
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - offset * 60000);
+    return localDate.toISOString().slice(0, 16);
   };
 
   useEffect(() => {
@@ -70,22 +77,21 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
       setEvent({
         ...initialEvent,
         startTime: formatDateForInput(initialEvent.startTime),
-        endTime: formatDateForInput(initialEvent.endTime)
+        endTime: formatDateForInput(initialEvent.endTime),
       });
     }
   }, [initialEvent]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
-    setEvent(prev => {
-      const updatedEvent = { ...prev, [name]: value };
+
+    setEvent((prev) => {
+      let updatedEvent = { ...prev, [name]: value };
 
       // Validate dates when either date field changes
       if (name === "startTime" || name === "endTime") {
         const start = new Date(updatedEvent.startTime);
         const end = new Date(updatedEvent.endTime);
-
         if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && start > end) {
           toast.error("End time must be after start time");
           return prev; // Keep previous state if validation fails
@@ -282,13 +288,61 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
       })
     );
   };
+  const validateRole = (role) => {
+    const { role_name, description, maxVolunteers, skills } = role;
 
+    if (!role_name?.trim()) {
+      toast.error("Please enter a valid role name.");
+      return false;
+    }
+
+    // Check for duplicates excluding the current role by ID
+    const isDuplicate = event.role
+      .filter((r) => r.id !== role.id)
+      .some((r) => r.role_name.trim() === role_name.trim());
+
+    if (isDuplicate) {
+      toast.error(`Role name "${role_name}" already exists.`);
+      return false;
+    }
+
+    if (!description?.trim()) {
+      toast.error(`Please enter a description for role "${role_name}".`);
+      return false;
+    }
+
+    if (!maxVolunteers || isNaN(maxVolunteers) || maxVolunteers <= 0) {
+      toast.error(
+        `Please enter a valid number of volunteers for "${role_name}".`
+      );
+      return false;
+    }
+
+    if (!skills || skills.length === 0) {
+      toast.error(`Please add at least one skill for role "${role_name}".`);
+      return false;
+    }
+
+    return true;
+  };
   const handleEventDetailsUpdate = async () => {
     try {
+      console.log("Updating event details:", event);
       // Validate required fields
-      if (!event.title || !event.description || !event.location || !event.startTime || !event.endTime) {
+      if (
+        !event.title ||
+        !event.description ||
+        !event.location ||
+        !event.startTime ||
+        !event.endTime
+      ) {
         toast.error("Please fill in all required fields");
         return;
+      }
+      for (const role of event.role) {
+        if (!validateRole(role)) {
+          return; // Stop the save process if any role is invalid
+        }
       }
 
       const startDate = new Date(event.startTime);
@@ -312,52 +366,53 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
       } else if (now >= endDate) {
         status = "COMPLETED";
       }
-
+      console.log("startTime: ", startDate);
+      console.log("endTime: ", endDate);
       const eventData = {
         id: event.id,
         title: event.title.trim(),
         description: event.description.trim(),
-        startTime: startDate.toISOString(),
-        endTime: endDate.toISOString(),
+        startTime: event.startTime,
+        endTime: event.endTime,
         location: event.location.trim(),
-        status: status,
-        isPass:event.isPass,
-        createdAt: new Date(event.createdAt).toISOString(), 
+        createdAt: new Date(event.createdAt).toISOString(),
         updatedAt: new Date().toISOString(),
-        role: event.role?.map(role => ({
-          id: role.id,
-          role_name: role.role_name,
-          description: role.description,
-          maxVolunteers: parseInt(role.maxVolunteers) || 1,
-          skills: Array.isArray(role.skills) ? role.skills : []
-        })) || []
+        role:
+          event.role?.map((role) => ({
+            id: role.id,
+            role_name: role.role_name,
+            description: role.description,
+            maxVolunteers: parseInt(role.maxVolunteers) || 1,
+            skills: Array.isArray(role.skills) ? role.skills : [],
+          })) || [],
       };
 
       console.log("Sending event update data:", eventData);
 
       const response = await axios.put(
         `${process.env.REACT_APP_SERVER}/api/event/${event.id}`,
-         eventData ,
+        eventData,
         {
           withCredentials: true,
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
         }
       );
-
+      console.log("respose is: ", response);
+      // const response = { data: { success: true, event: eventData } };
       if (response.data.success) {
         toast.success("Event details updated successfully!");
         setIsEditing(false);
-        
+
         // Update local state with the returned data
         if (response.data.event) {
           const updatedEvent = {
             ...response.data.event,
             startTime: formatDateForInput(response.data.event.startTime),
-            endTime: formatDateForInput(response.data.event.endTime)
+            endTime: formatDateForInput(response.data.event.endTime),
           };
-          setEvent(prev => ({
+          setEvent((prev) => ({
             ...prev,
-            ...updatedEvent
+            ...updatedEvent,
           }));
           if (onUpdate) onUpdate(updatedEvent);
         }
@@ -366,7 +421,8 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
       }
     } catch (error) {
       console.error("Update error:", error);
-      const errorMessage = error.response?.data?.message || "Failed to update event details";
+      const errorMessage =
+        error.response?.data?.message || "Failed to update event details";
       toast.error(errorMessage);
     }
   };
@@ -377,22 +433,22 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
         `${process.env.REACT_APP_SERVER}/api/role/${roleId}`,
         {
           ...updatedRole,
-          event_id: event.id
+          event_id: event.id,
         },
         {
           withCredentials: true,
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
         }
       );
 
       if (response.data) {
         toast.success("Role updated successfully!");
         // Update the local state with the new role data
-        setEvent(prev => ({
+        setEvent((prev) => ({
           ...prev,
-          role: prev.role.map(r => 
+          role: prev.role.map((r) =>
             r.id === roleId ? { ...r, ...response.data } : r
-          )
+          ),
         }));
       }
     } catch (error) {
@@ -412,8 +468,9 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
           setIsEditing(false);
           break;
         case "roles":
+          await handleEventDetailsUpdate();
           // Role updates are handled individually by handleRoleUpdate
-          setIsEditing(false);
+          // setIsEditing(false);
           break;
         default:
           break;
@@ -432,7 +489,7 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     console.log("Files to upload:", files);
-    
+
     if (eventImages.length + files.length > 5) {
       toast.error("Maximum 5 images allowed");
       return;
@@ -448,8 +505,11 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
     console.log("Number of files being sent:", files.length);
 
     try {
-      console.log("Sending request to:", `${process.env.REACT_APP_SERVER}/api/event/upload-file`);
-      
+      console.log(
+        "Sending request to:",
+        `${process.env.REACT_APP_SERVER}/api/event/upload-file`
+      );
+
       // const response = await axios.post(
       //   `${process.env.REACT_APP_SERVER}/api/event/upload-file`,
       //   formData,
@@ -470,13 +530,15 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
           },
         }
       );
-    
 
       console.log("Upload response:", response.data);
 
       if (response.data.success) {
         // Update the eventImages state with the new images
-        setEventImages((prevImages) => [...prevImages, ...response.data.images]);
+        setEventImages((prevImages) => [
+          ...prevImages,
+          ...response.data.images,
+        ]);
         toast.success("Images uploaded successfully!");
       } else {
         throw new Error(response.data.message || "Failed to upload images");
@@ -485,7 +547,7 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
       console.error("Upload error details:", {
         message: error.message,
         response: error.response?.data,
-        status: error.response?.status
+        status: error.response?.status,
       });
       toast.error(error.response?.data?.message || "Failed to upload images");
     }
@@ -503,13 +565,13 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
         {
           withCredentials: true,
           data: {
-            images: [{ public_id: imageId }]
-          }
+            images: [{ public_id: imageId }],
+          },
         }
       );
 
       if (response.data.success) {
-        setEventImages((prevImages) => 
+        setEventImages((prevImages) =>
           prevImages.filter((img) => img.publicId !== imageId)
         );
         toast.success("Image deleted successfully!");
@@ -553,8 +615,8 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
 
   const HeaderButtons = () => (
     <div className="flex items-center gap-3">
-      {activeTab !== "media" && (
-        isEditing ? (
+      {activeTab !== "media" &&
+        (isEditing ? (
           <>
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -570,8 +632,10 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
               onClick={handleSave}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all flex items-center gap-2 shadow-sm"
             >
-              <FiSave className="w-4 h-4" /> 
-              {activeTab === "details" ? "Save Event Details" : "Save Role Changes"}
+              <FiSave className="w-4 h-4" />
+              {activeTab === "details"
+                ? "Save Event Details"
+                : "Save Role Changes"}
             </motion.button>
           </>
         ) : (
@@ -581,11 +645,10 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
             onClick={() => setIsEditing(true)}
             className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-sm"
           >
-            <FiEdit2 className="w-4 h-4" /> 
+            <FiEdit2 className="w-4 h-4" />
             {activeTab === "details" ? "Edit Event Details" : "Edit Roles"}
           </motion.button>
-        )
-      )}
+        ))}
     </div>
   );
 
@@ -606,7 +669,9 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                     className="text-2xl font-bold text-gray-900 bg-transparent border-b-2 border-gray-200 focus:border-indigo-600 focus:outline-none transition-colors w-full"
                   />
                 ) : (
-                  <h1 className="text-2xl font-bold text-gray-900">{event.title}</h1>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {event.title}
+                  </h1>
                 )}
                 <div className="mt-2">
                   <span
@@ -625,7 +690,11 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
             <div className="flex gap-2 border-b border-gray-200 -mx-6 px-6">
               <TabButton id="details" label="Event Details" icon={FiInfo} />
               <TabButton id="media" label="Media Gallery" icon={FiGrid} />
-              <TabButton id="roles" label="Role Management" icon={FiUserCheck} />
+              <TabButton
+                id="roles"
+                label="Role Management"
+                icon={FiUserCheck}
+              />
             </div>
           </div>
         </div>
@@ -643,10 +712,14 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Event Information</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Event Information
+                    </h3>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1 required">Title</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 required">
+                          Title
+                        </label>
                         {isEditing ? (
                           <input
                             type="text"
@@ -661,7 +734,9 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1 required">Start Time</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 required">
+                          Start Time
+                        </label>
                         {isEditing ? (
                           <input
                             type="datetime-local"
@@ -679,7 +754,9 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1 required">End Time</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 required">
+                          End Time
+                        </label>
                         {isEditing ? (
                           <input
                             type="datetime-local"
@@ -697,7 +774,9 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1 required">Location</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 required">
+                          Location
+                        </label>
                         {isEditing ? (
                           <input
                             type="text"
@@ -717,7 +796,9 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Event Description</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Event Description
+                    </h3>
                     {isEditing ? (
                       <textarea
                         name="description"
@@ -728,7 +809,9 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                         required
                       />
                     ) : (
-                      <p className="text-gray-600 whitespace-pre-wrap">{event.description}</p>
+                      <p className="text-gray-600 whitespace-pre-wrap">
+                        {event.description}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -738,7 +821,9 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
             {activeTab === "media" && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900">Media Gallery</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Media Gallery
+                  </h3>
                   <motion.label
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -787,7 +872,9 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                   <div className="text-center py-12">
                     <FiImage className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-500">No images uploaded yet</p>
-                    <p className="text-gray-400 text-sm">Click "Add Images" to upload event photos</p>
+                    <p className="text-gray-400 text-sm">
+                      Click "Add Images" to upload event photos
+                    </p>
                   </div>
                 )}
               </div>
@@ -798,22 +885,31 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                 {/* Add New Role Section */}
                 {isEditing && (
                   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New Role</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                      Add New Role
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Role Name</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Role Name
+                        </label>
                         <input
                           type="text"
                           value={newRole.role_name}
                           onChange={(e) =>
-                            setNewRole({ ...newRole, role_name: e.target.value })
+                            setNewRole({
+                              ...newRole,
+                              role_name: e.target.value,
+                            })
                           }
                           className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                           placeholder="Enter role name..."
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Maximum Volunteers</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Maximum Volunteers
+                        </label>
                         <input
                           type="number"
                           min="1"
@@ -828,11 +924,16 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                         />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Description
+                        </label>
                         <textarea
                           value={newRole.description}
                           onChange={(e) =>
-                            setNewRole({ ...newRole, description: e.target.value })
+                            setNewRole({
+                              ...newRole,
+                              description: e.target.value,
+                            })
                           }
                           className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                           rows="3"
@@ -840,7 +941,9 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                         />
                       </div>
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Skills</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Skills
+                        </label>
                         <div className="flex gap-2">
                           <input
                             type="text"
@@ -861,7 +964,10 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                               if (newRole.newSkill.trim()) {
                                 setNewRole((prev) => ({
                                   ...prev,
-                                  skills: [...prev.skills, prev.newSkill.trim()],
+                                  skills: [
+                                    ...prev.skills,
+                                    prev.newSkill.trim(),
+                                  ],
                                   newSkill: "",
                                 }));
                               }
@@ -882,7 +988,9 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                                 onClick={() =>
                                   setNewRole({
                                     ...newRole,
-                                    skills: newRole.skills.filter((s) => s !== skill),
+                                    skills: newRole.skills.filter(
+                                      (s) => s !== skill
+                                    ),
                                   })
                                 }
                                 className="hover:text-red-500 transition-colors"
@@ -920,16 +1028,22 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                             type="text"
                             value={role.role_name}
                             onChange={(e) => {
-                              const updatedRole = {
-                                ...role,
-                                role_name: e.target.value
-                              };
-                              handleRoleUpdate(role.id, updatedRole);
+                              const updatedRoles = event.role.map((r) =>
+                                r.id === role.id
+                                  ? { ...r, role_name: e.target.value }
+                                  : r
+                              );
+                              setEvent((prev) => ({
+                                ...prev,
+                                role: updatedRoles,
+                              }));
                             }}
                             className="text-lg font-semibold text-gray-900 bg-transparent border-b-2 border-gray-200 focus:border-indigo-600 focus:outline-none transition-colors"
                           />
                         ) : (
-                          <h3 className="text-lg font-semibold text-gray-900">{role.role_name}</h3>
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {role.role_name}
+                          </h3>
                         )}
                         <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm">
                           <FiUsers className="w-4 h-4" />
@@ -940,12 +1054,24 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
                       {isEditing ? (
                         <textarea
                           value={role.description}
+                          // onChange={(e) => {
+                          // const updatedRole = {
+                          //   ...role,
+                          //   description: e.target.value,
+                          // };
+                          // handleRoleUpdate(role.id, updatedRole);
+
+                          // }}
                           onChange={(e) => {
-                            const updatedRole = {
-                              ...role,
-                              description: e.target.value
-                            };
-                            handleRoleUpdate(role.id, updatedRole);
+                            const updatedRoles = event.role.map((r) =>
+                              r.id === role.id
+                                ? { ...r, description: e.target.value }
+                                : r
+                            );
+                            setEvent((prev) => ({
+                              ...prev,
+                              role: updatedRoles,
+                            }));
                           }}
                           className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-4"
                           rows="3"
@@ -1015,8 +1141,8 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
             roleId={editRoleId}
             eventId={event.id}
             volunteers={
-              event.role.find((value) => value.id === editRoleId)
-                ?.volunteers || []
+              event.role.find((value) => value.id === editRoleId)?.volunteers ||
+              []
             }
             handleAssignVolunteer={handleAssignVolunteer}
           />
