@@ -8,7 +8,7 @@ const eventValidator = require("../validation/Validator/event");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
 const cloudinary = require("cloudinary");
 const { upload } = require("../config/multer");
-
+const { deleteImages } = require("../utils/cloudinary");
 // Create an event
 router.post(
   "/create-event",
@@ -172,6 +172,40 @@ router.get("/status-counts", async (req, res) => {
     });
   }
 });
+// Search events by name
+router.get("/search", async (req, res) => {
+  const { title } = req.query;
+  console.log("titlr is: ", title);
+
+  if (!title || title.trim() === "") {
+    return res.status(400).json({
+      success: false,
+      message: "Search term (name) is required.",
+    });
+  }
+  try {
+    const events = await prisma.Event.findMany({
+      where: {
+        title: {
+          contains: title,
+          mode: "insensitive", // Case-insensitive search
+        },
+      },
+    });
+    console.log("events Are: ", events);
+    return res.status(200).json({
+      success: true,
+      events,
+    });
+  } catch (error) {
+    console.error("Search error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error searching events.",
+      error: error.message,
+    });
+  }
+});
 
 // Read a single event by ID
 router.get("/:id", async (req, res) => {
@@ -265,14 +299,29 @@ router.delete(
   isAdmin("Admin"),
   async (req, res) => {
     try {
+      const { id: eventId } = req.params;
+      if (!eventId) {
+        return res.status(400).json({
+          success: false,
+          message: "Event ID is required for deletion.",
+        });
+      }
+      const images = await prisma.EventImage.findMany({
+        where: { eventId },
+        select: { publicId: true },
+      });
+
+      const publicIds = images.map((img) => img.publicId);
+      // 2. Delete from Cloudinary
+      const cloudinaryResults = await deleteImages(publicIds);
       const event = await prisma.Event.delete({
         where: { id: req.params.id },
       });
-
       res
         .status(200)
         .json({ success: true, message: "Event Deleted Successfully!", event });
     } catch (error) {
+      console.error("Error deleting event:", error);
       res
         .status(500)
         .json({ error: "Failed to delete event", details: error.message });
@@ -370,7 +419,7 @@ router.post(
   isAdmin("Admin"),
   upload.array("images", 5),
   async (req, res) => {
-    console.log("API Request Recieved!")
+    console.log("API Request Recieved!");
     console.log("Upload file request received:", req.body);
     try {
       console.log("Upload file request received:", req.body);
@@ -516,4 +565,5 @@ router.delete(
     }
   }
 );
+
 module.exports = router;
