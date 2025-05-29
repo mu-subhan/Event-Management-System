@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { X } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { LogOut, X } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { logoutUser } from "../../redux/actions/user";
+import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 const AdminSidebar = ({
   menuItems,
@@ -8,6 +12,9 @@ const AdminSidebar = ({
   toggleSidebar = () => {},
   collapsed,
 }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const location = useLocation();
   const [activeLink, setActiveLink] = useState("/admin/dashboard");
   const sidebarRef = useRef();
@@ -30,7 +37,27 @@ const AdminSidebar = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
+  const handleLogout = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_SERVER}/api/user/logout`,
+        {
+          withCredentials: true,
+        }
+      );
 
+      if (response.data.success) {
+        dispatch(logoutUser());
+        toast.success("Logged out successfully!");
+        navigate("/");
+      } else {
+        toast.error("Logout failed!");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Something went wrong during logout");
+    }
+  };
   return (
     <div
       ref={sidebarRef}
@@ -79,6 +106,30 @@ const AdminSidebar = ({
                 </Link>
               </li>
             ))}
+          <li
+            onClick={() => {
+              handleLogout();
+              // if (item?.callback) item.callback();
+              toggleSidebar(false); // auto-close on mobile when clicking item
+            }}
+            className="cursor-pointer"
+          >
+            <div
+              className={`flex items-center px-4 py-3 rounded-md transition-colors text-indigo-200 hover:bg-black hover:text-white cusror-pointer `}
+            >
+              {/* //   activeLink === item.path
+              //     ? "bg-black text-white"
+              //     : "text-indigo-200 hover:bg-black hover:text-white"
+              // } */}
+              <span className="mr-3 font-semibold text-white">
+                {/* {item.icon} */}
+                <LogOut />
+              </span>
+              {!collapsed && (
+                <span className="font-semibold text-white">Logout</span>
+              )}
+            </div>
+          </li>
         </ul>
       </nav>
     </div>

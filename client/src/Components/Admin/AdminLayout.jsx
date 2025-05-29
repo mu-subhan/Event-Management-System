@@ -27,8 +27,6 @@ const AdminLayout = () => {
       name: "Create-Event",
       icon: <Calendar size={20} />,
     },
-    // { path: "/admin/create-role", name: "Create-Role", icon: <Calendar size={20} /> },
-    // { path: "/admin/role-suggestion", name: "Role-suggestion", icon: <Calendar size={20} /> },
     {
       path: "/admin/vol-stats",
       name: "Volunteer Stats",
@@ -39,7 +37,6 @@ const AdminLayout = () => {
       name: "Edit Profile",
       icon: <Pencil size={20} />,
     },
-    {},
   ];
 
   useEffect(() => {
