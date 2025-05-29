@@ -10,6 +10,8 @@ import {
   FiEdit2,
   FiX,
   FiSave,
+  FiImage,
+  FiTrash2,
 } from "react-icons/fi";
 // import event from "../../Assessts/event.jpg";
 import VolunteerAssignment from "./VolunteerAssignment";
@@ -28,6 +30,9 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(true);
   const [selectedVolunteers, setSelectedVolunteers] = useState({});
   const [newSkill, setNewSkill] = useState("");
+  const [eventImages, setEventImages] = useState(initialEvent.images || []);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [imageToDelete, setImageToDelete] = useState(null);
   const [newRole, setNewRole] = useState({
     role_name: "",
     description: "",
@@ -262,15 +267,21 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
 
   const handleSave = async () => {
     try {
-      console.log("Saving event:", event); // Debug what's being sent
-      console.log(
-        "Endpoint:",
-        `${process.env.REACT_APP_SERVER}/api/event/${event.id}`
-      );
+      console.log("Saving event:", event);
+
+      const eventData = {
+        ...event,
+        images: eventImages.map((img) => ({
+          id: img.id,
+          url: img.url,
+          publicId: img.publicId,
+          order: img.order
+        }))
+      };
 
       const response = await axios.put(
         `${process.env.REACT_APP_SERVER}/api/event/${event.id}`,
-        event,
+        eventData,
         {
           withCredentials: true,
           headers: {
@@ -279,11 +290,12 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
         }
       );
 
-      console.log("Response:", response); // Inspect full response
+      console.log("Response:", response);
 
       if (response.status === 200) {
         toast.success("Event updated successfully!");
         setIsEditing(false);
+        if (onUpdate) onUpdate(response.data.event);
       } else {
         throw new Error(response.data.message || "Failed to update event");
       }
@@ -303,6 +315,113 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
   const handleCancel = () => {
     setEvent(initialEvent);
     setIsEditing(false);
+  };
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    console.log("Files to upload:", files);
+    
+    if (eventImages.length + files.length > 5) {
+      toast.error("Maximum 5 images allowed");
+      return;
+    }
+
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append("images", file);
+    });
+    formData.append("eventId", event.id);
+
+    console.log("Event ID being sent:", event.id);
+    console.log("Number of files being sent:", files.length);
+
+    try {
+      console.log("Sending request to:", `${process.env.REACT_APP_SERVER}/api/event/upload-file`);
+      
+      // const response = await axios.post(
+      //   `${process.env.REACT_APP_SERVER}/api/event/upload-file`,
+      //   formData,
+      //   {
+      //     withCredentials: true,
+      //     headers: {
+      //       "Content-Type": "multipart/form-data",
+      //     },
+      //   }
+      // );
+      const response = await axios.post(
+        `${process.env.REACT_APP_SERVER}/api/event/upload-file`,
+        formData,
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+    
+
+      console.log("Upload response:", response.data);
+
+      if (response.data.success) {
+        // Update the eventImages state with the new images
+        setEventImages((prevImages) => [...prevImages, ...response.data.images]);
+        toast.success("Images uploaded successfully!");
+      } else {
+        throw new Error(response.data.message || "Failed to upload images");
+      }
+    } catch (error) {
+      console.error("Upload error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      toast.error(error.response?.data?.message || "Failed to upload images");
+    }
+  };
+
+  const handleDeleteImage = async (imageId) => {
+    try {
+      const response = await axios.delete(
+        `${process.env.REACT_APP_SERVER}/api/event/delete-file`,
+        {
+          withCredentials: true,
+          data: {
+            images: [{ public_id: imageId }]
+          }
+        }
+      );
+
+      if (response.data.success) {
+        // Remove the deleted image from the state
+        setEventImages((prevImages) => 
+          prevImages.filter((img) => img.publicId !== imageId)
+        );
+        toast.success("Image deleted successfully!");
+      } else {
+        throw new Error(response.data.message || "Failed to delete image");
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error(error.response?.data?.message || "Failed to delete image");
+    }
+  };
+
+  const handleDeleteImageClick = (imageId) => {
+    setImageToDelete(imageId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmImageDelete = async () => {
+    if (imageToDelete) {
+      await handleDeleteImage(imageToDelete);
+      setImageToDelete(null);
+      setIsDeleteModalOpen(false);
+    }
+  };
+
+  const cancelImageDelete = () => {
+    setImageToDelete(null);
+    setIsDeleteModalOpen(false);
   };
 
   // Header buttons component
@@ -343,202 +462,113 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
         transition={{ delay: 0.1 }}
         className="bg-white rounded-2xl shadow-xl overflow-hidden mb-10 border border-gray-100"
       >
-        <div className="relative h-64 w-full overflow-hidden">
-          <img
-            src={event.image || event}
-            alt={event.title}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          <div className="absolute bottom-0 left-0 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    name="title"
-                    value={event.title}
-                    onChange={handleInputChange}
-                    className="text-3xl md:text-4xl font-bold text-white bg-transparent border-b border-white/50 focus:border-white focus:outline-none mb-2 w-full"
-                  />
-                ) : (
-                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                    {event.title}
-                  </h1>
-                )}
-                <div
-                  className={`px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center ${
-                    statusColors[event.status.toLowerCase()] ||
-                    "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {event.status}
-                </div>
-              </div>
-              <HeaderButtons />
-            </div>
+        {/* Event Images Section */}
+        <div className="relative">
+          <div className="h-64 w-full overflow-hidden">
+            <img
+              src={eventImages[0]?.url || "https://via.placeholder.com/800x400"}
+              alt={event.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           </div>
+
+          {isEditing && (
+            <div className="absolute top-4 right-4 space-y-2">
+              <label className="cursor-pointer bg-white/90 rounded-full p-2 hover:bg-white transition-all flex items-center gap-2 text-sm">
+                <FiImage className="text-blue-600" />
+                <span className="text-gray-800">
+                  {eventImages.length === 0 ? "Add Images" : "Add More"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
+          )}
         </div>
 
-        <div className="p-6 overflow-x-auto">
-          {isEditing ? (
-            <textarea
-              name="description"
-              value={event.description}
-              onChange={handleInputChange}
-              className="w-full p-3 border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-6"
-              rows="3"
-            />
-          ) : (
-            <p className="text-gray-700 text-lg mb-6">{event.description}</p>
-          )}
-
-          <hr className="my-6 border-gray-200" />
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-start space-x-3">
-              <div className="p-2 bg-blue-50 rounded-full">
-                <FiMapPin className="text-blue-600 text-xl" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-gray-500">Location</h3>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    name="location"
-                    value={event.location}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        {/* Thumbnail Grid */}
+        {eventImages.length > 1 && (
+          <div className="p-4 bg-gray-50">
+            <div className="grid grid-cols-4 gap-4">
+              {eventImages.slice(1).map((image, index) => (
+                <div key={image.publicId} className="relative group">
+                  <img
+                    src={image.url}
+                    alt={`Event ${index + 2}`}
+                    className="w-full h-20 object-cover rounded-lg"
                   />
-                ) : (
-                  <p className="text-gray-900 font-medium">{event.location}</p>
-                )}
+                  {isEditing && (
+                    <button
+                      onClick={() => handleDeleteImageClick(image.publicId)}
+                      className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <FiTrash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {isDeleteModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
+              <h3 className="text-lg font-semibold mb-4">Delete Image</h3>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete this image? This action cannot be undone.
+              </p>
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={cancelImageDelete}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmImageDelete}
+                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                >
+                  Delete
+                </button>
               </div>
             </div>
+          </div>
+        )}
 
-            {/* <div className="flex items-start space-x-3">
-              <div className="p-2 bg-purple-50 rounded-full">
-                <FiCalendar className="text-purple-600 text-xl" />
-              </div> */}
-            {/* <div className="flex-1">
-                <h3 className="text-sm font-medium text-gray-500">Date</h3> */}
-            {/* {isEditing ? (
-                  <input
-                    type="date"
-                    name="startTime"
-                    value={
-                      new Date(event.startTime).toISOString().split("T")[0]
-                    }
-                    onChange={(e) =>
-                      handleInputChange({
-                        target: {
-                          name: "startTime",
-                          value: new Date(e.target.value).toISOString(),
-                        },
-                      })
-                    }
-                    className="w-full p-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                ) : ( */}
-            {/* <p className="text-gray-900 font-medium">
-                  {new Date(event.startTime).toLocaleDateString()}
-                </p>
-                {/* )} */}
-            {/* </div> */}
-            {/* </div> */}
-
-            <div className="flex items-start space-x-3">
-              <div className="p-2 bg-green-50 rounded-full">
-                <FiClock className="text-green-600 text-xl" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-gray-500">Time</h3>
-                {isEditing ? (
-                  <div className="flex space-x-2">
-                    <input
-                      type="datetime-local"
-                      // value={new Date(event.startTime)
-                      //   .toISOString()
-                      //   .slice(0, 16)} // format as 'YYYY-MM-DDTHH:mm'
-                      value={(() => {
-                        const d = new Date(event.startTime);
-                        const year = d.getFullYear();
-                        const month = String(d.getMonth() + 1).padStart(2, "0");
-                        const day = String(d.getDate()).padStart(2, "0");
-                        const hours = String(d.getHours()).padStart(2, "0");
-                        const minutes = String(d.getMinutes()).padStart(2, "0");
-                        return `${year}-${month}-${day}T${hours}:${minutes}`;
-                      })()}
-                      onChange={(e) =>
-                        handleInputChange({
-                          target: {
-                            name: "startTime",
-                            value: new Date(e.target.value).toISOString(), // convert back to full ISO format
-                          },
-                        })
-                      }
-                      className="w-full p-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-
-                    <span className="self-center">to</span>
-                    {/* <input
-                      type="time"
-                      value={new Date(event.endTime)
-                        .toISOString()
-                        .substr(11, 5)}
-                      onChange={(e) =>
-                        handleInputChange({
-                          target: {
-                            name: "endTime",
-                            value: new Date(
-                              new Date(event.endTime)
-                                .toISOString()
-                                .split("T")[0] +
-                                "T" +
-                                e.target.value
-                            ).toISOString(),
-                          },
-                        })
-                      }
-                      className="w-full p-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    /> */}
-                    <input
-                      type="datetime-local"
-                      onChange={(e) =>
-                        handleInputChange({
-                          target: {
-                            name: "endTime",
-                            value: new Date(e.target.value).toISOString(), // convert back to full ISO format
-                          },
-                        })
-                      }
-                      value={(() => {
-                        const d = new Date(event.endTime);
-                        const year = d.getFullYear();
-                        const month = String(d.getMonth() + 1).padStart(2, "0");
-                        const day = String(d.getDate()).padStart(2, "0");
-                        const hours = String(d.getHours()).padStart(2, "0");
-                        const minutes = String(d.getMinutes()).padStart(2, "0");
-                        return `${year}-${month}-${day}T${hours}:${minutes}`;
-                      })()}
-                      className="w-full p-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
-                ) : (
-                  <p className="text-gray-900 font-medium">
-                    {new Date(event.startTime).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}{" "}
-                    -{" "}
-                    {new Date(event.endTime).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                )}
+        <div className="absolute bottom-0 left-0 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              {isEditing ? (
+                <input
+                  type="text"
+                  name="title"
+                  value={event.title}
+                  onChange={handleInputChange}
+                  className="text-3xl md:text-4xl font-bold text-white bg-transparent border-b border-white/50 focus:border-white focus:outline-none mb-2 w-full"
+                />
+              ) : (
+                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                  {event.title}
+                </h1>
+              )}
+              <div
+                className={`px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center ${
+                  statusColors[event.status.toLowerCase()] ||
+                  "bg-gray-100 text-gray-800"
+                }`}
+              >
+                {event.status}
               </div>
             </div>
+            <HeaderButtons />
           </div>
         </div>
       </motion.div>

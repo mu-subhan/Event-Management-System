@@ -370,7 +370,10 @@ router.post(
   isAdmin("Admin"),
   upload.array("images", 5),
   async (req, res) => {
+    console.log("API Request Recieved!")
+    console.log("Upload file request received:", req.body);
     try {
+      console.log("Upload file request received:", req.body);
       const { eventId } = req.body;
 
       if (!eventId) {
@@ -432,6 +435,7 @@ router.post(
         });
       }
     } catch (error) {
+      console.error("Upload error:", error);
       return res.status(500).json({
         success: false,
         message: "Failed to upload images.",
