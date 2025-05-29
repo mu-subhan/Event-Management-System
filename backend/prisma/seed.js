@@ -9,6 +9,7 @@ async function main() {
   // Clear existing data (optional - uncomment if you want to reset)
   await prisma.notification.deleteMany();
   await prisma.eventRole.deleteMany();
+  await prisma.eventImage.deleteMany(); // <-- delete images first to avoid FK error
   await prisma.event.deleteMany();
   await prisma.eventTest.deleteMany();
   await prisma.user.deleteMany();
@@ -268,6 +269,62 @@ async function main() {
       },
     }),
   ]);
+
+  console.log(`✅ Created ${events.length} events`);
+
+  // Create EventImages for each event (example URLs and publicIds)
+  const eventImages = await Promise.all([
+    prisma.eventImage.createMany({
+      data: [
+        {
+          eventId: events[0].id,
+          url: "https://example.com/images/health_camp_1.jpg",
+          publicId: "health_camp_1",
+          order: 1,
+        },
+        {
+          eventId: events[0].id,
+          url: "https://example.com/images/health_camp_2.jpg",
+          publicId: "health_camp_2",
+          order: 2,
+        },
+        {
+          eventId: events[1].id,
+          url: "https://example.com/images/edu_workshop_1.jpg",
+          publicId: "edu_workshop_1",
+          order: 1,
+        },
+        {
+          eventId: events[2].id,
+          url: "https://example.com/images/cleanup_drive_1.jpg",
+          publicId: "cleanup_drive_1",
+          order: 1,
+        },
+        {
+          eventId: events[3].id,
+          url: "https://example.com/images/food_drive_1.jpg",
+          publicId: "food_drive_1",
+          order: 1,
+        },
+        {
+          eventId: events[4].id,
+          url: "https://example.com/images/digital_literacy_1.jpg",
+          publicId: "digital_literacy_1",
+          order: 1,
+        },
+        {
+          eventId: events[5].id,
+          url: "https://example.com/images/blood_donation_1.jpg",
+          publicId: "blood_donation_1",
+          order: 1,
+        },
+      ],
+    }),
+  ]);
+
+  console.log("✅ Created event images");
+
+  // Your existing eventRole creation code continues here...
 
   console.log(`✅ Created ${events.length} events`);
 

@@ -102,6 +102,9 @@ router.get("/events", async (req, res) => {
       orderBy: {
         createdAt: "desc", // Sort by newest events first
       },
+      include: {
+        images: true, // Include images related to the event
+      },
     });
 
     // Get the total count of events
@@ -179,6 +182,9 @@ router.get("/:id", async (req, res) => {
         role: {
           include: {
             volunteers: true, // assuming volunteers is the field name in the relation
+          },
+          include: {
+            images: true, // include images related to the role
           },
         },
       },
