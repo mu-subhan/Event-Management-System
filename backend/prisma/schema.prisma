@@ -62,8 +62,7 @@ model EventImage {
   publicId  String
   order     Int      // <-- new field to track position/order
   createdAt DateTime @default(now())
-  event     Event    @relation(fields: [eventId], references: [id])
-
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   @@map("event_images")
 }
 
