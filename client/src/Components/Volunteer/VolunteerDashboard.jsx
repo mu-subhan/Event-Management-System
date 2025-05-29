@@ -75,18 +75,9 @@ const VolunteerDashboard = () => {
 
         {/* Main Content */}
         <div className="space-y-12">
-          <VolunteerImpact />
+          {/* <VolunteerImpact /> */}
 
           <div className="space-y-8">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="w-full"
-            >
-              <Skills />
-            </motion.div>
-
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -94,6 +85,15 @@ const VolunteerDashboard = () => {
               className="w-full"
             >
               {user && <Events user={user} />}
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="w-full"
+            >
+              <Skills />
             </motion.div>
           </div>
         </div>

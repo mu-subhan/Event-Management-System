@@ -11,7 +11,7 @@ import {
   FiX,
   FiSave,
 } from "react-icons/fi";
-import event from "../../Assessts/event.jpg";
+// import event from "../../Assessts/event.jpg";
 import VolunteerAssignment from "./VolunteerAssignment";
 import AssignVolunteer from "../Shared/AssignVolunteer";
 import { Buttoen } from "../ui/Button";
