@@ -11,6 +11,11 @@ import {
   FaPlus,
   FaBars,
   FaTimes,
+  FaBrain,
+  FaHandshake,
+  FaChartLine,
+  FaLightbulb,
+  FaUsers
 } from "react-icons/fa";
 // import userImage from "../../Assessts/subhanImage.png";
 import CreateEventPage from "../ui/CreatetesEvent";
@@ -253,110 +258,160 @@ const AdminDashboard = () => {
             </div>
 
             {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-              <div className="lg:col-span-2">
-                {/* Event List Section */}
-                {/* <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6">
-                    <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-3 sm:mb-0">
-                      Event Management
-                    </h2>
-                    {/* <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={toggleCreateEvent}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-3 sm:px-4 rounded-md flex items-center justify-center sm:justify-start"
-                    >
-                      <FaPlus className="mr-2" />
-                      {showCreateEvent ? "Hide Form" : "Create bbb Event"}
-                    </motion.button> */}
-                {/* </div>
-                  <EventList />
-                </div> */}{" "}
-                {/* */}
-                {/* Create Event Section - Only shown when toggled */}
-                {showCreateEvent && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="bg-white rounded-xl shadow-md overflow-hidden mb-4 sm:mb-6"
-                  >
-                    <div className="p-4 sm:p-6">
-                      <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">
-                        Create New Event
-                      </h3>
-                      <CreateEventPage />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Main Features - Takes 2 columns */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Machine Learning Section */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white rounded-xl shadow-md p-6"
+                >
+                  <div className="flex items-center mb-6">
+                    <div className="p-3 bg-purple-100 rounded-lg">
+                      <FaBrain className="text-2xl text-purple-600" />
                     </div>
-                  </motion.div>
-                )}
+                    <h3 className="ml-4 text-xl font-bold text-gray-800">
+                      Machine Learning Integration
+                    </h3>
+                  </div>
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <h4 className="font-medium text-gray-800 mb-2">Intelligent Skill Analysis</h4>
+                        <p className="text-gray-600 text-sm">
+                          Our ML algorithms analyze volunteer profiles and skills to identify the best matches for each event role, ensuring optimal team composition.
+                        </p>
+                      </div>
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <h4 className="font-medium text-gray-800 mb-2">Role-Based Matching</h4>
+                        <p className="text-gray-600 text-sm">
+                          Advanced pattern recognition to match volunteers with roles that best suit their experience and expertise levels.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-purple-50 rounded-lg">
+                      <h4 className="font-medium text-gray-800 mb-2">How It Works</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
+                        <div className="text-sm text-gray-600">
+                          <span className="block text-purple-600 font-medium mb-1">1. Profile Analysis</span>
+                          Processes volunteer profiles and skills
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          <span className="block text-purple-600 font-medium mb-1">2. Skill Mapping</span>
+                          Maps skills to event requirements
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          <span className="block text-purple-600 font-medium mb-1">3. Match Generation</span>
+                          Generates optimal volunteer-role matches
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* System Benefits */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white rounded-xl shadow-md p-6"
+                >
+                  <div className="flex items-center mb-6">
+                    <div className="p-3 bg-blue-100 rounded-lg">
+                      <FaLightbulb className="text-2xl text-blue-600" />
+                    </div>
+                    <h3 className="ml-4 text-xl font-bold text-gray-800">
+                      System Benefits
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <h4 className="font-medium text-gray-800 mb-2">Time Efficiency</h4>
+                      <ul className="text-sm text-gray-600 space-y-2">
+                        <li>• Automated volunteer matching</li>
+                        <li>• Quick role assignments</li>
+                        <li>• Streamlined event planning</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <h4 className="font-medium text-gray-800 mb-2">Better Outcomes</h4>
+                      <ul className="text-sm text-gray-600 space-y-2">
+                        <li>• Higher volunteer satisfaction</li>
+                        <li>• Improved event success rates</li>
+                        <li>• Reduced management overhead</li>
+                      </ul>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
 
-              <div>
-                {/* Role Suggestions Section */}
-                <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">
-                    Role Suggestions
+              {/* Right Column */}
+              <div className="space-y-6">
+                {/* Quick Stats */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white rounded-xl shadow-md p-6"
+                >
+                  <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <FaChartBar className="text-indigo-500 mr-2" />
+                    Key Metrics
                   </h3>
-                  <RoleSuggestionPanel />
-                </div>
+                  <div className="space-y-4">
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <h4 className="font-medium text-gray-800 mb-1">Match Accuracy</h4>
+                      <p className="text-sm text-gray-600">
+                        Precision in matching volunteers to suitable roles
+                      </p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <h4 className="font-medium text-gray-800 mb-1">Processing Speed</h4>
+                      <p className="text-sm text-gray-600">
+                        Quick and efficient volunteer assignment
+                      </p>
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <h4 className="font-medium text-gray-800 mb-1">Role Coverage</h4>
+                      <p className="text-sm text-gray-600">
+                        Optimal distribution of volunteer skills
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
 
-                {/* Quick Actions */}
-                <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">
-                    Quick Actions
+                {/* Management Tools */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white rounded-xl shadow-md p-6"
+                >
+                  <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <FaHandshake className="text-purple-500 mr-2" />
+                    Management Tools
                   </h3>
-                  <div className="space-y-2 sm:space-y-3">
-                    {/* <button 
-                      className="w-full flex items-center justify-between p-2 sm:p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-                      onClick={toggleCreateEvent}
-                    >
-                      <span className="text-sm sm:text-base font-medium text-blue-700">Create New Event</span>
-                      <span className="bg-blue-100 text-blue-700 p-1 rounded-lg">
-                        <FaPlus className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </span>
-                    </button> */}
+                  <div className="space-y-3">
                     <Link
                       to="/admin/create-event"
-                      className="w-full flex items-center justify-between p-2 sm:p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                      className="flex items-center justify-between p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
                     >
-                      <span className="text-sm sm:text-base font-medium text-blue-700">
-                        Create New Event
-                      </span>
-                      <span className="bg-blue-100 text-blue-700 p-1 rounded-lg">
-                        <FaPlus className="h-4 w-4 sm:h-5 sm:w-5" />
-                      </span>
+                      <div>
+                        <span className="text-sm font-medium text-purple-700">Event Creation</span>
+                        <p className="text-xs text-purple-600 mt-1">Set up new volunteer opportunities</p>
+                      </div>
+                      <FaPlus className="text-purple-700" />
                     </Link>
-
                     <Link
                       to="/admin/vol-stats"
-                      className="w-full flex items-center justify-between p-2 sm:p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
+                      className="flex items-center justify-between p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
                     >
-                      <span className="text-sm sm:text-base font-medium text-purple-700">
-                        Manage Users
-                      </span>
-                      <span className="bg-purple-100 text-purple-700 p-1 rounded-lg">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 sm:h-5 sm:w-5"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v1h8v-1zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-1a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v1h-3zM4.75 12.094A5.973 5.973 0 004 15v1H1v-1a3 3 0 013.75-2.906z" />
-                        </svg>
-                      </span>
+                      <div>
+                        <span className="text-sm font-medium text-blue-700">Volunteer Database</span>
+                        <p className="text-xs text-blue-600 mt-1">Access volunteer profiles and history</p>
+                      </div>
+                      <FaUsers className="text-blue-700" />
                     </Link>
-                    {/* <button className="w-full flex items-center justify-between p-2 sm:p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
-                      <span className="text-sm sm:text-base font-medium text-green-700">Generate Reports</span>
-                      <span className="bg-green-100 text-green-700 p-1 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm2 10a1 1 0 10-2 0v3a1 1 0 102 0v-3zm2-3a1 1 0 011 1v5a1 1 0 11-2 0v-5a1 1 0 011-1zm4-1a1 1 0 10-2 0v7a1 1 0 102 0V8z" clipRule="evenodd" />
-                        </svg>
-                      </span>
-                    </button> */}
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
           </div>

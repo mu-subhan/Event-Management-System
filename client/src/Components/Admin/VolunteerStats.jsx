@@ -14,13 +14,16 @@ import VolunteerForm from "./VolunteerForm";
 import VolunteerAssignment from "./VolunteerAssignment";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteUser } from "../../redux/actions/user";
+import { deleteUser, getAllUsers } from "../../redux/actions/user";
+import ConfirmDeleteModal from "../Shared/ConfirmDeleteModal";
 const VolunteerStats = () => {
   const dispatch = useDispatch();
-  const { users } = useSelector((state) => state.user);
+  const { users, roleCounts } = useSelector((state) => state.user);
   const { eventsCount } = useSelector((state) => state.events);
   //states
   const [volunteers, setVolunteers] = useState([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [volunteerToDelete, setVolunteerToDelete] = useState(null);
 
   const [availableVolunteers] = useState([
     {
@@ -51,16 +54,47 @@ const VolunteerStats = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editingVolunteer, setEditingVolunteer] = useState(null);
-  const volunteersPerPage = 5;
+  const volunteersPerPage = 6;
+
+  // useEffect to set volunteers
+  useEffect(() => {
+    console.log("All users from Redux:", users);
+    if (users && users.length > 0) {
+      const volunteerUsers = users.filter(user => user.role === "Volunteer");
+      console.log("Filtered volunteer users:", volunteerUsers);
+      const formattedVolunteers = volunteerUsers.map((user) => ({
+        id: user.id,
+        name: user.name || "Unknown Volunteer",
+        role: user.role || "Volunteer",
+        hours: Math.floor(Math.random() * 100),
+        events: Math.floor(Math.random() * 10),
+        status: "Active",
+        createdAt: user.createdAt || new Date().toISOString(),
+        updatedAt: user.updatedAt || new Date().toISOString(),
+      }));
+      console.log("Formatted volunteers:", formattedVolunteers);
+      setVolunteers(formattedVolunteers);
+    }
+  }, [users]);
+
+  // Debug useEffect for volunteers state
+  useEffect(() => {
+    console.log("Current volunteers state:", volunteers);
+  }, [volunteers]);
 
   // Calculate pagination
   const indexOfLastVolunteer = currentPage * volunteersPerPage;
   const indexOfFirstVolunteer = indexOfLastVolunteer - volunteersPerPage;
-  const currentVolunteers = volunteers.slice(
-    indexOfFirstVolunteer,
-    indexOfLastVolunteer
-  );
+  const currentVolunteers = volunteers.slice(indexOfFirstVolunteer, indexOfLastVolunteer);
+  console.log("Current page volunteers:", currentVolunteers);
   const totalPages = Math.ceil(volunteers.length / volunteersPerPage);
+
+  // Make sure we're fetching users if they're not already loaded
+  useEffect(() => {
+    if (!users || users.length === 0) {
+      dispatch(getAllUsers());
+    }
+  }, [dispatch]);
 
   // Handle page change
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
@@ -77,20 +111,28 @@ const VolunteerStats = () => {
   };
 
   const handleDeleteVolunteer = async (id) => {
+    setVolunteerToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
     try {
-      if (window.confirm("Are you sure you want to delete this volunteer?")) {
-        const response = await dispatch(deleteUser(id));
-        if (response.success) {
-          toast.success("Volunteer deleted successfully!");
-          const filterUsers = volunteers.filter(
-            (volunteer) => volunteer.id !== id
-          );
-          setVolunteers(filterUsers);
-        } else {
-          toast.error("Failed to delete volunteer.");
-        }
+      const response = await dispatch(deleteUser(volunteerToDelete));
+      if (response.success) {
+        toast.success("Volunteer deleted successfully!");
+        const filterUsers = volunteers.filter(
+          (volunteer) => volunteer.id !== volunteerToDelete
+        );
+        setVolunteers(filterUsers);
+      } else {
+        toast.error("Failed to delete volunteer.");
       }
-    } catch (error) {}
+    } catch (error) {
+      toast.error("An error occurred while deleting the volunteer.");
+    } finally {
+      setIsDeleteModalOpen(false);
+      setVolunteerToDelete(null);
+    }
   };
 
   const handleSaveVolunteer = (volunteerData) => {
@@ -120,22 +162,7 @@ const VolunteerStats = () => {
     setShowAssignmentModal(false);
     // You might want to update your volunteers state here
   };
-  // useEffect
-  useEffect(() => {
-    if (users && users.length > 0) {
-      const formattedVolunteers = users.map((user, index) => ({
-        id: user.id,
-        name: user.name || "Unknown Volunteer",
-        role: user.role || "Volunteer",
-        hours: user.hours || 0,
-        events: user.events || 0,
-        status: user.status || "Active",
-        createdAt: user.createdAt || new Date().toISOString(),
-        updatedAt: user.updatedAt || new Date().toISOString(),
-      }));
-      setVolunteers(formattedVolunteers);
-    }
-  }, [users]);
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-7xl">
@@ -152,11 +179,11 @@ const VolunteerStats = () => {
                   Active Volunteers
                 </p>
                 <p className="text-2xl font-semibold text-gray-800 mt-1">
-                  {volunteers.filter((v) => v.status === "Active").length}
+                  {roleCounts?.Volunteer || 0}
                 </p>
                 <p className="text-xs text-green-600 mt-1 flex items-center">
                   <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span>
-                  +12% from last month
+                  Currently Active
                 </p>
               </div>
             </div>
@@ -227,15 +254,14 @@ const VolunteerStats = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">
-                  {" "}
-                  Total Events:{" "}
+                  Total Events
                 </p>
                 <p className="text-2xl font-semibold text-gray-800 mt-1">
-                  {eventsCount?.length > 0 &&
-                    eventsCount.reduce((sum, event) => sum + event.count, 0)}
+                  {eventsCount?.reduce((sum, event) => sum + event.count, 0) || 0}
                 </p>
                 <p className="text-xs text-amber-600 mt-1 flex items-center">
                   <span className="inline-block w-2 h-2 bg-amber-500 rounded-full mr-1"></span>
+                  All Events
                 </p>
               </div>
             </div>
@@ -262,7 +288,7 @@ const VolunteerStats = () => {
                 Volunteers
               </h2>
               <p className="text-sm text-gray-500 mt-1">
-                List of all volunteers
+                List of all active volunteers
               </p>
             </div>
             {/* <button 
@@ -318,7 +344,7 @@ const VolunteerStats = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {volunteers.map((volunteer) => (
+                {currentVolunteers.map((volunteer) => (
                   <tr
                     key={volunteer.id}
                     className="hover:bg-gray-50 transition-colors"
@@ -384,31 +410,49 @@ const VolunteerStats = () => {
               <button
                 onClick={() => paginate(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className="p-2 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`p-2 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 ${
+                  currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
+                }`}
               >
                 <ChevronLeft size={16} />
               </button>
 
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (number) => (
-                  <button
-                    key={number}
-                    onClick={() => paginate(number)}
-                    className={`px-3.5 py-2 rounded-md border ${
-                      currentPage === number
-                        ? "border-indigo-600 bg-indigo-600 text-white"
-                        : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    {number}
-                  </button>
-                )
-              )}
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(num => {
+                  // Show first page, last page, current page, and one page before and after current
+                  return (
+                    num === 1 ||
+                    num === totalPages ||
+                    num === currentPage ||
+                    num === currentPage - 1 ||
+                    num === currentPage + 1
+                  );
+                })
+                .map((number, index, array) => (
+                  <React.Fragment key={number}>
+                    {index > 0 && array[index - 1] !== number - 1 && (
+                      <span className="px-2 text-gray-500">...</span>
+                    )}
+                    <button
+                      onClick={() => paginate(number)}
+                      className={`px-3.5 py-2 rounded-md border ${
+                        currentPage === number
+                          ? "border-indigo-600 bg-indigo-600 text-white"
+                          : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {number}
+                    </button>
+                  </React.Fragment>
+                ))
+              }
 
               <button
                 onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
-                className="p-2 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`p-2 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 ${
+                  currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'
+                }`}
               >
                 <ChevronRight size={16} />
               </button>
@@ -513,6 +557,15 @@ const VolunteerStats = () => {
             </div>
           </div>
         )}
+
+        <ConfirmDeleteModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setVolunteerToDelete(null);
+          }}
+          onConfirm={confirmDelete}
+        />
       </div>
     </div>
   );
