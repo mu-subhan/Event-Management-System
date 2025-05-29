@@ -1,21 +1,23 @@
 const express = require("express");
 const router = express.Router();
 // custome files
-const { scheduleStatusUpdate } = require("../helper/updateEventStatus");
 const prisma = require("../db/db.server");
+const sendMail = require("../utils/sendMail");
+const { scheduleStatusUpdate } = require("../helper/updateEventStatus");
 const eventValidator = require("../validation/Validator/event");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
-const sendMail = require("../utils/sendMail");
+const cloudinary = require("cloudinary");
+const { upload } = require("../config/multer");
 
 // Create an event
 router.post(
   "/create-event",
   isAuthenticated,
   isAdmin("Admin"),
+  upload.array("images", 5),
   eventValidator.createEventValidation,
   async (req, res) => {
     try {
-      console.log("req.body: ", req.body);
       const now = new Date();
       if (now > new Date(req.body.startTime)) {
         return res
@@ -33,12 +35,32 @@ router.post(
       } else if (now >= new Date(req.body.endTime)) {
         status = "COMPLETED";
       }
+      let images = [];
+      if (req.files && req.files.length > 0) {
+        try {
+          images = req.files.map((file, index) => ({
+            url: file.path,
+            publicId: file.filename,
+            order: 1 + index,
+          }));
+        } catch (error) {
+          console.error("Upload error:", error);
+          return res.status(500).json({
+            success: false,
+            message: "Failed to upload images.",
+            error: error.message,
+          });
+        }
+      }
       const event = await prisma.Event.create({
         data: {
           ...req.body,
           startTime,
           endTime,
           status,
+          images: {
+            create: images, // Assuming you have an 'images' field in your Event model
+          },
           role: { create: [...req.body.role] },
         },
       });
@@ -56,9 +78,11 @@ router.post(
       return res.status(201).json({ success: true, event });
     } catch (error) {
       console.log("error is: ", error);
-      return res
-        .status(500)
-        .json({ error: "Failed to create event", details: error.message });
+      return res.status(500).json({
+        success: false,
+        error: "Failed to create event",
+        details: error.message,
+      });
     }
   }
 );
@@ -77,6 +101,9 @@ router.get("/events", async (req, res) => {
       take: limit,
       orderBy: {
         createdAt: "desc", // Sort by newest events first
+      },
+      include: {
+        images: true, // Include images related to the event
       },
     });
 
@@ -155,6 +182,9 @@ router.get("/:id", async (req, res) => {
         role: {
           include: {
             volunteers: true, // assuming volunteers is the field name in the relation
+          },
+          include: {
+            images: true, // include images related to the role
           },
         },
       },
@@ -316,7 +346,7 @@ router.post("/request-join", isAuthenticated, async (req, res) => {
         <p>Please review this request and take necessary action.</p>
         <p>Regards,<br/>Your Team</p>
       `;
-    const adminEmail = process.env.Admin_EMAIL; // Ensure you have an environment variable for admin email
+    const adminEmail = process.env.ADMIN_EMAIL; // Ensure you have an environment variable for admin email
     if (!adminEmail) {
       return res.status(500).json({ error: "Admin email not configured" });
     }
@@ -336,5 +366,152 @@ router.post("/request-join", isAuthenticated, async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+router.post(
+  "/upload-file",
+  isAuthenticated,
+  isAdmin("Admin"),
+  upload.array("images", 5),
+  async (req, res) => {
+    try {
+      const { eventId } = req.body;
 
+      if (!eventId) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Event ID is required." });
+      }
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "No files uploaded.",
+        });
+      }
+
+      const images = req.files.map((file) => ({
+        url: file.path,
+        public_id: file.filename,
+      }));
+      try {
+        const existingImages = await prisma.EventImage.findMany({
+          where: { eventId },
+          orderBy: { order: "desc" },
+          take: 1,
+        });
+
+        const currentMaxOrder =
+          existingImages.length > 0 ? existingImages[0].order : 0;
+
+        await prisma.EventImage.createMany({
+          data: images.map((img, index) => ({
+            url: img.url,
+            publicId: img.public_id,
+            eventId: eventId,
+            order: currentMaxOrder + index + 1,
+          })),
+        });
+
+        return res.status(200).json({
+          success: true,
+          message: "Files uploaded successfully.",
+          images,
+        });
+      } catch (error) {
+        console.error("Upload error:", error);
+
+        // On error, delete uploaded files from Cloudinary
+        for (const img of images) {
+          try {
+            await cloudinary.v2.uploader.destroy(img.public_id);
+          } catch (delErr) {
+            console.error("Error deleting image from Cloudinary:", delErr);
+          }
+        }
+
+        return res.status(500).json({
+          success: false,
+          message: "Failed to upload images.",
+          error: error.message,
+        });
+      }
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to upload images.",
+        error: error.message,
+      });
+    }
+  }
+);
+router.delete(
+  "/delete-file",
+  isAuthenticated,
+  isAdmin("Admin"),
+  async (req, res) => {
+    const { images } = req.body;
+    console.log("Images to delete:", images);
+    if (!images || !Array.isArray(images) || images.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No images provided for deletion.",
+      });
+    }
+    const deletionResults = [];
+    try {
+      for (const image of images) {
+        const imageId = image?.public_id;
+
+        if (!imageId) {
+          deletionResults.push({
+            public_id: imageId,
+            status: "failed",
+            message: "Missing public_id",
+          });
+          continue;
+        }
+
+        const cloudinaryResult = await cloudinary.v2.uploader.destroy(imageId);
+        if (cloudinaryResult.result === "ok") {
+          // 2. Delete from database (EventImage) by publicId
+          const dbResult = await prisma.EventImage.deleteMany({
+            where: {
+              publicId: imageId,
+            },
+          });
+
+          deletionResults.push({
+            public_id: imageId,
+            status: "deleted",
+            message: "Deleted from Cloudinary and database",
+            dbDeletedCount: dbResult.count,
+          });
+        } else {
+          deletionResults.push({
+            public_id: imageId,
+            status: "failed",
+            message: "Failed to delete from Cloudinary",
+          });
+        }
+
+        // deletionResults.push({
+        //   public_id: imageId,
+        //   status: result.result === "ok" ? "deleted" : "not found",
+        //   message: result.result,
+        // });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Deletion process completed.",
+        results: deletionResults,
+      });
+    } catch (error) {
+      console.error("Deletion error:", error);
+      return res.status(500).json({
+        success: false,
+        message: "An error occurred during image deletion.",
+        error: error.message,
+      });
+    }
+  }
+);
 module.exports = router;
