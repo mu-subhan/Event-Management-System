@@ -68,13 +68,20 @@ export const assignVolunteerToRole =
         throw new Error("Assignment failed!");
       }
 
-      return data;
+      return { success: true, message: "Volunteer assigned successfully!" };
     } catch (error) {
-      console.log("error is :", error);
-      toast.error(error?.message || "Assignment failed!");
+      toast.error(
+        error?.response?.data?.message || error.message || "Assignment failed!"
+      );
+      // toast.error(error?.message || "Assignment failed!");
+
       dispatch({
         type: "assignVolunteerToRoleFailed",
         payload: error.response?.data?.message || error.message,
       });
+      return {
+        success: false,
+        message: error?.message || "Assignment failed!",
+      };
     }
   };
