@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import {
   FiCalendar,
@@ -12,6 +12,11 @@ import {
   FiSave,
   FiImage,
   FiTrash2,
+  FiTag,
+  FiUserPlus,
+  FiInfo,
+  FiGrid,
+  FiUserCheck,
 } from "react-icons/fi";
 // import event from "../../Assessts/event.jpg";
 import VolunteerAssignment from "./VolunteerAssignment";
@@ -23,6 +28,8 @@ import {
   assignVolunteerToRole,
 } from "../../redux/actions/role";
 import { useDispatch } from "react-redux";
+import ConfirmDeleteModal from "../Shared/ConfirmDeleteModal";
+
 const EditEventCard = ({ event: initialEvent, onUpdate }) => {
   const dispatch = useDispatch();
   // states
@@ -33,6 +40,7 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
   const [eventImages, setEventImages] = useState(initialEvent.images || []);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState(null);
+  const [activeTab, setActiveTab] = useState("details");
   const [newRole, setNewRole] = useState({
     role_name: "",
     description: "",
@@ -50,32 +58,42 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
     cancelled: "bg-red-100 text-red-800",
   };
 
+  // Add this helper function at the top level of the component
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toISOString().slice(0, 16); // Format: "YYYY-MM-DDThh:mm"
+  };
+
   useEffect(() => {
-    setEvent(initialEvent);
+    if (initialEvent) {
+      setEvent({
+        ...initialEvent,
+        startTime: formatDateForInput(initialEvent.startTime),
+        endTime: formatDateForInput(initialEvent.endTime)
+      });
+    }
   }, [initialEvent]);
 
   const handleInputChange = (e) => {
-    console.log("Input Change: ", e.target.name, e.target.value);
     const { name, value } = e.target;
-
-    setEvent((prev) => {
+    
+    setEvent(prev => {
       const updatedEvent = { ...prev, [name]: value };
 
-      // Ensure both startTime and endTime are available
+      // Validate dates when either date field changes
       if (name === "startTime" || name === "endTime") {
         const start = new Date(updatedEvent.startTime);
         const end = new Date(updatedEvent.endTime);
 
-        if (start && end && start > end) {
-          toast.error("End time must be after start time.");
-          return prev; // prevent update
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && start > end) {
+          toast.error("End time must be after start time");
+          return prev; // Keep previous state if validation fails
         }
       }
 
       return updatedEvent;
     });
-
-    // setEvent((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleRoleChange = (roleId, field, value) => {
@@ -265,50 +283,144 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
     );
   };
 
-  const handleSave = async () => {
+  const handleEventDetailsUpdate = async () => {
     try {
-      console.log("Saving event:", event);
+      // Validate required fields
+      if (!event.title || !event.description || !event.location || !event.startTime || !event.endTime) {
+        toast.error("Please fill in all required fields");
+        return;
+      }
+
+      const startDate = new Date(event.startTime);
+      const endDate = new Date(event.endTime);
+      const now = new Date();
+
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        toast.error("Please enter valid start and end dates");
+        return;
+      }
+
+      if (endDate < startDate) {
+        toast.error("End time must be after start time");
+        return;
+      }
+
+      // Determine event status based on dates
+      let status = "UPCOMING";
+      if (now >= startDate && now < endDate) {
+        status = "ONGOING";
+      } else if (now >= endDate) {
+        status = "COMPLETED";
+      }
 
       const eventData = {
-        ...event,
-        images: eventImages.map((img) => ({
-          id: img.id,
-          url: img.url,
-          publicId: img.publicId,
-          order: img.order
-        }))
+        id: event.id,
+        title: event.title.trim(),
+        description: event.description.trim(),
+        startTime: startDate.toISOString(),
+        endTime: endDate.toISOString(),
+        location: event.location.trim(),
+        status: status,
+        isPass:event.isPass,
+        createdAt: new Date(event.createdAt).toISOString(), 
+        updatedAt: new Date().toISOString(),
+        role: event.role?.map(role => ({
+          id: role.id,
+          role_name: role.role_name,
+          description: role.description,
+          maxVolunteers: parseInt(role.maxVolunteers) || 1,
+          skills: Array.isArray(role.skills) ? role.skills : []
+        })) || []
       };
+
+      console.log("Sending event update data:", eventData);
 
       const response = await axios.put(
         `${process.env.REACT_APP_SERVER}/api/event/${event.id}`,
-        eventData,
+         eventData ,
         {
           withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" }
         }
       );
 
-      console.log("Response:", response);
-
-      if (response.status === 200) {
-        toast.success("Event updated successfully!");
+      if (response.data.success) {
+        toast.success("Event details updated successfully!");
         setIsEditing(false);
-        if (onUpdate) onUpdate(response.data.event);
+        
+        // Update local state with the returned data
+        if (response.data.event) {
+          const updatedEvent = {
+            ...response.data.event,
+            startTime: formatDateForInput(response.data.event.startTime),
+            endTime: formatDateForInput(response.data.event.endTime)
+          };
+          setEvent(prev => ({
+            ...prev,
+            ...updatedEvent
+          }));
+          if (onUpdate) onUpdate(updatedEvent);
+        }
       } else {
         throw new Error(response.data.message || "Failed to update event");
       }
     } catch (error) {
-      console.error("Update error details:", {
-        message: error.message,
-        response: error.response,
-        stack: error.stack,
-      });
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to update event. Check console for details."
+      console.error("Update error:", error);
+      const errorMessage = error.response?.data?.message || "Failed to update event details";
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleRoleUpdate = async (roleId, updatedRole) => {
+    try {
+      const response = await axios.put(
+        `${process.env.REACT_APP_SERVER}/api/role/${roleId}`,
+        {
+          ...updatedRole,
+          event_id: event.id
+        },
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" }
+        }
       );
+
+      if (response.data) {
+        toast.success("Role updated successfully!");
+        // Update the local state with the new role data
+        setEvent(prev => ({
+          ...prev,
+          role: prev.role.map(r => 
+            r.id === roleId ? { ...r, ...response.data } : r
+          )
+        }));
+      }
+    } catch (error) {
+      console.error("Role update error:", error);
+      toast.error(error.response?.data?.message || "Failed to update role");
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      switch (activeTab) {
+        case "details":
+          await handleEventDetailsUpdate();
+          break;
+        case "media":
+          // Media updates are already handled by handleImageUpload and handleDeleteImage
+          setIsEditing(false);
+          break;
+        case "roles":
+          // Role updates are handled individually by handleRoleUpdate
+          setIsEditing(false);
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      console.error("Save error:", error);
+      toast.error("Failed to save changes");
     }
   };
 
@@ -379,6 +491,11 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
     }
   };
 
+  const handleDeleteImageClick = (imageId) => {
+    setImageToDelete(imageId);
+    setIsDeleteModalOpen(true);
+  };
+
   const handleDeleteImage = async (imageId) => {
     try {
       const response = await axios.delete(
@@ -392,7 +509,6 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
       );
 
       if (response.data.success) {
-        // Remove the deleted image from the state
         setEventImages((prevImages) => 
           prevImages.filter((img) => img.publicId !== imageId)
         );
@@ -406,12 +522,7 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
     }
   };
 
-  const handleDeleteImageClick = (imageId) => {
-    setImageToDelete(imageId);
-    setIsDeleteModalOpen(true);
-  };
-
-  const confirmImageDelete = async () => {
+  const handleConfirmDelete = async () => {
     if (imageToDelete) {
       await handleDeleteImage(imageToDelete);
       setImageToDelete(null);
@@ -419,459 +530,499 @@ const EditEventCard = ({ event: initialEvent, onUpdate }) => {
     }
   };
 
-  const cancelImageDelete = () => {
+  const handleCancelDelete = () => {
     setImageToDelete(null);
     setIsDeleteModalOpen(false);
   };
 
-  // Header buttons component
+  const TabButton = ({ id, label, icon: Icon }) => (
+    <motion.button
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={() => setActiveTab(id)}
+      className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all ${
+        activeTab === id
+          ? "bg-indigo-600 text-white shadow-md"
+          : "text-gray-600 hover:bg-gray-100"
+      }`}
+    >
+      <Icon className="w-5 h-5" />
+      {label}
+    </motion.button>
+  );
+
   const HeaderButtons = () => (
-    <div className="flex space-x-2">
-      {isEditing ? (
-        <>
-          <button
-            onClick={handleCancel}
-            className="p-2 bg-white/90 rounded-full hover:bg-white transition-all text-red-600 flex items-center"
+    <div className="flex items-center gap-3">
+      {activeTab !== "media" && (
+        isEditing ? (
+          <>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleCancel}
+              className="px-4 py-2 bg-white rounded-lg hover:bg-gray-50 transition-all text-red-600 flex items-center gap-2 shadow-sm border border-gray-200"
+            >
+              <FiX className="w-4 h-4" /> Cancel
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleSave}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all flex items-center gap-2 shadow-sm"
+            >
+              <FiSave className="w-4 h-4" /> 
+              {activeTab === "details" ? "Save Event Details" : "Save Role Changes"}
+            </motion.button>
+          </>
+        ) : (
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setIsEditing(true)}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-sm"
           >
-            <FiX className="mr-1" /> Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            className="p-2 bg-white/90 rounded-full hover:bg-white transition-all text-green-600 flex items-center"
-          >
-            <FiSave className="mr-1" /> Save
-          </button>
-        </>
-      ) : (
-        <button
-          onClick={() => setIsEditing(true)}
-          className="p-2 bg-white/90 rounded-full hover:bg-white transition-all flex items-center"
-        >
-          <FiEdit2 className="text-gray-800 mr-1" /> Edit
-        </button>
+            <FiEdit2 className="w-4 h-4" /> 
+            {activeTab === "details" ? "Edit Event Details" : "Edit Roles"}
+          </motion.button>
+        )
       )}
     </div>
   );
 
   return (
-    <>
-      {/* Event Header */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        className="bg-white rounded-2xl shadow-xl overflow-hidden mb-10 border border-gray-100"
-      >
-        {/* Event Images Section */}
-        <div className="relative">
-          <div className="h-64 w-full overflow-hidden">
-            <img
-              src={eventImages[0]?.url || "https://via.placeholder.com/800x400"}
-              alt={event.title}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          </div>
-
-          {isEditing && (
-            <div className="absolute top-4 right-4 space-y-2">
-              <label className="cursor-pointer bg-white/90 rounded-full p-2 hover:bg-white transition-all flex items-center gap-2 text-sm">
-                <FiImage className="text-blue-600" />
-                <span className="text-gray-800">
-                  {eventImages.length === 0 ? "Add Images" : "Add More"}
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-              </label>
-            </div>
-          )}
-        </div>
-
-        {/* Thumbnail Grid */}
-        {eventImages.length > 1 && (
-          <div className="p-4 bg-gray-50">
-            <div className="grid grid-cols-4 gap-4">
-              {eventImages.slice(1).map((image, index) => (
-                <div key={image.publicId} className="relative group">
-                  <img
-                    src={image.url}
-                    alt={`Event ${index + 2}`}
-                    className="w-full h-20 object-cover rounded-lg"
-                  />
-                  {isEditing && (
-                    <button
-                      onClick={() => handleDeleteImageClick(image.publicId)}
-                      className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <FiTrash2 size={14} />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Delete Confirmation Modal */}
-        {isDeleteModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
-              <h3 className="text-lg font-semibold mb-4">Delete Image</h3>
-              <p className="text-gray-600 mb-6">
-                Are you sure you want to delete this image? This action cannot be undone.
-              </p>
-              <div className="flex justify-end space-x-4">
-                <button
-                  onClick={cancelImageDelete}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmImageDelete}
-                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="absolute bottom-0 left-0 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              {isEditing ? (
-                <input
-                  type="text"
-                  name="title"
-                  value={event.title}
-                  onChange={handleInputChange}
-                  className="text-3xl md:text-4xl font-bold text-white bg-transparent border-b border-white/50 focus:border-white focus:outline-none mb-2 w-full"
-                />
-              ) : (
-                <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                  {event.title}
-                </h1>
-              )}
-              <div
-                className={`px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center ${
-                  statusColors[event.status.toLowerCase()] ||
-                  "bg-gray-100 text-gray-800"
-                }`}
-              >
-                {event.status}
-              </div>
-            </div>
-            <HeaderButtons />
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Role Cards */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-            <FiUsers className="mr-2" /> Event Roles
-          </h2>
-          <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
-            {event?.role?.length || 0} Roles
-          </span>
-        </div>
-
-        {isEditing && (
-          <div className="bg-white border border-gray-200 rounded-xl shadow-sm mb-6 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Add New Role
-            </h3>
-            <div className="space-y-4">
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Role Name
-                </label>
-                <input
-                  type="text"
-                  value={newRole.role_name}
-                  onChange={(e) =>
-                    setNewRole({ ...newRole, role_name: e.target.value })
-                  }
-                  className="w-full p-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={newRole.description}
-                  onChange={(e) =>
-                    setNewRole({ ...newRole, description: e.target.value })
-                  }
-                  className="w-full p-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  rows="2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Slots Available
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={newRole.maxVolunteers}
-                  onChange={(e) =>
-                    setNewRole({
-                      ...newRole,
-                      maxVolunteers: parseInt(e.target.value) || 1,
-                    })
-                  }
-                  className="w-full p-2 border border-gray-300 rounded-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Skills
-                </label>
-                <div className="flex">
+                {isEditing ? (
                   <input
                     type="text"
-                    value={newRole.newSkill}
-                    onChange={(e) =>
-                      setNewRole({
-                        ...newRole,
-                        newSkill: e.target.value,
-                      })
-                    }
-                    className="flex-1 p-2 border border-gray-300 rounded-l-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    placeholder="Add skill and press Enter"
-                  />
-                  <button
-                    onClick={() => {
-                      setNewRole((prev) => {
-                        if (prev.skills.includes(prev.newSkill)) {
-                          toast.error("Skill Already Added");
-                          return prev;
-                        }
-                        return {
-                          ...prev,
-                          skills: [...prev.skills, prev.newSkill], // create new array
-                          newSkill: "", // reset newSkill
-                        };
-                      });
-                    }}
-                    className="px-4 bg-blue-600 text-white rounded-r-md hover:bg-blue-700"
-                  >
-                    Add
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {newRole.skills.map((skill, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs"
-                    >
-                      {skill}
-                      <button
-                        onClick={() =>
-                          setNewRole({
-                            ...newRole,
-                            skills: newRole.skills.filter((s) => s !== skill),
-                          })
-                        }
-                        className="ml-1 text-gray-500 hover:text-gray-700"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <button
-                onClick={handleAddRole}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-              >
-                Add Role
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {event?.role?.map((role) => (
-            <motion.div
-              key={role.id}
-              whileHover={{ y: isEditing ? 0 : -5 }}
-              className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden"
-            >
-              <div className="p-6 overflow-x-auto">
-                <div className="flex items-start justify-between">
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={role.role_name}
-                      onChange={(e) =>
-                        handleRoleChange(role.id, "role_name", e.target.value)
-                      }
-                      className="text-xl font-semibold text-gray-800 mb-2 w-full p-1 border-b border-gray-300 focus:outline-none focus:border-blue-500"
-                    />
-                  ) : (
-                    <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                      {role.role_name}
-                    </h3>
-                  )}
-                  <span className="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium">
-                    {isEditing ? (
-                      <input
-                        type="number"
-                        min="1"
-                        value={role.maxVolunteers}
-                        onChange={(e) => {
-                          handleRoleChange(
-                            role.id,
-                            "maxVolunteers",
-                            parseInt(e.target.value) || 1
-                          );
-                        }}
-                        className="w-12 p-1 border border-gray-300 rounded text-center"
-                      />
-                    ) : (
-                      `${role.maxVolunteers} slots`
-                    )}
-                  </span>
-                </div>
-
-                {isEditing ? (
-                  <textarea
-                    value={role.description}
-                    onChange={(e) =>
-                      handleRoleChange(role.id, "description", e.target.value)
-                    }
-                    className="w-full p-2 border border-gray-300 rounded-md text-gray-600 text-sm mb-4 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    rows="2"
+                    name="title"
+                    value={event.title}
+                    onChange={handleInputChange}
+                    className="text-2xl font-bold text-gray-900 bg-transparent border-b-2 border-gray-200 focus:border-indigo-600 focus:outline-none transition-colors w-full"
                   />
                 ) : (
-                  <p className="text-gray-600 text-sm mb-4">
-                    {role.description}
-                  </p>
+                  <h1 className="text-2xl font-bold text-gray-900">{event.title}</h1>
                 )}
+                <div className="mt-2">
+                  <span
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                      statusColors[event.status.toLowerCase()]
+                    }`}
+                  >
+                    {event.status}
+                  </span>
+                </div>
+              </div>
+              <HeaderButtons />
+            </div>
 
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">
-                    Required Skills:
-                  </h4>
-                  {isEditing ? (
-                    <div>
-                      <div className="flex mb-2">
-                        <input
-                          type="text"
-                          value={newSkill}
-                          onChange={(e) => setNewSkill(e.target.value)}
-                          onKeyPress={(e) =>
-                            e.key === "Enter" && handleAddSkill(role.id)
-                          }
-                          className="flex-1 p-2 border border-gray-300 rounded-l-md text-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          placeholder="Add skill"
-                        />
-                        <button
-                          onClick={() => handleAddSkill(role.id)}
-                          className="px-4 bg-blue-600 text-white rounded-r-md hover:bg-blue-700"
-                        >
-                          Add
-                        </button>
+            {/* Navigation Tabs */}
+            <div className="flex gap-2 border-b border-gray-200 -mx-6 px-6">
+              <TabButton id="details" label="Event Details" icon={FiInfo} />
+              <TabButton id="media" label="Media Gallery" icon={FiGrid} />
+              <TabButton id="roles" label="Role Management" icon={FiUserCheck} />
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.2 }}
+          >
+            {activeTab === "details" && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Event Information</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 required">Title</label>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            name="title"
+                            value={event.title}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            required
+                          />
+                        ) : (
+                          <p className="text-gray-800">{event.title}</p>
+                        )}
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        {role.skills.map((skill, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs"
-                          >
-                            {skill}
-                            <button
-                              onClick={() => handleRemoveSkill(role.id, skill)}
-                              className="ml-1 text-gray-500 hover:text-gray-700"
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 required">Start Time</label>
+                        {isEditing ? (
+                          <input
+                            type="datetime-local"
+                            name="startTime"
+                            value={event.startTime}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            required
+                          />
+                        ) : (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <FiCalendar className="w-4 h-4" />
+                            {new Date(event.startTime).toLocaleString()}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 required">End Time</label>
+                        {isEditing ? (
+                          <input
+                            type="datetime-local"
+                            name="endTime"
+                            value={event.endTime}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            required
+                          />
+                        ) : (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <FiClock className="w-4 h-4" />
+                            {new Date(event.endTime).toLocaleString()}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 required">Location</label>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            name="location"
+                            value={event.location}
+                            onChange={handleInputChange}
+                            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            required
+                          />
+                        ) : (
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <FiMapPin className="w-4 h-4" />
+                            {event.location}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {role.skills.map((skill, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Event Description</h3>
+                    {isEditing ? (
+                      <textarea
+                        name="description"
+                        value={event.description}
+                        onChange={handleInputChange}
+                        className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent min-h-[200px]"
+                        placeholder="Enter event description..."
+                        required
+                      />
+                    ) : (
+                      <p className="text-gray-600 whitespace-pre-wrap">{event.description}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "media" && (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-semibold text-gray-900">Media Gallery</h3>
+                  <motion.label
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="cursor-pointer px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-sm"
+                  >
+                    <FiImage className="w-4 h-4" />
+                    <span>Add Images</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </motion.label>
                 </div>
 
-                <hr className="my-4 border-gray-200" />
-                {!isEditing && (
-                  <button
-                    onClick={() => {
-                      setEditRoleId(role?.id);
-                      setIsEditing(true);
-                      setIsOpenVolunteerPopup(true);
-                    }}
-                    className="px-4 py-2 sm:px-5 sm:py-2.5 bg-indigo-600 text-white rounded-md sm:rounded-lg hover:bg-indigo-700 transition-colors shadow-md text-sm sm:text-base"
-                  >
-                    Assign Volunteer
-                  </button>
-                )}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {eventImages.map((image, index) => (
+                    <motion.div
+                      key={image.publicId}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="relative group aspect-w-16 aspect-h-9 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all"
+                    >
+                      <img
+                        src={image.url}
+                        alt={`Event ${index + 1}`}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      />
+                      <motion.button
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        whileHover={{ scale: 1.1 }}
+                        onClick={() => handleDeleteImageClick(image.publicId)}
+                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-sm hover:bg-red-600"
+                      >
+                        <FiTrash2 size={14} />
+                      </motion.button>
+                    </motion.div>
+                  ))}
+                </div>
 
-                {isEditing && (
-                  <div className=" flex flex-col gap-1">
-                    <button
-                      onClick={() => handleRemoveRole(role.id)}
-                      className="mt-4 w-full py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
-                    >
-                      Remove Role
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditRoleId(role?.id);
-                        setIsEditing(true);
-                        setIsOpenVolunteerPopup(true);
-                      }}
-                      className="px-4 py-2 sm:px-5 sm:py-2.5 bg-indigo-600 text-white rounded-md sm:rounded-lg hover:bg-indigo-700 transition-colors shadow-md text-sm sm:text-base w-full"
-                    >
-                      Assign Volunteer
-                    </button>
+                {eventImages.length === 0 && (
+                  <div className="text-center py-12">
+                    <FiImage className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500">No images uploaded yet</p>
+                    <p className="text-gray-400 text-sm">Click "Add Images" to upload event photos</p>
                   </div>
                 )}
               </div>
-            </motion.div>
-          ))}
-          {isOpenVolunteerPopup && (
-            <AssignVolunteer
-              isOpen={isOpenVolunteerPopup}
-              setIsOpen={setIsOpenVolunteerPopup}
-              roleId={editRoleId}
-              eventId={event.id}
-              volunteers={
-                event.role.find((value) => value.id === editRoleId)
-                  ?.volunteers || []
-              }
-              handleAssignVolunteer={handleAssignVolunteer}
-            />
-          )}
-        </div>
-      </motion.div>
-    </>
+            )}
+
+            {activeTab === "roles" && (
+              <div className="space-y-6">
+                {/* Add New Role Section */}
+                {isEditing && (
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New Role</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Role Name</label>
+                        <input
+                          type="text"
+                          value={newRole.role_name}
+                          onChange={(e) =>
+                            setNewRole({ ...newRole, role_name: e.target.value })
+                          }
+                          className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          placeholder="Enter role name..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Maximum Volunteers</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={newRole.maxVolunteers}
+                          onChange={(e) =>
+                            setNewRole({
+                              ...newRole,
+                              maxVolunteers: parseInt(e.target.value) || 1,
+                            })
+                          }
+                          className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea
+                          value={newRole.description}
+                          onChange={(e) =>
+                            setNewRole({ ...newRole, description: e.target.value })
+                          }
+                          className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          rows="3"
+                          placeholder="Enter role description..."
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Skills</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={newRole.newSkill}
+                            onChange={(e) =>
+                              setNewRole({
+                                ...newRole,
+                                newSkill: e.target.value,
+                              })
+                            }
+                            className="flex-1 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            placeholder="Enter skill and press Add"
+                          />
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => {
+                              if (newRole.newSkill.trim()) {
+                                setNewRole((prev) => ({
+                                  ...prev,
+                                  skills: [...prev.skills, prev.newSkill.trim()],
+                                  newSkill: "",
+                                }));
+                              }
+                            }}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm"
+                          >
+                            Add
+                          </motion.button>
+                        </div>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {newRole.skills.map((skill, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm"
+                            >
+                              {skill}
+                              <button
+                                onClick={() =>
+                                  setNewRole({
+                                    ...newRole,
+                                    skills: newRole.skills.filter((s) => s !== skill),
+                                  })
+                                }
+                                className="hover:text-red-500 transition-colors"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleAddRole}
+                      className="mt-6 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all shadow-sm flex items-center gap-2"
+                    >
+                      <FiUserPlus className="w-4 h-4" /> Add Role
+                    </motion.button>
+                  </div>
+                )}
+
+                {/* Existing Roles Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {event?.role?.map((role) => (
+                    <motion.div
+                      key={role.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={role.role_name}
+                            onChange={(e) => {
+                              const updatedRole = {
+                                ...role,
+                                role_name: e.target.value
+                              };
+                              handleRoleUpdate(role.id, updatedRole);
+                            }}
+                            className="text-lg font-semibold text-gray-900 bg-transparent border-b-2 border-gray-200 focus:border-indigo-600 focus:outline-none transition-colors"
+                          />
+                        ) : (
+                          <h3 className="text-lg font-semibold text-gray-900">{role.role_name}</h3>
+                        )}
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full text-sm">
+                          <FiUsers className="w-4 h-4" />
+                          {role.maxVolunteers} slots
+                        </span>
+                      </div>
+
+                      {isEditing ? (
+                        <textarea
+                          value={role.description}
+                          onChange={(e) => {
+                            const updatedRole = {
+                              ...role,
+                              description: e.target.value
+                            };
+                            handleRoleUpdate(role.id, updatedRole);
+                          }}
+                          className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-4"
+                          rows="3"
+                        />
+                      ) : (
+                        <p className="text-gray-600 mb-4">{role.description}</p>
+                      )}
+
+                      <div className="mb-4">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                          <FiTag className="w-4 h-4" /> Required Skills
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {role.skills.map((skill, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-sm"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            setEditRoleId(role?.id);
+                            setIsEditing(true);
+                            setIsOpenVolunteerPopup(true);
+                          }}
+                          className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all shadow-sm flex items-center justify-center gap-2"
+                        >
+                          <FiUserPlus className="w-4 h-4" /> Assign Volunteer
+                        </motion.button>
+                        {isEditing && (
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleRemoveRole(role.id)}
+                            className="w-full px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-all flex items-center justify-center gap-2"
+                          >
+                            <FiTrash2 className="w-4 h-4" /> Remove Role
+                          </motion.button>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+
+        <ConfirmDeleteModal
+          isOpen={isDeleteModalOpen}
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+        />
+
+        {isOpenVolunteerPopup && (
+          <AssignVolunteer
+            isOpen={isOpenVolunteerPopup}
+            setIsOpen={setIsOpenVolunteerPopup}
+            roleId={editRoleId}
+            eventId={event.id}
+            volunteers={
+              event.role.find((value) => value.id === editRoleId)
+                ?.volunteers || []
+            }
+            handleAssignVolunteer={handleAssignVolunteer}
+          />
+        )}
+      </div>
+    </div>
   );
 };
 
