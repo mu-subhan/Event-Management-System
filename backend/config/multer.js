@@ -12,11 +12,19 @@ const storage = new CloudinaryStorage({
   params: {
     folder: "FYP",
     format: async (req, file) => {
+      // const mimeToExtension = {
+      //   "image/png": "png",
+      //   "image/jpeg": "jpg",
+      //   "image/webp": "webp",
+      //   "image/jpeg": "jpeg",
+      // };
       const mimeToExtension = {
         "image/png": "png",
-        "image/jpeg": "jpg",
+        "image/jpeg": "jpg", // only one needed for both .jpg and .jpeg
         "image/webp": "webp",
+        "image/gif": "gif",
       };
+
       return mimeToExtension[file.mimetype] || "jpg"; // Default to 'jpg' if format is unsupported
     },
     public_id: (req, file) => `computed-filename-${Date.now()}`,
@@ -24,9 +32,22 @@ const storage = new CloudinaryStorage({
 });
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 500000 }, // 500 KB file size limit
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB limit
+  // limits: { fileSize: 500000 }, // 500 KB file size limit
   fileFilter: function (req, file, cb) {
-    const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif"];
+    // const allowedMimeTypes = [
+    //   "image/jpeg",
+    //   "image/png",
+    //   "image/gif",
+    //   "image/jpeg",
+    // ];
+    const allowedMimeTypes = [
+      "image/png",
+      "image/jpeg", // only one needed for both .jpg and .jpeg
+      "image/webp",
+      "image/gif",
+    ];
+
     if (allowedMimeTypes.includes(file.mimetype)) {
       cb(null, true); // Accept file
     } else {

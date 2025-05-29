@@ -3,6 +3,17 @@ const { eventSchema, updateEventSchema } = require("../Schema/event");
 class eventValidation {
   async createEventValidation(req, res, next) {
     try {
+      if (typeof req.body.role === "string") {
+        try {
+          req.body.role = JSON.parse(req.body.role);
+        } catch (err) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid format for role. Must be a valid JSON array.",
+          });
+        }
+      }
+
       const result = eventSchema.validate(req.body);
       const { value, error } = result;
       console.log("error is: ", error);
