@@ -6,6 +6,7 @@ import {
   FaUserFriends,
   FaImage,
   FaClock,
+  FaTrash,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { X } from "lucide-react";
@@ -54,15 +55,22 @@ const CreateEventForm = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState(null);
   
-    const handleImageChange = (e) => {
-      const files = Array.from(e.target.files);
-      if (eventImages.length + files.length > 5) {
-        alert("You can only upload up to 5 images.");
-        return;
-      }
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    console.log("New files selected:", files); // Log new files
+    
+    if (eventImages.length + files.length > 5) {
+      alert("You can only upload up to 5 images.");
+      return;
+    }
   
-      setEventImages([...eventImages, ...files]);
-    };
+    console.log("Current eventImages before append:", eventImages); // Log current state
+    
+    setEventImages([...eventImages, ...files]);
+    
+    // Optional: Log the expected new state (React state updates are async)
+    console.log("Expected new state:", [...eventImages, ...files]);
+  };
     const handleDeleteClick = (index) => {
       setImageToDelete(index);
       setIsDeleteModalOpen(true);
@@ -500,21 +508,21 @@ const CreateEventForm = () => {
                 type="file"
                 accept="image/*"
                 className="sr-only"
-                multiple={false}
+                multiple={true}
                 onChange={handleImageChange}
               />
             </label>
           )}
 
 <div className={`grid ${getGridCols()} gap-4 mt-4 w-full`}>
-        {eventImages.map((image, index) => (
-          <div key={index} className="group aspect-[4/3] relative rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 animate-fadeIn">
-            <img
-              src={URL.createObjectURL(image)}
-              alt={`Event image ${index + 1}`}
-              className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-              style={{ height: '220px' }}
-            />
+  {eventImages.map((image, index) => (
+    <div key={index} className="group aspect-[4/3] relative rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 animate-fadeIn">
+      <img
+        src={URL.createObjectURL(image)}
+        alt={`Event image ${index + 1}`}
+        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+        style={{ height: '220px' }}
+      />
 
             {/* Delete Button */}
             <button
@@ -522,7 +530,7 @@ const CreateEventForm = () => {
               className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600 transform hover:scale-110"
               aria-label="Delete image"
             >
-              🗑
+              <FaTrash/>
             </button>
 
             {/* Image Index */}

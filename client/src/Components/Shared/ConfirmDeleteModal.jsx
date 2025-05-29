@@ -8,7 +8,7 @@ const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white rounded-xl shadow-lg p-6 w-[90%] max-w-md">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">
-          Are you sure you want to delete this image?
+          Are you sure you want to delete this?
         </h2>
 
         <div className="flex justify-end gap-3 mt-6">
