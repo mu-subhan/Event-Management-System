@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { deleteEvent, getAllEvents } from "../../redux/actions/events";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
+import ConfirmDeleteModal from "../Shared/ConfirmDeleteModal";
 
 const EventList = () => {
   // presetvalues
@@ -55,6 +56,8 @@ const EventList = () => {
   const [page, setPage] = useState(1);
   const [count, setCount] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState(null);
   const pagelength = 6;
   // functions
   const pageChange = async (operator) => {
@@ -83,21 +86,29 @@ const EventList = () => {
     setLoading(false);
   };
 
-  const deleteEventFunc = async (id) => {
+  const handleDeleteClick = (id) => {
+    setEventToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const deleteEventFunc = async () => {
     try {
-      const response = await dispatch(deleteEvent(id));
+      const response = await dispatch(deleteEvent(eventToDelete));
       if (response) {
-        toast.success("event Deleted Succeessfully!");
+        toast.success("Event Deleted Successfully!");
+        // Refresh the events list
+        dispatch(getAllEvents(page));
       } else {
         toast.error("Error During The deletion of Event!");
       }
-      return;
     } catch (error) {
       toast.error("Error During The deletion of Event!");
       console.log("error: ", error);
+    } finally {
+      setIsDeleteModalOpen(false);
+      setEventToDelete(null);
     }
   };
-  // useEffect
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -202,7 +213,7 @@ const EventList = () => {
                             </Link>
                             <button
                               className="text-red-600 hover:text-red-900"
-                              onClick={() => deleteEventFunc(event.id)}
+                              onClick={() => handleDeleteClick(event.id)}
                             >
                               Delete
                             </button>
@@ -243,6 +254,15 @@ const EventList = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setEventToDelete(null);
+        }}
+        onConfirm={deleteEventFunc}
+      />
     </div>
   );
 };

@@ -145,7 +145,7 @@ export const getAllUsers = () => async (dispatch) => {
     });
 
     const { data } = await axios.get(
-      `${process.env.REACT_APP_SERVER}/api/user/admin-all-users`,
+      `${process.env.REACT_APP_SERVER}/api/user/admin-all-users?limit=100`,
       {
         withCredentials: true,
       }
