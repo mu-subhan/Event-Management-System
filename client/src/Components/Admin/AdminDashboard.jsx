@@ -12,7 +12,7 @@ import {
   FaBars,
   FaTimes,
 } from "react-icons/fa";
-import userImage from "../../Assessts/subhanImage.png";
+// import userImage from "../../Assessts/subhanImage.png";
 import CreateEventPage from "../ui/CreatetesEvent";
 import { getEventsCount } from "../../redux/actions/events";
 import { useDispatch, useSelector } from "react-redux";
