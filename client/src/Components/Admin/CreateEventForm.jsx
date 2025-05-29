@@ -272,7 +272,7 @@ const CreateEventForm = () => {
           location: "",
           maxVolunteers: "",
           eventDescription: "",
-          eventImage: null,
+          eventImage: [],
           eventType: "community",
           roles: null,
           testval: null,
