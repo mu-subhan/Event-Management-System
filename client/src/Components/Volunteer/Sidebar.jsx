@@ -74,11 +74,11 @@ const Sidebar = () => {
       icon: <FaBell size={20} />,
       label: "Notifications",
     },
-    {
-      path: "/volunteer/impact",
-      icon: <FaChartLine size={20} />,
-      label: "Impact",
-    },
+    // {
+    //   path: "/volunteer/impact",
+    //   icon: <FaChartLine size={20} />,
+    //   label: "Impact",
+    // },
     // { path: '/volunteer/feedback', icon: <FaFedex size={20} />, label: 'Feedback' }
   ];
 
