@@ -51,54 +51,55 @@ const CreateEventForm = () => {
   // };
   // ...existing code...
 
-    const [eventImages, setEventImages] = useState([]);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [eventImages, setEventImages] = useState([]);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState(null);
-  
+
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     console.log("New files selected:", files); // Log new files
-    
+
     if (eventImages.length + files.length > 5) {
       alert("You can only upload up to 5 images.");
       return;
     }
-  
+
     console.log("Current eventImages before append:", eventImages); // Log current state
-    
+
     setEventImages([...eventImages, ...files]);
-    
+
     // Optional: Log the expected new state (React state updates are async)
     console.log("Expected new state:", [...eventImages, ...files]);
   };
-    const handleDeleteClick = (index) => {
-      setImageToDelete(index);
-      setIsDeleteModalOpen(true);
-    };
-  
-    const confirmDelete = () => {
-      if (imageToDelete !== null) {
-        setEventImages((prev) => prev.filter((_, i) => i !== imageToDelete));
-        setImageToDelete(null);
-        setIsDeleteModalOpen(false);
-      }
-    };
-  
-    const cancelDelete = () => {
+  const handleDeleteClick = (index) => {
+    setImageToDelete(index);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (imageToDelete !== null) {
+      setEventImages((prev) => prev.filter((_, i) => i !== imageToDelete));
       setImageToDelete(null);
       setIsDeleteModalOpen(false);
-    };
-    
+    }
+  };
+
+  const cancelDelete = () => {
+    setImageToDelete(null);
+    setIsDeleteModalOpen(false);
+  };
+
   const getGridCols = () => {
     const count = eventImages.length;
     if (count === 0) return "grid-cols-1";
     if (count === 1) return "grid-cols-1";
     if (count === 2) return "grid-cols-1 sm:grid-cols-2";
     if (count === 3) return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3";
-    if (count === 4) return "grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4";
-    if (count >= 5) return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+    if (count === 4)
+      return "grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4";
+    if (count >= 5)
+      return "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
   };
-  
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -492,69 +493,76 @@ const CreateEventForm = () => {
                   )}
                 </div>
 
-{/* image */}
-<label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-        Event Images
-      </label>
+                {/* image */}
+                <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                  Event Images
+                </label>
 
-      <div className="mt-1 flex justify-center px-4 pt-4 pb-5 sm:px-6 sm:pt-5 sm:pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-indigo-400 transition-colors">
-        <div className="space-y-2 text-center">
-          <FaImage className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-gray-400" />
-          
-          {eventImages.length < 5 && (
-            <label className="relative cursor-pointer bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium text-indigo-600 transition-colors inline-block">
-              <span>{eventImages.length === 0 ? "Upload Image" : "Add More Images"}</span>
-              <input
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                multiple={true}
-                onChange={handleImageChange}
-              />
-            </label>
-          )}
+                <div className="mt-1 flex justify-center px-4 pt-4 pb-5 sm:px-6 sm:pt-5 sm:pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-indigo-400 transition-colors">
+                  <div className="space-y-2 text-center">
+                    <FaImage className="mx-auto h-8 w-8 sm:h-12 sm:w-12 text-gray-400" />
 
-<div className={`grid ${getGridCols()} gap-4 mt-4 w-full`}>
-  {eventImages.map((image, index) => (
-    <div key={index} className="group aspect-[4/3] relative rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 animate-fadeIn">
-      <img
-        src={URL.createObjectURL(image)}
-        alt={`Event image ${index + 1}`}
-        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-        style={{ height: '220px' }}
-      />
+                    {eventImages.length < 5 && (
+                      <label className="relative cursor-pointer bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 sm:px-4 sm:py-2 rounded-md text-xs sm:text-sm font-medium text-indigo-600 transition-colors inline-block">
+                        <span>
+                          {eventImages.length === 0
+                            ? "Upload Image"
+                            : "Add More Images"}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="sr-only"
+                          multiple={true}
+                          onChange={handleImageChange}
+                        />
+                      </label>
+                    )}
 
-            {/* Delete Button */}
-            <button
-              onClick={() => handleDeleteClick(index)}
-              className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600 transform hover:scale-110"
-              aria-label="Delete image"
-            >
-              <FaTrash/>
-            </button>
+                    <div className={`grid ${getGridCols()} gap-4 mt-4 w-full`}>
+                      {eventImages.map((image, index) => (
+                        <div
+                          key={index}
+                          className="group aspect-[4/3] relative rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 animate-fadeIn"
+                        >
+                          <img
+                            src={URL.createObjectURL(image)}
+                            alt={`Event image ${index + 1}`}
+                            className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                            style={{ height: "220px" }}
+                          />
 
-            {/* Image Index */}
-            <span className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
-              {index + 1}/{eventImages.length}
-            </span>
-          </div>
-        ))}
-      </div>
+                          {/* Delete Button */}
+                          <button
+                            onClick={() => handleDeleteClick(index)}
+                            className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-red-600 transform hover:scale-110"
+                            aria-label="Delete image"
+                          >
+                            <FaTrash />
+                          </button>
 
-      {/* Confirm Delete Modal */}
-      <ConfirmDeleteModal
-        isOpen={isDeleteModalOpen}
-        onClose={cancelDelete}
-        onConfirm={confirmDelete}
-      />
+                          {/* Image Index */}
+                          <span className="absolute bottom-2 left-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded-full">
+                            {index + 1}/{eventImages.length}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
 
+                    {/* Confirm Delete Modal */}
+                    <ConfirmDeleteModal
+                      isOpen={isDeleteModalOpen}
+                      onClose={cancelDelete}
+                      onConfirm={confirmDelete}
+                    />
 
-          {eventImages.length >= 5 && (
-            <p className="text-sm text-red-500">Maximum 5 images allowed</p>
-          )}
-        </div>
-      </div>
-
+                    {eventImages.length >= 5 && (
+                      <p className="text-sm text-red-500">
+                        Maximum 5 images allowed
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
