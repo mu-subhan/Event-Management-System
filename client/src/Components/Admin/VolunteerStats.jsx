@@ -243,7 +243,7 @@ const VolunteerStats = () => {
         </div>
 
         {/* Assign Volunteers Button */}
-        <div className="mt-4 flex flex-col sm:flex-row gap-3">
+        {/* <div className="mt-4 flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setShowAssignmentModal(true)}
             className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition"
@@ -251,7 +251,7 @@ const VolunteerStats = () => {
             <Plus size={16} className="mr-2" />
             Assign Volunteers
           </button>{" "}
-        </div>
+        </div> */}
 
         {/* Volunteers Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mt-6">
