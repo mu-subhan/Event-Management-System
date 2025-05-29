@@ -25,22 +25,21 @@ const FooterSection = () => {
                   />
                 </svg>
               </Link>
-              <h2 className="text-2xl font-semibold text-purple-500">EventPro</h2>
+              <h2 className="text-2xl font-semibold text-purple-500">MatchVolunteers</h2>
             </div>
           </div>
 
           {/* Description Column */}
           <div className="lg:w-2/5">
             <p className="text-gray-400 text-sm sm:text-base">
-              Transform your events from concept to reality with EventPro. We provide comprehensive 
-              event management solutions that make planning and organizing events effortless and efficient.
+            No More Guesswork – Machine Learning Assigns the Perfect Volunteers by Expertise.
             </p>
           </div>
 
           {/* Contact Info Column */}
           <div className="text-gray-400 text-sm lg:text-right lg:w-1/4">
-            <p>Contact: support@eventpro.com</p>
-            <p className="mt-1">Islamabad, Pakistan</p>
+            <p>Usama | Rehman | Subhan </p>
+            <p className="mt-1">Lahore, Pakistan</p>
           </div>
         </div>
 
@@ -51,8 +50,9 @@ const FooterSection = () => {
 
           {/* Copyright */}
           <div className="text-gray-500 text-xs">
-            <p>© {new Date().getFullYear()} EventPro - Making Every Event Extraordinary</p>
-            <p className="mt-1">Developed with ❤️ by Team EventPro</p>
+            <p>© {new Date().getFullYear()} MatchVolunteers - All rights reserved.</p>
+            <p className="mt-1">Made with ❤️ by the MatchVolunteers Team</p>
+            {/* Developed with ❤️ by Trio team</p> */}
           </div>
         </div>
       </div>
