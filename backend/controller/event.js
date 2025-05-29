@@ -106,7 +106,7 @@ router.get("/events", async (req, res) => {
         images: true, // Include images related to the event
       },
     });
-
+    console.log("All Events ARe: ", events);
     // Get the total count of events
     const totalEvents = await prisma.Event.count();
 
@@ -183,10 +183,8 @@ router.get("/:id", async (req, res) => {
           include: {
             volunteers: true, // assuming volunteers is the field name in the relation
           },
-          include: {
-            images: true, // include images related to the role
-          },
         },
+        images: true,
       },
     });
     console.log("event Found is: ", event);

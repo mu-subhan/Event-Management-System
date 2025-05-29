@@ -84,7 +84,7 @@ const AdminDashboard = () => {
                 <span className="absolute top-0 right-0 h-3 w-3 bg-red-500 rounded-full"></span>
               </button>
               <div className="flex items-center space-x-3">
-                <Link to="/profile" className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3">
                   <img
                     src={user?.profileImage?.url}
                     className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-blue-500"
@@ -97,7 +97,7 @@ const AdminDashboard = () => {
 
                     <p className="text-xs text-gray-500">{user?.role}</p>
                   </div>
-                </Link>
+                </div>
               </div>
             </div>
           </header>
