@@ -34,7 +34,7 @@ const AdminLayout = () => {
     },
     {
       path: "/admin/edit-profile",
-      name: "Edit Profile",
+      name: "Profile",
       icon: <Pencil size={20} />,
     },
   ];
