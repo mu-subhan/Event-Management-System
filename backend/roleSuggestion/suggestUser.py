@@ -139,7 +139,6 @@
 import sys
 import json
 import re
-from rapidfuzz import fuzz
 from sentence_transformers import SentenceTransformer, util
 
 def clean_text(text):
@@ -147,22 +146,6 @@ def clean_text(text):
 
 def tokenize(text):
     return clean_text(text).split()
-
-def fuzzy_list_match(list1, list2):
-    if not list1 or not list2:
-        return 0
-    match = 0
-    for item1 in list1:
-        for item2 in list2:
-            if fuzz.ratio(item1, item2) > 75:
-                match += 1
-                break
-    return match / len(list1)
-
-def semantic_similarity(text1, text2, model):
-    emb1 = model.encode(clean_text(text1), convert_to_tensor=True)
-    emb2 = model.encode(clean_text(text2), convert_to_tensor=True)
-    return float(util.pytorch_cos_sim(emb1, emb2)[0][0])
 
 def main():
     input_data = sys.stdin.read()
@@ -173,31 +156,34 @@ def main():
 
     model = SentenceTransformer("all-MiniLM-L6-v2")
 
-    role_skills = tokenize(role.get("skills", ""))
-    role_description = clean_text(role.get("description", ""))
+    # Prepare combined role text (description + skills)
+    role_desc = clean_text(role.get("description", ""))
+    role_skills_text = " ".join(tokenize(role.get("skills", "")))
+    role_text = f"{role_desc} {role_skills_text}".strip()
+    role_emb = model.encode(role_text, convert_to_tensor=True)
 
-    results = []
+    # Prepare combined user texts (description + skills + interests)
+    user_texts = []
     for user in users:
-        user_skills = tokenize(user.get("skills", ""))
-        user_description = clean_text(user.get("description", ""))
-        user_interests = clean_text(user.get("interests", ""))
+        user_desc = clean_text(user.get("description", ""))
+        user_skills_text = " ".join(tokenize(user.get("skills", "")))
+        user_interest = clean_text(user.get("interests", ""))
+        combined = f"{user_desc} {user_skills_text} {user_interest}".strip()
+        user_texts.append(combined)
 
-        # Fuzzy skill matching
-        skill_score = fuzzy_list_match(role_skills, user_skills)
+    # Batch encode user texts
+    user_embs = model.encode(user_texts, convert_to_tensor=True, batch_size=32)
 
-        # Semantic matching
-        desc_score = semantic_similarity(role_description, user_description, model)
-        interest_score = semantic_similarity(role_description, user_interests, model)
+    # Compute cosine similarities (role vs all users)
+    sims = util.pytorch_cos_sim(role_emb, user_embs)[0].tolist()
 
-        # Final weighted score
-        final_score = round(0.5 * skill_score + 0.3 * desc_score + 0.2 * interest_score, 4)
-
-        results.append({
-            "userId": user["id"],
-            "score": final_score
-        })
-
+    # Prepare and sort results
+    results = [
+        {"userId": user["id"], "score": round(score, 4)}
+        for user, score in zip(users, sims)
+    ]
     results.sort(key=lambda x: x["score"], reverse=True)
+
     print(json.dumps(results))
 
 if __name__ == "__main__":
