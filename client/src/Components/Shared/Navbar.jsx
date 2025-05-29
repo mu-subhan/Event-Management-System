@@ -188,7 +188,7 @@ const Navbar = ({ scroll = true }) => {
                   }`}
                   onClick={() => handleRedirect("volunteer")}
                 >
-                  Sign Up / Login
+                   Login
                 </button>
               )}
             </div>
