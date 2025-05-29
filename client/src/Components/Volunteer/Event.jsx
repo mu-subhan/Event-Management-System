@@ -14,20 +14,19 @@ import { useSelector, useDispatch } from "react-redux";
 import { getAllEvents, requestJoinEvent } from "../../redux/actions/events";
 import Spinner from "../Shared/Spinner";
 
-const Events = ({ user }) => {
+const Events = () => {
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const { allEvents: events = [], isLoading } = useSelector(
     (state) => state.events
   );
-  const [showAll, setShowAll] = useState(false);
+  const { user } = useSelector((state) => state.user);
 
-  console.log("events in event component", events);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     dispatch(getAllEvents());
   }, [dispatch]);
-
   // Fallback image URL
   const fallbackImage =
     "https://images.unsplash.com/photo-1531058020387-3be344556be6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80";
@@ -42,7 +41,14 @@ const Events = ({ user }) => {
       </div>
     );
   }
-
+  if (!user) {
+    return (
+      <div className="col-span-2 text-center py-8">
+        <p className="text-gray-500">User Loading!</p>
+      </div>
+    );
+  }
+  console.log("user in Events component:", user);
   return (
     <div className="w-full bg-gradient-to-b from-white to-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="bg-white shadow-2xl rounded-2xl p-6 max-w-6xl mx-auto">
