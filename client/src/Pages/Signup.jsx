@@ -4,6 +4,7 @@ import { User } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import { Eye, EyeOff } from "lucide-react"
 
 const Signup = () => {
   // Static options for dropdowns
@@ -13,7 +14,7 @@ const Signup = () => {
     "UI/UX",
     "Cloud",
     "AI/ML",
-    "other"
+    "Other",
   ];
 
   const interestOptions = [
@@ -21,11 +22,7 @@ const Signup = () => {
     "cricket",
     "Outdoor",
     "Management",
-    // "Design",
-    // "Music",
-    // "Art",
-    // "Sports",
-    "other",
+    "Other",
   ];
 
   // Get user data from Redux store
@@ -34,7 +31,9 @@ const Signup = () => {
   const [showOtherInput, setShowOtherInput] = useState(false);
   const [otherInterest, setOtherInterest] = useState("");
   const [showOtherSkillInput, setShowOtherSkillInput] = useState(false);
-const [otherSkill, setOtherSkill] = useState("");
+  const [otherSkill, setOtherSkill] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Form state management
   const [formData, setFormData] = useState({
@@ -81,12 +80,21 @@ const [otherSkill, setOtherSkill] = useState("");
   };
 
   const validatePassword = (password) => {
-    if (!password || password.length < 6) {
-      toast.error("Password must be at least 6 characters long.");
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  
+    if (!password || password.length < 8) {
+      toast.error("Password must be at least 8 characters long.");
       return false;
     }
+  
+    if (!passwordRegex.test(password)) {
+      toast.error("Password must contain letters, numbers, and special characters.");
+      return false;
+    }
+  
     return true;
   };
+  
 
   const validatePasswordMatch = (password, confirmPassword) => {
     if (password !== confirmPassword) {
@@ -159,12 +167,12 @@ const [otherSkill, setOtherSkill] = useState("");
 
   const handleAddSkill = (e) => {
     const selectedSkill = e.target.value;
-    
-    if (selectedSkill === "other") {
+
+    if (selectedSkill === "Other") {
       setShowOtherSkillInput(true);
       return;
     }
-  
+
     if (selectedSkill && !formData.skills.includes(selectedSkill)) {
       setFormData((prev) => ({
         ...prev,
@@ -173,15 +181,14 @@ const [otherSkill, setOtherSkill] = useState("");
     }
   };
 
-
   const handleAddInterest = (e) => {
     const selectedInterest = e.target.value;
-    
-    if (selectedInterest === "other") {
+
+    if (selectedInterest === "Other") {
       setShowOtherInput(true);
       return;
     }
-  
+
     if (selectedInterest && !formData.interest.includes(selectedInterest)) {
       setFormData((prev) => ({
         ...prev,
@@ -421,7 +428,7 @@ const [otherSkill, setOtherSkill] = useState("");
               support is incredible!"
             </blockquote>
             <div className="flex justify-center mt-3">
-              {[1, 2, 3].map((dot) => (
+              {[].map((dot) => (
                 <div
                   key={dot}
                   className={`w-2 h-2 mx-1 rounded-full ${
@@ -516,44 +523,51 @@ const [otherSkill, setOtherSkill] = useState("");
             </div>
 
             {/* Password */}
-            <div className="mb-6">
-              <label
-                className="block text-lg font-medium text-gray-700 mb-2"
-                htmlFor="password"
-              >
-                Password <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-                placeholder="Enter your password (min 6 characters)"
-                value={formData.password}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
+<div className="mb-6 relative">
+  <label className="block text-lg font-medium text-gray-700 mb-2" htmlFor="password">
+    Password <span className="text-red-500">*</span>
+  </label>
+  <input
+    type={showPassword ? "text" : "password"}
+    id="password"
+    name="password"
+    className="w-full p-3 pr-10 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+    placeholder="Enter your password (min 8 characters)"
+    value={formData.password}
+    onChange={handleInputChange}
+    required
+  />
+  <span
+    className="absolute right-3 top-[74%] transform -translate-y-1/2 cursor-pointer text-gray-900"
+    onClick={() => setShowPassword(!showPassword)}
+  >
+    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+  </span>
+</div>
 
-            {/* Confirm Password */}
-            <div className="mb-6">
-              <label
-                className="block text-lg font-medium text-gray-700 mb-2"
-                htmlFor="confirmPassword"
-              >
-                Confirm Password <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                className="w-full p-3 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-                placeholder="Confirm your password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
+{/* Confirm Password Field */}
+<div className="mb-6 relative">
+  <label className="block text-lg font-medium text-gray-700 mb-2" htmlFor="confirmPassword">
+    Confirm Password <span className="text-red-500">*</span>
+  </label>
+  <input
+    type={showConfirmPassword ? "text" : "password"}
+    id="confirmPassword"
+    name="confirmPassword"
+    className="w-full p-3 pr-10 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+    placeholder="Confirm your password"
+    value={formData.confirmPassword}
+    onChange={handleInputChange}
+    required
+  />
+  <span
+    className="absolute right-3 top-[74%] transform -translate-y-1/2 cursor-pointer text-gray-900"
+    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+  >
+    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+  </span>
+</div>
+
 
             {/* Experience */}
             <div className="mb-6">
@@ -619,105 +633,105 @@ const [otherSkill, setOtherSkill] = useState("");
 
             {/* Skills */}
             <div className="mb-6">
-  <label className="block text-lg font-medium text-gray-700 mb-2">
-    Skills <span className="text-red-500">*</span>
-  </label>
-  <div className="flex flex-wrap gap-2 mb-2">
-    {formData.skills.map((skill, index) => (
-      <div
-        key={index}
-        className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm flex items-center"
-      >
-        {skill}
-        <button
-          type="button"
-          onClick={() => handleRemoveSkill(skill)}
-          className="ml-2 text-xs"
-        >
-          ×
-        </button>
-      </div>
-    ))}
-  </div>
-  
-  {showOtherSkillInput ? (
-    <input
-      type="text"
-      value={otherSkill}
-      onChange={(e) => setOtherSkill(e.target.value)}
-      onKeyDown={handleAddCustomSkill}
-      placeholder="Type your skill and press Enter"
-      className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      autoFocus
-    />
-  ) : (
-    <select
-      onChange={handleAddSkill}
-      className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      defaultValue=""
-    >
-      <option value="" disabled>
-        -- Add a skill --
-      </option>
-      {skillOptions.map((skill) => (
-        <option key={skill} value={skill}>
-          {skill}
-        </option>
-      ))}
-    </select>
-  )}
-</div>
+              <label className="block text-lg font-medium text-gray-700 mb-2">
+                Skills <span className="text-red-500">*</span>
+              </label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {formData.skills.map((skill, index) => (
+                  <div
+                    key={index}
+                    className="bg-blue-500 text-white px-3 py-1 rounded-lg text-sm flex items-center"
+                  >
+                    {skill}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSkill(skill)}
+                      className="ml-2 text-xs"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {showOtherSkillInput ? (
+                <input
+                  type="text"
+                  value={otherSkill}
+                  onChange={(e) => setOtherSkill(e.target.value)}
+                  onKeyDown={handleAddCustomSkill}
+                  placeholder="Type your skill and press Enter"
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+              ) : (
+                <select
+                  onChange={handleAddSkill}
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    -- Add a skill --
+                  </option>
+                  {skillOptions.map((skill) => (
+                    <option key={skill} value={skill}>
+                      {skill}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
 
             {/* Interests */}
             <div className="mb-6">
-  <label className="block text-lg font-medium text-gray-700 mb-2">
-    Interests <span className="text-red-500">*</span>
-  </label>
-  <div className="flex flex-wrap gap-2 mb-2">
-    {formData.interest.map((item, index) => (
-      <div
-        key={index}
-        className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm flex items-center"
-      >
-        {item}
-        <button
-          type="button"
-          onClick={() => handleRemoveInterest(item)}
-          className="ml-2 text-xs"
-        >
-          ×
-        </button>
-      </div>
-    ))}
-  </div>
-  
-  {showOtherInput ? (
-    <input
-      type="text"
-      value={otherInterest}
-      onChange={(e) => setOtherInterest(e.target.value)}
-      onKeyDown={handleAddCustomInterest}
-      placeholder="Type your interest and press Enter"
-      className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-      autoFocus
-    />
-  ) : (
-    <select
-      onChange={handleAddInterest}
-      className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-      defaultValue=""
-    >
-      <option value="" disabled>
-        -- Add an interest --
-      </option>
-      {interestOptions.map((interest) => (
-        <option key={interest} value={interest}>
-          {interest}
-        </option>
-      ))}
-    </select>
-  )}
-</div>
+              <label className="block text-lg font-medium text-gray-700 mb-2">
+                Interests <span className="text-red-500">*</span>
+              </label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {formData.interest.map((item, index) => (
+                  <div
+                    key={index}
+                    className="bg-green-500 text-white px-3 py-1 rounded-lg text-sm flex items-center"
+                  >
+                    {item}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveInterest(item)}
+                      className="ml-2 text-xs"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {showOtherInput ? (
+                <input
+                  type="text"
+                  value={otherInterest}
+                  onChange={(e) => setOtherInterest(e.target.value)}
+                  onKeyDown={handleAddCustomInterest}
+                  placeholder="Type your interest and press Enter"
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  autoFocus
+                />
+              ) : (
+                <select
+                  onChange={handleAddInterest}
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                  defaultValue=""
+                >
+                  <option value="" disabled>
+                    -- Add an interest --
+                  </option>
+                  {interestOptions.map((interest) => (
+                    <option key={interest} value={interest}>
+                      {interest}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
 
             {/* Avatar Upload - Now Optional */}
             <div className="mb-6">
