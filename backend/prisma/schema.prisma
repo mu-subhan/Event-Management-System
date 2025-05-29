@@ -52,7 +52,19 @@ model Event {
   updatedAt   DateTime  @updatedAt
   admin       User      @relation(fields: [adminId], references: [id])
   role        EventRole[]
-  @@map("events") 
+  images      EventImage[]
+  @@map("events")
+}
+model EventImage {
+  id        String   @id @default(uuid())
+  eventId   String
+  url       String
+  publicId  String
+  order     Int      // <-- new field to track position/order
+  createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id])
+
+  @@map("event_images")
 }
 
 enum Status {
