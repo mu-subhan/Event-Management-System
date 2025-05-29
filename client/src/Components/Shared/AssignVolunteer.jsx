@@ -523,16 +523,7 @@ function VolunteerCard({ volunteer, assigned, loading, onAssign }) {
             : "bg-green-600 hover:bg-green-700"
         }`}
       >
-        {loading ? (
-          <Spinner
-            className="h-[35px]"
-            innerSpinnerClassName="h-[20px] w-[20px]"
-          />
-        ) : assigned ? (
-          "Assigned"
-        ) : (
-          "Assign"
-        )}
+        {assigned ? "Assigned" : "Assign"}
       </button>
     </div>
   );
