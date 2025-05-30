@@ -84,10 +84,10 @@ const AdminDashboard = () => {
                   placeholder="Search..."
                 />
               </div>
-              <button className="p-2 relative rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
+              {/* <button className="p-2 relative rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
                 <FaBell className="h-5 w-5" />
                 <span className="absolute top-0 right-0 h-3 w-3 bg-red-500 rounded-full"></span>
-              </button>
+              </button> */}
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-3">
                   <img
