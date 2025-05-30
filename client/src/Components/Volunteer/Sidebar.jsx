@@ -13,6 +13,8 @@ import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { logoutUser } from "../../redux/actions/user";
+import Notification from "./Notifications";
+// import NotificationModal from "../Shared/NotificationModal";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -21,6 +23,9 @@ const Sidebar = () => {
   const { user } = useSelector((state) => state.user);
   const [activeLink, setActiveLink] = useState("/volunteer/dashboard");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  // const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+
 
   useEffect(() => {
     setActiveLink(location.pathname);
@@ -70,10 +75,19 @@ const Sidebar = () => {
       label: "Skills",
     },
     {
-      path: "/volunteer/notification",
+      custom: true, // Mark as custom action
       icon: <FaBell size={20} />,
       label: "Notifications",
-    },
+      action: () => setShowNotification(true) // Custom click handler
+    }
+
+
+
+    // {
+    //   path: "/volunteer/notification",
+    //   icon: <FaBell size={20} />,
+    //   label: "Notifications",
+    // },
     // {
     //   path: "/volunteer/impact",
     //   icon: <FaChartLine size={20} />,
@@ -147,24 +161,36 @@ const Sidebar = () => {
       <nav className="flex flex-col h-[calc(100vh-350px)] justify-between">
         <ul className="space-y-2">
           {navItems.map((item) => (
-            <li key={item.path}>
-              <Link
-                to={item.path}
-                className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 ${
-                  activeLink === item.path
-                    ? "bg-white text-black font-bold shadow-2xl"
-                    : "text-white hover:bg-slate-300 hover:text-black"
-                }`}
-              >
-                <span className="text-center w-6">{item.icon}</span>
-                <span>{item.label}</span>
-                {currentPath === item.path && (
-                  <span className="ml-auto w-1.5 h-6 rounded-full"></span>
-                )}
-              </Link>
+            <li key={item.path || item.label}>
+              {item.custom ? (
+                <button
+                  onClick={item.action}
+                  className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 w-full text-left ${
+                    activeLink === item.path
+                      ? "bg-white text-black font-bold shadow-2xl"
+                      : "text-white hover:bg-slate-300 hover:text-black"
+                  }`}
+                >
+                  <span className="text-center w-6">{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              ) : (
+                <Link
+                  to={item.path}
+                  className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-300 ${
+                    activeLink === item.path
+                      ? "bg-white text-black font-bold shadow-2xl"
+                      : "text-white hover:bg-slate-300 hover:text-black"
+                  }`}
+                >
+                  <span className="text-center w-6">{item.icon}</span>
+                  <span>{item.label}</span>
+                </Link>
+              )}
             </li>
           ))}
         </ul>
+
 
         {/* Logout Button */}
         <div className="mt-auto">
@@ -180,6 +206,10 @@ const Sidebar = () => {
         </div>
       </nav>
 
+       {/* Notification Popup */}
+       {showNotification && (
+        <Notification onClose={() => setShowNotification(false)} />
+      )}
       {/* <div className="mt-auto pt-8">
         <div className="bg-white rounded-lg p-4 mt-6">
           <p className="text-xl text-black mb-2">Need assistance?</p>

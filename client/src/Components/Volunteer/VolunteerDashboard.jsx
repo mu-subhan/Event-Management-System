@@ -16,14 +16,14 @@ const VolunteerDashboard = () => {
   const skillsCount = user?.skills?.length || 0;
 
   const stats = [
-    { title: "Total Hours", value: "50", color: "from-blue-500 to-blue-600" },
+    // { title: "Total Hours", value: "50", color: "from-blue-500 to-blue-600" },
     { title: "Events", value: "10", color: "from-green-500 to-green-600" },
     {
       title: "Skills",
       value: skillsCount.toString(),
       color: "from-purple-500 to-purple-600",
     },
-    { title: "Impact", value: "High", color: "from-orange-500 to-orange-600" },
+    // { title: "Impact", value: "High", color: "from-orange-500 to-orange-600" },
   ];
 
   return (
@@ -51,7 +51,7 @@ const VolunteerDashboard = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
             {stats.map((stat, index) => (
               <motion.div
                 key={stat.title}
