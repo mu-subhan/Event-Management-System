@@ -12,9 +12,9 @@ const { deleteImages } = require("../utils/cloudinary");
 // Create an event
 router.post(
   "/create-event",
+  upload.array("images", 5),
   isAuthenticated,
   isAdmin("Admin"),
-  upload.array("images", 5),
   eventValidator.createEventValidation,
   async (req, res) => {
     try {
@@ -78,8 +78,16 @@ router.post(
       return res.status(201).json({ success: true, event });
     } catch (error) {
       console.log("error is: ", error);
+      // ✅ Rollback: delete already-uploaded Cloudinary images using req.files
+      if (req.files && req.files.length > 0) {
+        const publicIds = req.files.map((file) => file.filename);
+        const deleteResults = await deleteImages(publicIds);
+        console.log("Rolled back uploaded images:", deleteResults);
+      }
+
       return res.status(500).json({
         success: false,
+        message: error?.message || "error in Creation of Image!",
         error: "Failed to create event",
         details: error.message,
       });
@@ -175,7 +183,7 @@ router.get("/status-counts", async (req, res) => {
 // Search events by name
 router.get("/search", async (req, res) => {
   const { title } = req.query;
-
+  console.log("title: ", title);
   if (!title || title.trim() === "") {
     return res.status(400).json({
       success: false,
@@ -189,6 +197,9 @@ router.get("/search", async (req, res) => {
           contains: title,
           mode: "insensitive", // Case-insensitive search
         },
+      },
+      include: {
+        images: true, // Include images related to the event
       },
     });
     console.log("events Are: ", events);
