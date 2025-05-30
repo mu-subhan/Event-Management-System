@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
+import profile from "../../assets/profile.png";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 // custom packages
-import { 
-  FaUserShield, 
-  FaHandsHelping, 
-  FaPeopleCarry, 
+import {
+  FaUserShield,
+  FaHandsHelping,
+  FaPeopleCarry,
   FaHandHoldingHeart,
   FaUsers,
-  FaRegHandshake
+  FaRegHandshake,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 
@@ -108,7 +109,7 @@ const Navbar = ({ scroll = true }) => {
     return {
       primary: scrolled ? "text-purple-600" : "text-purple-400",
       secondary: scrolled ? "text-indigo-500" : "text-purple-300",
-      highlight: scrolled ? "text-purple-700" : "text-white"
+      highlight: scrolled ? "text-purple-700" : "text-white",
     };
   };
 
@@ -134,8 +135,10 @@ const Navbar = ({ scroll = true }) => {
               </div> */}
 
               {/* Option 2: Single Elegant Icon */}
-              <FaRegHandshake 
-                className={`h-9 w-9 ${getIconColors().primary} transition-all duration-300 transform group-hover:rotate-12`} 
+              <FaRegHandshake
+                className={`h-9 w-9 ${
+                  getIconColors().primary
+                } transition-all duration-300 transform group-hover:rotate-12`}
               />
 
               {/* Option 3: Community Focus Icon */}
@@ -201,11 +204,17 @@ const Navbar = ({ scroll = true }) => {
               {isLoading ? (
                 "Loading..."
               ) : user ? (
-                <Link to={user.role === "Volunteer" ? "/volunteer/dashboard" : "/admin/dashboard"}>
+                <Link
+                  to={
+                    user.role === "Volunteer"
+                      ? "/volunteer/dashboard"
+                      : "/admin/dashboard"
+                  }
+                >
                   <img
-                    src={user?.profileImage?.url}
-                    className="ml-8 rounded-full transition-all duration-300 transform hover:scale-105 h-10 w-10 cursor-pointer"
-                    alt=""
+                    src={user?.profileImage?.url || profile}
+                    className={`ml-8 rounded-full transition-all duration-300 transform hover:scale-105 h-10 w-10 cursor-pointer ${user?.profileImage?.url}`}
+                    alt="User Profile"
                   />
                 </Link>
               ) : (
@@ -215,7 +224,7 @@ const Navbar = ({ scroll = true }) => {
                   }`}
                   onClick={() => handleRedirect("volunteer")}
                 >
-                   Login
+                  Login
                 </button>
               )}
             </div>

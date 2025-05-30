@@ -258,6 +258,7 @@
 // }
 
 import React, { useState, useEffect } from "react";
+import profile from "../../assets/profile.png";
 import axios from "axios";
 import Spinner from "./Spinner";
 
@@ -498,7 +499,7 @@ function VolunteerCard({ volunteer, assigned, loading, onAssign }) {
   return (
     <div className="flex items-center gap-4 border rounded-lg p-4 shadow-sm">
       <img
-        src={volunteer.picture}
+        src={volunteer?.profileImage?.url || profile}
         alt={volunteer.name}
         className="w-16 h-16 rounded-full object-cover flex-shrink-0"
       />

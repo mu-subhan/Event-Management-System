@@ -515,7 +515,7 @@ router.delete(
         );
       }
 
-      const imageId = user?.avatar?.public_id;
+      const imageId = user?.profileImage?.public_id;
       if (imageId) {
         await cloudinary.v2.uploader.destroy(imageId);
       }
