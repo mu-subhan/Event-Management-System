@@ -138,22 +138,25 @@ router.get("/status-counts", async (req, res) => {
     // Count for UPCOMING events
     const upcomingCount = await prisma.Event.count({
       where: {
-        startTime: { gt: now },
+        // startTime: { gt: now },
+        status: "UPCOMING", // Assuming you want to count only UPCOMING events
       },
     });
 
     // Count for ONGOING events
     const ongoingCount = await prisma.Event.count({
       where: {
-        startTime: { lte: now },
-        endTime: { gte: now },
+        status: "ONGOING", // Assuming you want to count only ONGOING events
+        // startTime: { lte: now },
+        // endTime: { gte: now },
       },
     });
 
     // Count for PAST events
     const pastCount = await prisma.Event.count({
       where: {
-        endTime: { lt: now },
+        status: "COMPLETED", // Assuming you want to count only COMPLETED events
+        // endTime: { lt: now },
       },
     });
 
