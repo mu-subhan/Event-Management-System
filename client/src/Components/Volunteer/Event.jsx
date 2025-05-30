@@ -93,7 +93,7 @@ const Events = () => {
                     <img
                       src={
                         event.images && event.images.length > 0
-                          ? event.images[0]
+                          ? event.images[0].url
                           : fallbackImage
                       }
                       alt={event.title || "Event"}
