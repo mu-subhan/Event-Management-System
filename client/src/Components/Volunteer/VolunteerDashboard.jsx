@@ -17,7 +17,11 @@ const VolunteerDashboard = () => {
 
   const stats = [
     // { title: "Total Hours", value: "50", color: "from-blue-500 to-blue-600" },
-    { title: "Events", value: "10", color: "from-green-500 to-green-600" },
+    {
+      title: "Events",
+      value: user?._count?.roles || 0,
+      color: "from-green-500 to-green-600",
+    },
     {
       title: "Skills",
       value: skillsCount.toString(),

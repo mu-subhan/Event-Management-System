@@ -199,7 +199,7 @@ const ContactSection = () => {
             </span>
           </h2>
           <p className="text-xl text-gray-600">
-            The passionate developers behind Match4Cause
+            The passionate developers behind MatchVolunteers
           </p>
         </div>
 
