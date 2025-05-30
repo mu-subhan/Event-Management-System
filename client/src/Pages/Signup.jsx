@@ -156,6 +156,14 @@ const Signup = () => {
     return true;
   };
 
+  const validateImage = () => {
+    if (!formData.avatar) {
+      toast.error("Profile picture is required");
+      return false;
+    }
+    return true;
+  };
+
   /* ========== FORM HANDLERS ========== */
 
   const handleInputChange = (e) => {
@@ -316,6 +324,11 @@ const Signup = () => {
     }
 
     if (!validateInterests(formData.interest)) {
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (!validateImage()) {
       setIsSubmitting(false);
       return;
     }

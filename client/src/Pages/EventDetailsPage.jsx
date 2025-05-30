@@ -4,8 +4,7 @@ import Layout from "../Components/Shared/Layout";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllEvents } from "../redux/actions/events";
 
-const DUMMY_IMAGE =
-  "https://via.placeholder.com/800x600.png?text=No+Image+Available";
+const DUMMY_IMAGE = "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=2070&auto=format&fit=crop";
 
 const EventDetails = () => {
   const { id } = useParams();
