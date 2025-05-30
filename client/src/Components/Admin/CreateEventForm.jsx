@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FaCalendarAlt,
   FaMapMarkerAlt,
@@ -16,6 +16,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const CreateEventForm = () => {
   // states
+  const [loading, setLoading] = useState(false);
   const [eventData, setEventData] = useState({
     eventName: "",
     eventDate: "",
@@ -40,37 +41,31 @@ const CreateEventForm = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3;
   const [showError, setShowError] = useState(false);
-
-  // const handleChange = (e) => {
-  //   const { name, value, type, files } = e.target;
-  //   if (type === "file") {
-  //     setEventData({ ...eventData, [name]: files[0] });
-  //   } else {
-  //     setEventData({ ...eventData, [name]: value });
-  //   }
-  // };
-  // ...existing code...
-
   const [eventImages, setEventImages] = useState([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState(null);
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    console.log("New files selected:", files); // Log new files
+
+    // Basic file type and size check (e.g., max 5MB)
+    for (const file of files) {
+      if (!file.type.startsWith("image/")) {
+        return alert("Only image files are allowed.");
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        return alert("Each image must be less than 5MB.");
+      }
+    }
 
     if (eventImages.length + files.length > 5) {
       alert("You can only upload up to 5 images.");
       return;
     }
 
-    console.log("Current eventImages before append:", eventImages); // Log current state
-
     setEventImages([...eventImages, ...files]);
-
-    // Optional: Log the expected new state (React state updates are async)
-    console.log("Expected new state:", [...eventImages, ...files]);
   };
+
   const handleDeleteClick = (index) => {
     setImageToDelete(index);
     setIsDeleteModalOpen(true);
@@ -103,7 +98,6 @@ const CreateEventForm = () => {
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
-
     if (name === "startTime" || name === "endTime") {
       const currentTime = new Date();
       const newTime = new Date(value);
@@ -114,6 +108,7 @@ const CreateEventForm = () => {
       const updatedEnd =
         name === "endTime" ? newTime : new Date(eventData.endTime);
 
+      console.log("updatedStart <= currentTime: ", updatedStart <= currentTime);
       // Only validate if both are set and valid
       if (
         updatedStart instanceof Date &&
@@ -126,6 +121,7 @@ const CreateEventForm = () => {
           toast.error("Start time must be greater than the current time.");
           return;
         }
+
         if (updatedEnd <= currentTime) {
           toast.error("End time must be greater than the current time.");
           return;
@@ -240,28 +236,40 @@ const CreateEventForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("handle Submit Run !");
     if (!validateStep()) {
       setShowError(true);
       toast.error("Please fill all required fields");
       return;
     }
+    if (eventImages.length > 5) {
+      return toast.error("You can only upload a maximum of 5 images.");
+    }
+    const formData = new FormData();
+    formData.append("title", eventData.eventName);
+    formData.append("description", eventData.eventDescription);
+    formData.append("location", eventData.location);
+    formData.append("startTime", eventData.startTime);
+    formData.append("endTime", eventData.endTime);
 
-    const payload = {
-      title: eventData.eventName,
-      description: eventData.eventDescription,
-      startTime: eventData.startTime,
-      endTime: eventData.endTime,
-      location: eventData.location,
-      role: eventData?.roles,
-    };
-    console.log("payload is: ", payload);
+    // Append roles as JSON string
+    formData.append("role", JSON.stringify(eventData?.roles || []));
+
+    // Append image files
+    eventImages.forEach((file, index) => {
+      formData.append("images", file); // Or: formData.append(`image_${index}`, file)
+    });
+
     try {
+      setLoading(true);
       const { data } = await axios.post(
         `${process.env.REACT_APP_SERVER}/api/event/create-event`,
-        payload,
-        { withCredentials: true }
+        formData,
+        { withCredentials: true },
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
       );
+
       console.log("data of craete event is: ", data);
       if (data.success) {
         toast.success("Event created successfully!");
@@ -278,12 +286,16 @@ const CreateEventForm = () => {
           roles: null,
           testval: null,
         });
+        setEventImages([]);
+        window.location.href = "/admin/event-list";
       } else {
-        toast.error("Error creating event");
+        toast.error(data?.message || "Error in Creating Event");
       }
+      setLoading(false);
     } catch (error) {
-      console.error("Error:", error.response?.data || error.message);
+      console.log("Error:", error.response?.data || error.message);
       toast.error(error.response?.data?.message || "Error creating event");
+      setLoading(false);
     }
   };
 
@@ -788,6 +800,7 @@ const CreateEventForm = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="px-4 py-2 sm:px-5 sm:py-2.5 bg-indigo-600 text-white rounded-md sm:rounded-lg hover:bg-indigo-700 transition-colors shadow-md text-sm sm:text-base"
+                  disabled={loading}
                 >
                   Create Event
                 </motion.button>

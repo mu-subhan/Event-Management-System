@@ -113,7 +113,7 @@ const EventListingPage = () => {
                       {/* Event Image */}
                       <div className="h-48 overflow-hidden">
                         <motion.img
-                          src={event.image}
+                          src={event.images.length > 0 && event.images[0].url}
                           alt={event.title}
                           className="w-full h-full object-cover"
                           animate={{

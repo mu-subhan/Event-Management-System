@@ -1,5 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { Link, Route, Routes, useLocation } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Link,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+import profile from "../../assets/profile.png";
+import defaultEvent from "../../assets/default-event.png";
 import EventList from "./EventList";
 import RoleSuggestionPanel from "./RoleSuggestionPanel";
 import {
@@ -15,7 +23,7 @@ import {
   FaHandshake,
   FaChartLine,
   FaLightbulb,
-  FaUsers
+  FaUsers,
 } from "react-icons/fa";
 // import userImage from "../../Assessts/subhanImage.png";
 import CreateEventPage from "../ui/CreatetesEvent";
@@ -24,6 +32,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getAllUsers } from "../../redux/actions/user";
 import { motion } from "framer-motion";
 import Spinner from "../Shared/Spinner";
+import axios from "axios";
 
 const AdminDashboard = () => {
   const location = useLocation();
@@ -31,6 +40,11 @@ const AdminDashboard = () => {
   const { roleCounts, user } = useSelector((state) => state.user);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const timeoutRef = useRef(null);
+  const navigate = useNavigate();
 
   const dispatch = useDispatch();
   useEffect(() => {
@@ -42,6 +56,40 @@ const AdminDashboard = () => {
   }, [roleCounts]);
   const getCountByStatus = (status) => {
     return eventsCount?.find((item) => item.status === status)?.count || 0;
+  };
+  useEffect(() => {
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
+
+    // Debounced search
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      axios
+        .get(
+          `${
+            process.env.REACT_APP_SERVER
+          }/api/event/search/?title=${encodeURIComponent(query)}`
+        )
+        .then((res) => {
+          setResults(res.data.events || []);
+          setShowDropdown(true);
+        })
+        .catch((err) => {
+          console.error("Search error:", err);
+          setResults([]);
+        });
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutRef.current);
+  }, [query]);
+
+  const handleSelect = (id) => {
+    setQuery("");
+    setResults([]);
+    setShowDropdown(false);
+    navigate(`/admin/event/${id}/edit`);
   };
 
   const toggleCreateEvent = () => {
@@ -82,16 +130,44 @@ const AdminDashboard = () => {
                   type="text"
                   className="block w-40 md:w-64 pl-10 pr-3 py-2 border border-gray-300 rounded-full bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200"
                   placeholder="Search..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
                 />
+                {true && results.length > 0 && (
+                  <div className="absolute z-10 mt-2 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-y-auto">
+                    {results.map((event) => (
+                      <div
+                        key={event.id}
+                        className="flex items-center p-3 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleSelect(event?.id)}
+                      >
+                        <img
+                          src={event.images?.[0]?.url || defaultEvent}
+                          alt={event.title}
+                          className="w-16 h-16 object-cover rounded-md mr-4"
+                        />
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-800">
+                            {event?.title}
+                          </h4>
+                          <p className="text-xs text-gray-600 line-clamp-2">
+                            {event?.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               {/* <button className="p-2 relative rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
                 <FaBell className="h-5 w-5" />
                 <span className="absolute top-0 right-0 h-3 w-3 bg-red-500 rounded-full"></span>
               </button> */}
+
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-3">
                   <img
-                    src={user?.profileImage?.url}
+                    src={user?.profileImage?.url || profile}
                     className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-blue-500"
                     alt="Admin"
                   />
@@ -278,31 +354,47 @@ const AdminDashboard = () => {
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="p-4 bg-gray-50 rounded-lg">
-                        <h4 className="font-medium text-gray-800 mb-2">Intelligent Skill Analysis</h4>
+                        <h4 className="font-medium text-gray-800 mb-2">
+                          Intelligent Skill Analysis
+                        </h4>
                         <p className="text-gray-600 text-sm">
-                          Our ML algorithms analyze volunteer profiles and skills to identify the best matches for each event role, ensuring optimal team composition.
+                          Our ML algorithms analyze volunteer profiles and
+                          skills to identify the best matches for each event
+                          role, ensuring optimal team composition.
                         </p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg">
-                        <h4 className="font-medium text-gray-800 mb-2">Role-Based Matching</h4>
+                        <h4 className="font-medium text-gray-800 mb-2">
+                          Role-Based Matching
+                        </h4>
                         <p className="text-gray-600 text-sm">
-                          Advanced pattern recognition to match volunteers with roles that best suit their experience and expertise levels.
+                          Advanced pattern recognition to match volunteers with
+                          roles that best suit their experience and expertise
+                          levels.
                         </p>
                       </div>
                     </div>
                     <div className="p-4 bg-purple-50 rounded-lg">
-                      <h4 className="font-medium text-gray-800 mb-2">How It Works</h4>
+                      <h4 className="font-medium text-gray-800 mb-2">
+                        How It Works
+                      </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
                         <div className="text-sm text-gray-600">
-                          <span className="block text-purple-600 font-medium mb-1">1. Profile Analysis</span>
+                          <span className="block text-purple-600 font-medium mb-1">
+                            1. Profile Analysis
+                          </span>
                           Processes volunteer profiles and skills
                         </div>
                         <div className="text-sm text-gray-600">
-                          <span className="block text-purple-600 font-medium mb-1">2. Skill Mapping</span>
+                          <span className="block text-purple-600 font-medium mb-1">
+                            2. Skill Mapping
+                          </span>
                           Maps skills to event requirements
                         </div>
                         <div className="text-sm text-gray-600">
-                          <span className="block text-purple-600 font-medium mb-1">3. Match Generation</span>
+                          <span className="block text-purple-600 font-medium mb-1">
+                            3. Match Generation
+                          </span>
                           Generates optimal volunteer-role matches
                         </div>
                       </div>
@@ -326,7 +418,9 @@ const AdminDashboard = () => {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-medium text-gray-800 mb-2">Time Efficiency</h4>
+                      <h4 className="font-medium text-gray-800 mb-2">
+                        Time Efficiency
+                      </h4>
                       <ul className="text-sm text-gray-600 space-y-2">
                         <li>• Automated volunteer matching</li>
                         <li>• Quick role assignments</li>
@@ -334,7 +428,9 @@ const AdminDashboard = () => {
                       </ul>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-medium text-gray-800 mb-2">Better Outcomes</h4>
+                      <h4 className="font-medium text-gray-800 mb-2">
+                        Better Outcomes
+                      </h4>
                       <ul className="text-sm text-gray-600 space-y-2">
                         <li>• Higher volunteer satisfaction</li>
                         <li>• Improved event success rates</li>
@@ -359,19 +455,25 @@ const AdminDashboard = () => {
                   </h3>
                   <div className="space-y-4">
                     <div className="p-3 bg-gray-50 rounded-lg">
-                      <h4 className="font-medium text-gray-800 mb-1">Match Accuracy</h4>
+                      <h4 className="font-medium text-gray-800 mb-1">
+                        Match Accuracy
+                      </h4>
                       <p className="text-sm text-gray-600">
                         Precision in matching volunteers to suitable roles
                       </p>
                     </div>
                     <div className="p-3 bg-gray-50 rounded-lg">
-                      <h4 className="font-medium text-gray-800 mb-1">Processing Speed</h4>
+                      <h4 className="font-medium text-gray-800 mb-1">
+                        Processing Speed
+                      </h4>
                       <p className="text-sm text-gray-600">
                         Quick and efficient volunteer assignment
                       </p>
                     </div>
                     <div className="p-3 bg-gray-50 rounded-lg">
-                      <h4 className="font-medium text-gray-800 mb-1">Role Coverage</h4>
+                      <h4 className="font-medium text-gray-800 mb-1">
+                        Role Coverage
+                      </h4>
                       <p className="text-sm text-gray-600">
                         Optimal distribution of volunteer skills
                       </p>
@@ -395,8 +497,12 @@ const AdminDashboard = () => {
                       className="flex items-center justify-between p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors"
                     >
                       <div>
-                        <span className="text-sm font-medium text-purple-700">Event Creation</span>
-                        <p className="text-xs text-purple-600 mt-1">Set up new volunteer opportunities</p>
+                        <span className="text-sm font-medium text-purple-700">
+                          Event Creation
+                        </span>
+                        <p className="text-xs text-purple-600 mt-1">
+                          Set up new volunteer opportunities
+                        </p>
                       </div>
                       <FaPlus className="text-purple-700" />
                     </Link>
@@ -405,8 +511,12 @@ const AdminDashboard = () => {
                       className="flex items-center justify-between p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
                     >
                       <div>
-                        <span className="text-sm font-medium text-blue-700">Volunteer Database</span>
-                        <p className="text-xs text-blue-600 mt-1">Access volunteer profiles and history</p>
+                        <span className="text-sm font-medium text-blue-700">
+                          Volunteer Database
+                        </span>
+                        <p className="text-xs text-blue-600 mt-1">
+                          Access volunteer profiles and history
+                        </p>
                       </div>
                       <FaUsers className="text-blue-700" />
                     </Link>
