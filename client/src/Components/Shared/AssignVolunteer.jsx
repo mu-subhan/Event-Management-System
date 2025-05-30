@@ -326,7 +326,7 @@ export default function VolunteerAssignPopup({
         setSuggestedLoading(false);
       }
     };
-
+    // if (setSuggestedVolunteers?.length === 0)
     fetchSuggested();
   }, [roleId, isOpen, volunteers]);
 
