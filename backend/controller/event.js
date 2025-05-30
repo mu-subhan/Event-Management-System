@@ -175,7 +175,6 @@ router.get("/status-counts", async (req, res) => {
 // Search events by name
 router.get("/search", async (req, res) => {
   const { title } = req.query;
-  console.log("titlr is: ", title);
 
   if (!title || title.trim() === "") {
     return res.status(400).json({
@@ -239,23 +238,29 @@ router.get("/:id", async (req, res) => {
 router.put("/:id", eventValidator.updateEventValidation, async (req, res) => {
   try {
     const now = new Date();
-    if (
-      (req.body.startTime && now < new Date(req.body.startTime)) ||
-      new Date(req.body.endTime) < new Date(req.body.startTime)
-    ) {
-      return res.status(400).send({ success: false, message: "Invalid Time" });
+    const startTime = new Date(req.body.startTime);
+    const endTime = new Date(req.body.endTime);
+    console.log("startTime is: ", startTime);
+    console.log("endTime is: ", endTime);
+    console.log("now is: ", now);
+    if (!startTime || !endTime || startTime >= endTime) {
+      return res
+        .status(400)
+        .send({ success: false, message: "Invalid time range." });
+    }
+    if (endTime < now) {
+      return res
+        .status(400)
+        .send({ success: false, message: "Event has already ended." });
     }
 
     let status = "UPCOMING";
-    if (
-      req.body.startTime &&
-      req.body.endTime &&
-      now >= new Date(req.body.startTime) &&
-      now < new Date(req.body.endTime)
-    ) {
+    let isPass = false;
+    if (startTime && endTime && now >= startTime && now < endTime) {
       status = "ONGOING";
-    } else if (req.body.endTime && now >= new Date(req.body.endTime)) {
+    } else if (endTime && now >= endTime) {
       status = "COMPLETED";
+      isPass = true;
     }
 
     // const event = await prisma.Event.update({
@@ -268,6 +273,10 @@ router.put("/:id", eventValidator.updateEventValidation, async (req, res) => {
       where: { id: req.params.id },
       data: {
         ...eventData,
+        startTime,
+        endTime,
+        status,
+        isPass,
         // Update each role individually
         role: {
           update: roleUpdates.map((r) => ({
