@@ -4,7 +4,7 @@ import { User } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { useSelector } from "react-redux";
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff } from "lucide-react";
 
 const Signup = () => {
   // Static options for dropdowns
@@ -71,30 +71,32 @@ const Signup = () => {
   };
 
   const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast.error("Please enter a valid email address");
+    const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    if (!gmailRegex.test(email)) {
+      toast.error("Please enter a valid Gmail address");
       return false;
     }
     return true;
   };
 
   const validatePassword = (password) => {
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-  
+    const passwordRegex =
+      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
     if (!password || password.length < 8) {
       toast.error("Password must be at least 8 characters long.");
       return false;
     }
-  
+
     if (!passwordRegex.test(password)) {
-      toast.error("Password must contain letters, numbers, and special characters.");
+      toast.error(
+        "Password must contain letters, numbers, and special characters."
+      );
       return false;
     }
-  
+
     return true;
   };
-  
 
   const validatePasswordMatch = (password, confirmPassword) => {
     if (password !== confirmPassword) {
@@ -523,51 +525,56 @@ const Signup = () => {
             </div>
 
             {/* Password */}
-<div className="mb-6 relative">
-  <label className="block text-lg font-medium text-gray-700 mb-2" htmlFor="password">
-    Password <span className="text-red-500">*</span>
-  </label>
-  <input
-    type={showPassword ? "text" : "password"}
-    id="password"
-    name="password"
-    className="w-full p-3 pr-10 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-    placeholder="Enter your password (min 8 characters)"
-    value={formData.password}
-    onChange={handleInputChange}
-    required
-  />
-  <span
-    className="absolute right-3 top-[74%] transform -translate-y-1/2 cursor-pointer text-gray-900"
-    onClick={() => setShowPassword(!showPassword)}
-  >
-    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-  </span>
-</div>
+            <div className="mb-6 relative">
+              <label
+                className="block text-lg font-medium text-gray-700 mb-2"
+                htmlFor="password"
+              >
+                Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                className="w-full p-3 pr-10 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                placeholder="Enter your password (min 8 characters)"
+                value={formData.password}
+                onChange={handleInputChange}
+                required
+              />
+              <span
+                className="absolute right-3 top-[74%] transform -translate-y-1/2 cursor-pointer text-gray-900"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </span>
+            </div>
 
-{/* Confirm Password Field */}
-<div className="mb-6 relative">
-  <label className="block text-lg font-medium text-gray-700 mb-2" htmlFor="confirmPassword">
-    Confirm Password <span className="text-red-500">*</span>
-  </label>
-  <input
-    type={showConfirmPassword ? "text" : "password"}
-    id="confirmPassword"
-    name="confirmPassword"
-    className="w-full p-3 pr-10 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-    placeholder="Confirm your password"
-    value={formData.confirmPassword}
-    onChange={handleInputChange}
-    required
-  />
-  <span
-    className="absolute right-3 top-[74%] transform -translate-y-1/2 cursor-pointer text-gray-900"
-    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-  >
-    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-  </span>
-</div>
-
+            {/* Confirm Password Field */}
+            <div className="mb-6 relative">
+              <label
+                className="block text-lg font-medium text-gray-700 mb-2"
+                htmlFor="confirmPassword"
+              >
+                Confirm Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                name="confirmPassword"
+                className="w-full p-3 pr-10 mt-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
+                placeholder="Confirm your password"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                required
+              />
+              <span
+                className="absolute right-3 top-[74%] transform -translate-y-1/2 cursor-pointer text-gray-900"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </span>
+            </div>
 
             {/* Experience */}
             <div className="mb-6">

@@ -198,10 +198,36 @@ router.get(
       if (!req.user) {
         return next(new ErrorHandler("User doesn't exists", 400));
       }
+      const userWithCounts = await prisma.user.findUnique({
+        where: { id: req.user.id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          contactNumber: true,
+          role: true,
+          skills: true,
+          interests: true,
+          experienceYears: true,
+          profileImage: true,
+          description: true,
+          createdAt: true,
+          updatedAt: true,
+          _count: {
+            select: {
+              events: true, // count of events user manages
+              roles: true, // count of roles user has
+            },
+          },
+        },
+      });
+      if (!userWithCounts) {
+        return next(new ErrorHandler("User doesn't exist", 400));
+      }
 
       res.status(200).json({
         success: true,
-        user: req.user,
+        user: userWithCounts,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
