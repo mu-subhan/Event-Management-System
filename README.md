@@ -44,6 +44,37 @@ Make sure your system has:
    * npm install
      
 ## i. Create .env file in backend folder
+user=user_name
+password=user_password
+CLOUDINARY_CLOUD_NAME=cloudry name
+CLOUDINARY_API_KEY=Cloudinary_api_key
+CLOUDINARY_API_SECRET=cloudinary_secret_key
+PORT=3001
+frontendUrl=http://localhost:3000 // frontend url
+ACTIVATION_SECRET=your_activation_key
+JWT_SECRET_KEY=your_secret_key
+email=your_email
+ADMIN_EMAIL=Admin_email
+SMPT_MAIL=your_smpt_email
+SMPT_PASSWORD=your_smpt_password
+SMPT_HOST=smtp.gmail.com
+SMPT_PORT=your_smtp_port
+SMPT_SERVICE=gmail
+DEBUG=true
+DB_NAME=your_db_name
+
+# This was inserted by prisma init:
+
+# Environment variables declared in this file are automatically made available to Prisma.
+
+# See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
+
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
+
+# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+
+DATABASE_URL= your_db_URL
+
 
 ## ii. Generate Prisma files:
 
@@ -89,13 +120,18 @@ Make sure your system has:
 
 # Backend
 -->  npm install
+
 -->  npx prisma generate
+
 -->  npx prisma migrate dev --name init
+
 -->  npm run dev
 
 # Frontend
 -->  cd frontend
+
 -->  npm install
+
 -->  npm start
 
 # 📞 Questions or Issues?
