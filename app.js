@@ -55,5 +55,13 @@ app.post("/create-event", (req, res) => {
 
 // it's for ErrorHandling
 app.use(ErrorHandler);
+const path = require("path");
+
+// Serve React frontend
+app.use(express.static(path.join(__dirname, "./client/build")));
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "./client/build/index.html"));
+});
 
 module.exports = app;

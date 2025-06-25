@@ -1,7 +1,7 @@
 const app = require("./app");
 const cloudinary = require("cloudinary");
 const dotenv = require("dotenv");
-dotenv.config();
+dotenv.config({ path: "config/.env" });
 // connection with db
 const connecttoDB = require("./db/Database");
 connecttoDB();
@@ -39,3 +39,4 @@ process.on("unhandledRejection", (err) => {
     process.exit(1);
   });
 });
+setInterval(() => {}, 5000); // Keeps app alive for debugging

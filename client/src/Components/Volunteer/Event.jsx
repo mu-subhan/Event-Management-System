@@ -33,7 +33,6 @@ const Events = () => {
 
   // Display only first 4 events if not showing all
   const displayedEvents = showAll ? events : events.slice(0, 4);
-
   if (isLoading) {
     return (
       <div className="col-span-2 text-center py-8">

@@ -3,10 +3,24 @@
   "version": "1.0.0",
   "description": "This backend is created for specially our Final Year Project of event Managment",
   "main": "index.js",
+  "bin": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
     "studio": "prisma studio",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "pkg": {
+    "assets": [
+      "client/build/**/*",
+      "config/.env",
+      "controller/**/*",
+      "middleware/**/*",
+      "routes/**/*",
+      "db/**/*",
+      "prisma/**/*",
+      "node_modules/.prisma/client/query_engine-windows.dll.node",
+      "node_modules/@prisma/client/**/*"
+    ]
   },
   "prisma": {
     "seed": "node prisma/seed.js"
